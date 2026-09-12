@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #0b1426;
+  --card: #111e33;
+  --gold: #facc15;
+}
+
+html, body { height: 100%; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #060b16;
+  color: #e5e9f2;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+.av-card {
+  background: linear-gradient(180deg, #13213a 0%, #0d1729 100%);
+  border: 1px solid rgba(148, 178, 255, 0.14);
+  border-radius: 14px;
+}
+.av-gold { color: var(--gold); }
+.av-btn-red {
+  background: linear-gradient(90deg, #ff3b3b, #ff7a18);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.av-btn-yellow {
+  background: #facc15;
+  color: #111;
+  border-radius: 10px;
+  font-weight: 800;
+}
+.av-input {
+  width: 100%;
+  background: #0a1322;
+  border: 1px solid rgba(148, 178, 255, 0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  outline: none;
+}
+.av-input:focus { border-color: #facc15; }
+.av-table { width: 100%; font-size: 13px; }
+.av-table th { color: #9fb0cc; font-weight: 600; text-align: left; padding: 10px; }
+.av-table td { padding: 10px; border-top: 1px solid rgba(148,178,255,.12); }
+.hero-plane {
+  background:
+    radial-gradient(600px 200px at 80% 20%, rgba(255, 59, 59, 0.25), transparent),
+    radial-gradient(500px 220px at 20% 90%, rgba(56, 189, 248, 0.18), transparent),
+    linear-gradient(180deg, #101d33, #080f1f);
+}
+.live-pill {
+  background: #5eead4;
+  color: #06281f;
+  font-weight: 800;
+  font-size: 12px;
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  background: rgba(6, 11, 22, 0.96);
+  border-top: 1px solid rgba(148,178,255,.15);
+  backdrop-filter: blur(8px);
+}
+.section-title { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; }
+.red { color: #ff2d2d; }
+.mint { color: #5eead4; }
+.progress {
+  margin-top: 8px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(148, 178, 255, 0.12);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff3b3b, #facc15, #5eead4);
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.7);
+  transition: width 0.6s ease;
+}
+.done-badge {
+  display: inline-block;
+  background: #5eead4;
+  color: #06281f;
+  font-size: 11px;
+  font-weight: 900;
+  border-radius: 8px;
+  padding: 2px 10px;
+  box-shadow: 0 0 10px rgba(94, 234, 212, 0.6);
+}

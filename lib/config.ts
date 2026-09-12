@@ -1,0 +1,89 @@
+// Single source of truth – PRD v1.0 (PDF values).
+// Custom client logic: NO real Aviator game; fake trading screen is visual only.
+// Daily income is FIXED 1% of total active investment via daily cron (bets don't change it).
+
+export const BOT_PLANS = [
+  { id: "conservative", name: "Conservative Plan", min: 10, max: 5099, dailyPct: 5, color: "green" },
+  { id: "balanced", name: "Balanced Plan", min: 5100, max: 10999, dailyPct: 6, color: "gold" },
+  { id: "aggressive", name: "Aggressive Plan", min: 11000, max: 100000, dailyPct: 8, color: "red" },
+] as const;
+
+// PRD 3.6 – PDF 10-Level ROI Income
+export const ROI_LEVELS = [6, 3, 2, 2, 1, 1, 1, 1, 1, 1];
+// PRD 3.6 – PDF 5-Level First Recharge Income (one time, first recharge only)
+export const FIRST_RECHARGE_LEVELS = [5, 2, 1, 1, 1];
+
+export const BUSINESS_RULES = {
+  // Custom logic: fixed daily ROI credited by cron, regardless of bets placed
+  dailyFixedPct: 1,
+  // Fake-trading visual: max bets per day (visual only, no ROI effect)
+  dailyRunLimit: 10,
+  botRoundsPerDay: "6 - 7 / day",
+  withdrawalChargePct: 10,
+  minWithdrawal: 2,
+  minInvestment: 10,
+  // PDF 3X income capping
+  incomeCapX: 3,
+  botValidityDays: 365,
+  withdrawalWindowIST: "7:00 AM - 10:00 AM",
+  cryptoGateway: "Enabled / USDTBSC",
+  aiHelpDesk: "Enabled",
+};
+
+// Admin-editable settings (DB table `settings`, seeded from here)
+export const DEFAULT_SETTINGS: Record<string, string> = {
+  minDeposit: "10",
+  minWithdrawal: "2",
+  withdrawalChargePct: "10",
+  roiPct: "1",
+  withdrawStartIST: "07:00",
+  withdrawEndIST: "10:00",
+  maintenanceMode: "off",
+  depositAddress: process.env.BEP20_DEPOSIT_ADDRESS || "0xYOURBEP20ADDRESSHERE",
+  smtpHost: "",
+  smtpPort: "465",
+  smtpUser: "",
+  smtpPass: "",
+};
+
+export type Milestone = { tier: number; name: string; self: number; team: number; wallet: number };
+export const MILESTONES: Milestone[] = [
+  { tier: 1, name: "Bronze Flight Reward", self: 100, team: 5000, wallet: 100 },
+  { tier: 2, name: "Silver Flight Reward", self: 250, team: 15000, wallet: 250 },
+  { tier: 3, name: "Gold Flight Reward", self: 500, team: 50000, wallet: 500 },
+  { tier: 4, name: "Platinum Flight Reward", self: 1000, team: 100000, wallet: 1000 },
+  { tier: 5, name: "Diamond Flight Reward", self: 5000, team: 250000, wallet: 2000 },
+  { tier: 6, name: "Captain Club Reward", self: 10000, team: 500000, wallet: 3500 },
+  { tier: 7, name: "Sky Commander Reward", self: 15000, team: 750000, wallet: 5000 },
+  { tier: 8, name: "Aviator Star Reward", self: 20000, team: 1000000, wallet: 7500 },
+  { tier: 9, name: "Runway Leader Reward", self: 30000, team: 1500000, wallet: 10000 },
+  { tier: 10, name: "Flight Mentor Reward", self: 40000, team: 2000000, wallet: 15000 },
+  { tier: 11, name: "Jet Stream Reward", self: 50000, team: 3000000, wallet: 24000 },
+  { tier: 12, name: "Elite Pilot Reward", self: 75000, team: 4000000, wallet: 25000 },
+  { tier: 13, name: "Airline Builder Reward", self: 100000, team: 5000000, wallet: 36000 },
+  { tier: 14, name: "Turbo Team Reward", self: 125000, team: 6500000, wallet: 40000 },
+  { tier: 15, name: "Cloud Champion Reward", self: 150000, team: 8000000, wallet: 50000 },
+  { tier: 16, name: "Global Aviator Reward", self: 200000, team: 12000000, wallet: 75000 },
+  { tier: 17, name: "Supreme Capital Reward", self: 250000, team: 12500000, wallet: 100000 },
+  { tier: 18, name: "Royal Fleet Reward", self: 300000, team: 15000000, wallet: 150000 },
+  { tier: 19, name: "Legend Aviator Reward", self: 500000, team: 20000000, wallet: 200000 },
+  { tier: 20, name: "Crown Aviator Reward", self: 1000000, team: 50000000, wallet: 500000 },
+];
+
+// 100 Indian names for the fake-trading live activity feed
+export const FEED_NAMES = [
+  "Rahul Sharma", "Priya Singh", "Amit Verma", "Neha Gupta", "Vikram Patel", "Anjali Mehta", "Rohit Kumar", "Sneha Reddy", "Arjun Nair", "Kavya Iyer",
+  "Suresh Yadav", "Pooja Mishra", "Karan Malhotra", "Divya Nair", "Manish Tiwari", "Ritu Agarwal", "Sanjay Rao", "Meera Joshi", "Vikas Chauhan", "Anita Desai",
+  "Rajesh Khanna", "Sunita Devi", "Deepak Saini", "Komal Rathore", "Nitin Bansal", "Shweta Pandey", "Gaurav Jain", "Nisha Kaur", "Pankaj Tripathi", "Rekha Menon",
+  "Ajay Thakur", "Simran Gill", "Harish Bhatt", "Lakshmi Venkat", "Manoj Dubey", "Tara Chandran", "Varun Kapoor", "Ishita Bose", "Kunal Shah", "Radhika Pillai",
+  "Sandeep Goyal", "Geeta Rawat", "Ashish Kulkarni", "Farah Khan", "Imran Sheikh", "Zoya Ansari", "Ramesh Iyer", "Usha Nambiar", "Kiran Bedi", "Mohit Sharma",
+  "Jyoti Prasad", "Sahil Arora", "Naina Kapoor", "Devendra Fadnavis", "Aarav Patel", "Diya Menon", "Yash Thakur", "Ira Sharma", "Aditya Rao", "Myra Gupta",
+  "Kabir Singh", "Aanya Verma", "Vivaan Reddy", "Sara Ali", "Arnav Mishra", "Navya Nair", "Krishna Yadav", "Anaya Pandey", "Ishaan Jain", "Pari Kaur",
+  "Rudra Tripathi", "Saanvi Bose", "Atharv Shah", "Kiara Pillai", "Ayaan Goyal", "Aadhya Rawat", "Vihaan Kulkarni", "Aarohi Menon", "Dhruv Dubey", "Prisha Bhatt",
+  "Kabir Malhotra", "Zara Khan", "Reyansh Agarwal", "Veda Joshi", "Yuvaan Chauhan", "Anika Desai", "Advait Rao", "Navya Devi", "Krish Saini", "Myra Rathore",
+  "Shaan Bansal", "Ira Pandey", "Veer Jain", "Siya Kaur", "Arham Tripathi", "Drishti Menon", "Neil Thakur", "Aisha Gill", "Ryan Bhatt", "Tara Venkat",
+];
+
+export function planForAmount(amount: number) {
+  return BOT_PLANS.find((p) => amount >= p.min && amount <= p.max) ?? null;
+}
