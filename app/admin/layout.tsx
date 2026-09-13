@@ -20,7 +20,14 @@ async function getAdminUser() {
       args: [payload.uid as string],
     });
     if (r.rows.length === 0) return null;
-    return r.rows[0] as unknown as { id: string; name: string; email: string; referral_code: string; is_admin: number };
+    const row = r.rows[0] as unknown as { id: unknown; name: unknown; email: unknown; referral_code: unknown; is_admin: unknown };
+    return {
+      id: String(row.id ?? ""),
+      name: String(row.name ?? ""),
+      email: String(row.email ?? ""),
+      referral_code: String(row.referral_code ?? ""),
+      is_admin: Number(row.is_admin ?? 0),
+    };
   } catch {
     return null;
   }
