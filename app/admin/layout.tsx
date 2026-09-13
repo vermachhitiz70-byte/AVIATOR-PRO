@@ -32,11 +32,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <NotificationProvider>
-      <div className="flex min-h-screen bg-[#0b0f19] text-white">
+      <div className="flex min-h-screen bg-[#faf6ee] text-gray-900">
         <AdminSidebar admin={admin} />
-        <div className="flex flex-1 flex-col lg:ml-64">
+        <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
           <AdminTopBar admin={admin} />
-          <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
         </div>
       </div>
     </NotificationProvider>

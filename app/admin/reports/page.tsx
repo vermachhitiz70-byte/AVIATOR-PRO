@@ -2,8 +2,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/admin";
 import { StatCard } from "@/components/admin/StatCard";
-import { Search, ChevronDown, Download } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { BTN_PRIMARY, CARD, INPUT, fmtUSD } from "@/components/admin/ui";
+import { Download, Users, Wallet, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type ReportData = {
   ok: boolean;
@@ -29,8 +30,6 @@ type ReportTab = typeof TAB_OPTIONS[number];
 export default function AdminReportsPage() {
   const [data, setData] = useState<ReportData | null>(null);
   const [tableRows, setTableRows] = useState<ReportRow[]>([]);
-  const [trends, setTrends] = useState<{ date: string; deposits: number; withdrawals: number }[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -40,133 +39,109 @@ export default function AdminReportsPage() {
   const [detailTotal, setDetailTotal] = useState(0);
 
   const loadReport = useCallback(async () => {
-    setLoading(true);
     setError("");
     const params = new URLSearchParams();
     if (from) params.set("from", from);
     if (to) params.set("to", to);
     const r = await fetch(`/api/admin/reports?${params}`, { credentials: "include" });
     const j = await r.json();
-    if (!r.ok || j.error) { setError(j.error || "Failed"); setLoading(false); return; }
+    if (!r.ok || j.error) { setError(j.error || "Failed"); return; }
     setData(j);
-    const days = from && to ? Math.max(1, Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000)) : 7;
-    const totalDep = j.totalInvestment || 0;
-    const totalWdr = j.totalWithdrawal || 0;
-    const trendData = Array.from({ length: Math.min(days, 30) }).map((_, i) => ({
-      date: new Date(from || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      deposits: Math.round((totalDep / Math.max(1, days)) * (0.7 + Math.random() * 0.6)),
-      withdrawals: Math.round((totalWdr / Math.max(1, days)) * (0.7 + Math.random() * 0.6)),
-    }));
-    setTrends(trendData);
-    setLoading(false);
   }, [from, to]);
 
   useEffect(() => { loadReport(); }, [loadReport]);
 
-  async function loadDetailTable(tab: ReportTab) {
-    setLoading(true);
+  const loadDetailTable = useCallback(async () => {
     const params = new URLSearchParams({ detail: "1", page: String(detailPage), limit: String(detailLimit) });
     if (from) params.set("from", from);
     if (to) params.set("to", to);
-    const r = await fetch(`/api/admin/reports?export=${tab}&${params}`, { credentials: "include" });
+    const r = await fetch(`/api/admin/reports?export=${activeTab}&${params}`, { credentials: "include" });
     const j = await r.json();
     if (j.rows) { setTableRows(j.rows); setDetailTotal(j.total || j.rows.length); }
-    setLoading(false);
-  }
+  }, [activeTab, detailPage, detailLimit, from, to]);
 
-  useEffect(() => { loadDetailTable(activeTab); }, [activeTab, detailPage, detailLimit]);
+  useEffect(() => { loadDetailTable(); }, [loadDetailTable]);
 
-  const stats = [
-    { title: "Total Users", value: data?.users ?? 0, prefix: "", icon: undefined },
-    { title: "New Users (Period)", value: data?.todayUsers ?? 0, prefix: "", icon: undefined },
-    { title: "Total Investment", value: data?.totalInvestment ?? 0, prefix: "$", icon: undefined },
-    { title: "Investment (Period)", value: data?.periodInvestment ?? 0, prefix: "$", icon: undefined },
-    { title: "Total Withdrawals", value: data?.totalWithdrawal ?? 0, prefix: "$", icon: undefined },
-    { title: "Withdrawals (Period)", value: data?.periodWithdrawal ?? 0, prefix: "$", icon: undefined },
-    { title: "ROI Paid", value: data?.roiPaid ?? 0, prefix: "$", icon: undefined },
-    { title: "Commission Paid", value: data?.commissionPaid ?? 0, prefix: "$", icon: undefined },
-    { title: "Pending Deposits", value: data?.pendingDeposits ?? 0, prefix: "", icon: undefined },
-    { title: "Pending Withdrawals", value: data?.pendingWithdrawals ?? 0, prefix: "", icon: undefined },
+  const chartData = [
+    { name: "Investment", amount: data?.totalInvestment ?? 0 },
+    { name: "Withdrawals", amount: data?.totalWithdrawal ?? 0 },
+    { name: "ROI Paid", amount: data?.roiPaid ?? 0 },
+    { name: "Commission", amount: data?.commissionPaid ?? 0 },
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-2xl font-black">Reports</h2>
-        <p className="text-sm text-slate-400">Platform analytics and reports</p>
+        <h1 className="font-serif text-3xl font-bold text-gray-900">Reports</h1>
+        <p className="mt-1 text-sm text-gray-500">Platform analytics with date filtering and CSV export</p>
       </div>
 
-      <div className="av-card p-4">
+      <div className={`${CARD} p-4`}>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400">From:</label>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="av-input w-auto text-xs" />
+            <label className="text-xs font-semibold text-gray-500">From</label>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={`${INPUT} w-auto text-xs`} />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400">To:</label>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="av-input w-auto text-xs" />
+            <label className="text-xs font-semibold text-gray-500">To</label>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={`${INPUT} w-auto text-xs`} />
           </div>
-          <button onClick={loadReport} className="av-btn-yellow rounded-lg px-4 py-2 text-xs">Refresh</button>
+          <button onClick={() => { loadReport(); setDetailPage(1); }} className={`${BTN_PRIMARY} px-5 py-2 text-xs`}>Apply Filter</button>
+          {(from || to) && <button onClick={() => { setFrom(""); setTo(""); }} className="text-xs font-semibold text-gray-500 hover:text-gray-800">Clear</button>}
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</p>}
 
-      {loading && !data ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-          {Array.from({ length: 10 }).map((_, i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-white/5" />)}
-        </div>
-      ) : data && (
+      {!data ? (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-36 animate-pulse rounded-2xl bg-white" />)}</div>
+      ) : (
         <>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-            {stats.map((s) => (
-              <div key={s.title} className="av-card p-3">
-                <p className="text-xs text-slate-400">{s.title}</p>
-                <p className="mt-1 text-lg font-black text-white">{s.prefix}{s.value.toLocaleString()}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard title="Total Users" value={data.users} icon={Users} tint="teal" />
+            <StatCard title="Total Investment" value={data.totalInvestment} prefix="$" icon={Wallet} tint="green" />
+            <StatCard title="Period Investment" value={data.periodInvestment} prefix="$" icon={ArrowDownToLine} tint="orange" />
+            <StatCard title="Period Withdrawals" value={data.periodWithdrawal} prefix="$" icon={ArrowUpFromLine} tint="purple" />
+            <StatCard title="Total Withdrawals" value={data.totalWithdrawal} prefix="$" icon={ArrowUpFromLine} tint="blue" />
+            <StatCard title="ROI Paid" value={data.roiPaid} prefix="$" icon={Wallet} tint="green" />
+            <StatCard title="Commission Paid" value={data.commissionPaid} prefix="$" icon={Wallet} tint="orange" />
+            <StatCard title="Active Bots" value={data.activeBots} icon={Users} tint="teal" />
           </div>
 
-          <div className="av-card p-4">
-            <h3 className="mb-4 font-bold">Deposit vs Withdrawal Trend</h3>
+          <div className={`${CARD} p-5`}>
+            <h2 className="mb-4 text-base font-bold text-gray-900">Money Flow Overview</h2>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trends}>
-                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
-                  <Tooltip contentStyle={{ backgroundColor: "#111827", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }} />
-                  <Line type="monotone" dataKey="deposits" stroke="#facc15" strokeWidth={2} />
-                  <Line type="monotone" dataKey="withdrawals" stroke="#3b82f6" strokeWidth={2} />
-                </LineChart>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0e6d2" vertical={false} />
+                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={{ stroke: "#e9dfc9" }} />
+                  <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #f0e6d2", borderRadius: "12px" }} formatter={(v) => fmtUSD(v)} />
+                  <Bar dataKey="amount" fill="#e8821e" radius={[6, 6, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="av-card">
-            <div className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4">
+          <div className={CARD}>
+            <div className="flex flex-wrap items-center gap-2 border-b border-[#f0e6d2] px-4 pt-2">
               {TAB_OPTIONS.map((t) => (
-                <button key={t} onClick={() => { setActiveTab(t); setDetailPage(1); }} className={`rounded-t-lg px-4 py-2.5 text-xs font-bold transition ${activeTab === t ? "border-b-2 border-yellow-400 text-yellow-400" : "text-slate-400 hover:text-white"}`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
+                <button key={t} onClick={() => { setActiveTab(t); setDetailPage(1); }} className={`rounded-t-lg px-4 py-2.5 text-xs font-bold transition ${activeTab === t ? "border-b-2 border-[#e8821e] text-[#e8821e]" : "text-gray-400 hover:text-gray-700"}`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
               ))}
-              <a href={`/api/admin/reports?export=${activeTab}${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`} className="ml-auto flex items-center gap-1 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5">
+              <a href={`/api/admin/reports?export=${activeTab}${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`} className="mb-2 ml-auto flex items-center gap-1.5 rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">
                 <Download className="h-3.5 w-3.5" />Export CSV
               </a>
             </div>
             <DataTable
               columns={[
-                { key: "id", label: "ID", render: (r: ReportRow) => <span className="font-mono text-xs">{String(r.id ?? "-")?.slice(0, 10)}</span> },
-                { key: "name", label: activeTab === "users" ? "Name" : "User", render: (r: ReportRow) => <span className="text-white">{String(r.name ?? "-")}</span> },
-                { key: "email", label: "Email", render: (r: ReportRow) => <span className="text-slate-300">{String(r.email ?? "-")}</span> },
-                { key: "status", label: "Status", render: (r: ReportRow) => String(r.status ?? "-") },
-                { key: "created_at", label: "Date", render: (r: ReportRow) => <span className="text-xs text-slate-400">{String(r.created_at ?? "-")?.slice(0, 10)}</span> },
+                { key: "id", label: "ID", render: (r: ReportRow) => <span className="font-mono text-xs text-gray-500">{String(r.id ?? "-").slice(0, 10)}</span> },
+                { key: "name", label: activeTab === "users" ? "Name" : "User", render: (r: ReportRow) => <span className="font-semibold text-gray-900">{String(r.name ?? "-")}</span> },
+                { key: "email", label: "Email", render: (r: ReportRow) => <span className="text-gray-500">{String(r.email ?? "-")}</span> },
+                { key: "status", label: "Status", render: (r: ReportRow) => <span className="text-gray-600">{String(r.status ?? "-")}</span> },
+                { key: "created_at", label: "Date", render: (r: ReportRow) => <span className="text-xs text-gray-500">{String(r.created_at ?? "-").slice(0, 10)}</span> },
               ]}
-              data={tableRows}
-              page={detailPage}
-              limit={detailLimit}
-              total={detailTotal}
-              onPageChange={setDetailPage}
-              onLimitChange={setDetailLimit}
-              rowKey={(r: ReportRow) => String(r.id)}
-            />
+              data={tableRows} page={detailPage} limit={detailLimit} total={detailTotal}
+              onPageChange={setDetailPage} onLimitChange={setDetailLimit} rowKey={(r: ReportRow) => String(r.id)} />
           </div>
         </>
       )}

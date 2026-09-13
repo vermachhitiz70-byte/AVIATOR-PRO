@@ -2,22 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin";
 
-const DETAIL_SQL: Record<string, string> = {
-  users: "SELECT id,name,mobile,email,referral_code,referred_by,rank,kyc_status,is_active,is_blocked,created_at FROM users ORDER BY rowid DESC LIMIT 2000",
-  deposits: "SELECT d.*, u.name, u.email FROM deposits d JOIN users u ON d.user_id=u.id ORDER BY d.rowid DESC LIMIT 2000",
-  withdrawals: "SELECT w.*, u.name, u.email FROM withdrawals w JOIN users u ON w.user_id=u.id ORDER BY w.rowid DESC LIMIT 2000",
-  commissions: "SELECT * FROM commissions ORDER BY rowid DESC LIMIT 2000",
-};
-
-function withDateFilter(sql: string, tableAlias: string, from: string, to: string): string {
-  if (!from && !to) return sql;
-  const base = sql.split("ORDER BY")[0].trim();
-  const orderBy = sql.includes("ORDER BY") ? sql.split("ORDER BY").slice(1).join("ORDER BY") : "";
-  let filtered = base;
-  if (from && to) filtered += ` WHERE date(${tableAlias}.created_at)>=? AND date(${tableAlias}.created_at)<=?`;
-  else if (from) filtered += ` WHERE date(${tableAlias}.created_at)>=?`;
-  else if (to) filtered += ` WHERE date(${tableAlias}.created_at)<=?`;
-  return `${filtered} ${orderBy}`;
+function detailQuery(exp: string, from: string, to: string): { sql: string; args: (string | number)[] } {
+  const args: (string | number)[] = [];
+  const range = (col: string) => {
+    if (from && to) { args.push(from, to); return ` WHERE date(${col})>=? AND date(${col})<=?`; }
+    if (from) { args.push(from); return ` WHERE date(${col})>=?`; }
+    if (to) { args.push(to); return ` WHERE date(${col})<=?`; }
+    return "";
+  };
+  if (exp === "users") return { sql: `SELECT id,name,mobile,email,referral_code,referred_by,rank,kyc_status,is_active,is_blocked,created_at FROM users${range("created_at")} ORDER BY rowid DESC LIMIT 2000`, args };
+  if (exp === "deposits") return { sql: `SELECT d.*, u.name, u.email FROM deposits d JOIN users u ON d.user_id=u.id${range("d.created_at")} ORDER BY d.rowid DESC LIMIT 2000`, args };
+  if (exp === "withdrawals") return { sql: `SELECT w.*, u.name, u.email FROM withdrawals w JOIN users u ON w.user_id=u.id${range("w.created_at")} ORDER BY w.rowid DESC LIMIT 2000`, args };
+  return { sql: `SELECT * FROM commissions${range("created_at")} ORDER BY rowid DESC LIMIT 2000`, args };
 }
 
 export async function GET(req: NextRequest) {
@@ -31,17 +27,8 @@ export async function GET(req: NextRequest) {
   const from = url.searchParams.get("from") || "";
   const to = url.searchParams.get("to") || "";
 
-  if (exp && DETAIL_SQL[exp]) {
-    let sql = DETAIL_SQL[exp];
-    let args: (string | number)[] = [];
-    if (from || to) {
-      const alias = exp === "users" ? "" : exp === "commissions" ? "c" : exp === "deposits" ? "d" : "w";
-      const prefix = alias ? `${alias}.` : "";
-      sql = withDateFilter(sql, alias || exp, from, to);
-      if (from && to) args = [from, to];
-      else if (from) args = [from];
-      else if (to) args = [to];
-    }
+  if (exp === "users" || exp === "deposits" || exp === "withdrawals" || exp === "commissions") {
+    const { sql, args } = detailQuery(exp, from, to);
     const r = args.length ? await db.execute({ sql, args }) : await db.execute(sql);
     const rows = r.rows as unknown as Record<string, unknown>[];
 
@@ -49,8 +36,7 @@ export async function GET(req: NextRequest) {
       const page = Math.max(1, Number(url.searchParams.get("page") || 1));
       const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit") || 25)));
       const start = (page - 1) * limit;
-      const paginated = rows.slice(start, start + limit);
-      return NextResponse.json({ ok: true, rows: paginated, total: rows.length, page, limit });
+      return NextResponse.json({ ok: true, rows: rows.slice(start, start + limit), total: rows.length, page, limit });
     }
 
     const head = rows.length ? Object.keys(rows[0]) : [];
@@ -62,10 +48,9 @@ export async function GET(req: NextRequest) {
   const users = await db.execute("SELECT COUNT(*) as t FROM users");
   const activeBots = await db.execute("SELECT COUNT(*) as t FROM bots WHERE status='active'");
 
-  const dateDepositFilter = from && to ? " AND date(created_at)>=? AND date(created_at)<=?" : from ? " AND date(created_at)>=?" : to ? " AND date(created_at)<=?" : "";
-  const dateWithdrawFilter = from && to ? " AND date(created_at)>=? AND date(created_at)<=?" : from ? " AND date(created_at)>=?" : to ? " AND date(created_at)<=?" : "";
-  const depositArgs: (string | number)[] = [from, to].filter(Boolean) as (string | number)[];
-  const withdrawArgs: (string | number)[] = [from, to].filter(Boolean) as (string | number)[];
+  const depRange = from && to ? " AND date(created_at)>=? AND date(created_at)<=?" : from ? " AND date(created_at)>=?" : to ? " AND date(created_at)<=?" : "";
+  const depArgs = [from, to].filter(Boolean);
+  const wdrArgs = [from, to].filter(Boolean);
 
   return NextResponse.json({
     ok: true,
@@ -79,7 +64,7 @@ export async function GET(req: NextRequest) {
     pendingWithdrawals: await q("SELECT COUNT(*) as t FROM withdrawals WHERE status='pending'"),
     todayUsers: await q("SELECT COUNT(*) as t FROM users WHERE date(created_at)=date('now')"),
     todayInvestment: await q("SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE status='confirmed' AND date(created_at)=date('now')"),
-    periodInvestment: from || to ? await q(`SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE status='confirmed'${dateDepositFilter}`, depositArgs) : 0,
-    periodWithdrawal: from || to ? await q(`SELECT COALESCE(SUM(net),0) as t FROM withdrawals WHERE status IN ('pending','approved')${dateWithdrawFilter}`, withdrawArgs) : 0,
+    periodInvestment: from || to ? await q(`SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE status='confirmed'${depRange}`, depArgs) : 0,
+    periodWithdrawal: from || to ? await q(`SELECT COALESCE(SUM(net),0) as t FROM withdrawals WHERE status IN ('pending','approved')${depRange}`, wdrArgs) : 0,
   });
 }

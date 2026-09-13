@@ -1,27 +1,27 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { StatCard } from "@/components/admin/StatCard";
-import { Modal, ConfirmDialog } from "@/components/admin";
+import { Modal } from "@/components/admin";
+import { BTN_PRIMARY, CARD, INPUT, LABEL } from "@/components/admin/ui";
 import { Eye, EyeOff, Save, Mail, Server, Shield, Loader2 } from "lucide-react";
 
 type Settings = Record<string, string>;
 
 const PLATFORM_KEYS = [
-  { key: "min_deposit", label: "Min Deposit ($)", type: "number" },
+  { key: "min_deposit", label: "Minimum Deposit (USD)", type: "number" },
   { key: "withdrawal_charge_pct", label: "Withdrawal Charge %", type: "number" },
-  { key: "roi_daily_pct", label: "ROI Daily %", type: "number" },
-  { key: "withdrawal_window_start", label: "Withdrawal Window Start", type: "time" },
-  { key: "withdrawal_window_end", label: "Withdrawal Window End", type: "time" },
+  { key: "roi_daily_pct", label: "Daily ROI %", type: "number" },
+  { key: "withdrawal_window_start", label: "Withdrawal Window Opens (IST)", type: "time" },
+  { key: "withdrawal_window_end", label: "Withdrawal Window Closes (IST)", type: "time" },
   { key: "maintenance_mode", label: "Maintenance Mode", type: "toggle" },
-  { key: "bep20_address", label: "BEP20 Address", type: "text" },
+  { key: "bep20_address", label: "BEP20 Deposit Address", type: "text" },
 ];
 
 const SMTP_KEYS = [
   { key: "smtp_host", label: "SMTP Host", type: "text" },
   { key: "smtp_port", label: "SMTP Port", type: "number" },
-  { key: "smtp_user", label: "SMTP User", type: "text" },
-  { key: "smtp_pass", label: "SMTP Password", type: "password" },
-  { key: "smtp_from", label: "SMTP From", type: "text" },
+  { key: "smtp_user", label: "SMTP Username", type: "text" },
+  { key: "smtp_pass", label: "SMTP App Password", type: "password" },
+  { key: "smtp_from", label: "From Address", type: "text" },
 ];
 
 const SECURITY_KEYS = [
@@ -53,10 +53,7 @@ export default function AdminSettingsPage() {
   useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
   function getValue(key: string) { return settings[key] || ""; }
-
-  function updateSetting(key: string, value: string) {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  }
+  function updateSetting(key: string, value: string) { setSettings((prev) => ({ ...prev, [key]: value })); }
 
   async function saveAll() {
     setSaving(true);
@@ -74,7 +71,7 @@ export default function AdminSettingsPage() {
   async function testSmtp() {
     setTesting(true);
     await new Promise((resolve) => setTimeout(resolve, 1500));
-    alert("SMTP test initiated. Check your inbox for a test email.");
+    alert("SMTP test initiated. Check the inbox for a test email.");
     setTesting(false);
     setTestSmtpOpen(false);
     setTestEmail("");
@@ -89,10 +86,10 @@ export default function AdminSettingsPage() {
     if (isToggle) {
       const val = getValue(key) === "true" || getValue(key) === "1";
       return (
-        <div key={key} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-          <label className="text-sm text-slate-300">{label}</label>
-          <button onClick={() => updateSetting(key, val ? "false" : "true")} className={`relative h-6 w-11 rounded-full transition ${val ? "bg-yellow-500" : "bg-white/20"}`}>
-            <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${val ? "translate-x-5" : "translate-x-0"}`} />
+        <div key={key} className="flex items-center justify-between rounded-xl bg-[#faf6ee] px-4 py-3">
+          <label className="text-sm font-medium text-gray-700">{label}</label>
+          <button onClick={() => updateSetting(key, val ? "false" : "true")} className={`relative h-6 w-11 rounded-full transition ${val ? "bg-[#e8821e]" : "bg-gray-300"}`}>
+            <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${val ? "translate-x-5" : "translate-x-0"}`} />
           </button>
         </div>
       );
@@ -100,77 +97,74 @@ export default function AdminSettingsPage() {
 
     return (
       <div key={key}>
-        <label className="block text-xs text-slate-400 mb-1">{label}</label>
+        <label className={LABEL}>{label}</label>
         <input
           type={masked ? "password" : type === "number" ? "number" : "text"}
           value={masked ? "••••••••" : getValue(key)}
-          onChange={(e) => !masked && updateSetting(key, e.target.value)}
+          onChange={(e) => { if (!masked) updateSetting(key, e.target.value); }}
           readOnly={masked}
           placeholder={`Enter ${label.toLowerCase()}`}
-          className="av-input text-sm"
+          className={INPUT}
         />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black">Settings</h2>
-          <p className="text-sm text-slate-400">Platform configuration</p>
+          <h1 className="font-serif text-3xl font-bold text-gray-900">Settings</h1>
+          <p className="mt-1 text-sm text-gray-500">Platform, email and security configuration</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowSecrets((p) => !p)} className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-xs hover:bg-white/5">
+          <button onClick={() => setShowSecrets((p) => !p)} className="flex items-center gap-1.5 rounded-xl border border-[#e9dfc9] bg-white px-3 py-2.5 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">
             {showSecrets ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}{showSecrets ? "Hide Secrets" : "Show Secrets"}
           </button>
-          <button onClick={saveAll} disabled={saving} className="av-btn-yellow flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
+          <button onClick={saveAll} disabled={saving} className="flex items-center gap-2 rounded-xl bg-[#e8821e] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#d1710f]">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{saving ? "Saving..." : "Save All"}
           </button>
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      {success && <p className="text-sm text-emerald-400">{success}</p>}
+      {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</p>}
+      {success && <p className="rounded-xl bg-green-50 px-4 py-3 text-sm font-medium text-green-700">{success}</p>}
 
       {loading ? (
         <div className="space-y-4">
-          <div className="h-32 animate-pulse rounded-xl bg-white/5" />
-          <div className="h-32 animate-pulse rounded-xl bg-white/5" />
+          <div className="h-40 animate-pulse rounded-2xl bg-white" />
+          <div className="h-40 animate-pulse rounded-2xl bg-white" />
         </div>
       ) : (
         <>
-          <div className="av-card p-5">
-            <div className="mb-4 flex items-center gap-2"><Server className="h-4 w-4 text-yellow-400" /><h3 className="font-bold">Platform Settings</h3></div>
+          <div className={`${CARD} p-5`}>
+            <div className="mb-4 flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-100 text-[#e8821e]"><Server className="h-4 w-4" /></span><h2 className="font-bold text-gray-900">Platform Settings</h2></div>
             <div className="grid gap-3 md:grid-cols-2">{PLATFORM_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
           </div>
 
-          <div className="av-card p-5">
+          <div className={`${CARD} p-5`}>
             <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-yellow-400" /><h3 className="font-bold">SMTP Settings</h3></div>
-              <button onClick={() => setTestSmtpOpen(true)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs hover:bg-white/5">Test SMTP</button>
+              <div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600"><Mail className="h-4 w-4" /></span><h2 className="font-bold text-gray-900">Email (SMTP) Settings</h2></div>
+              <button onClick={() => setTestSmtpOpen(true)} className="rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">Test Email</button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">{SMTP_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
+            <p className="mt-3 text-xs text-gray-400">Daily ROI cron: call <span className="font-mono font-semibold">/api/cron/roi?secret=CRON_SECRET</span> (Vercel Cron).</p>
           </div>
 
-          <div className="av-card p-5">
-            <div className="mb-4 flex items-center gap-2"><Shield className="h-4 w-4 text-yellow-400" /><h3 className="font-bold">Security</h3></div>
+          <div className={`${CARD} p-5`}>
+            <div className="mb-4 flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-100 text-purple-600"><Shield className="h-4 w-4" /></span><h2 className="font-bold text-gray-900">Security</h2></div>
             <div className="grid gap-3 md:grid-cols-2">{SECURITY_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
           </div>
         </>
       )}
 
-      {testSmtpOpen && (
-        <Modal isOpen={testSmtpOpen} onClose={() => setTestSmtpOpen(false)} title="Test SMTP">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Test Email Address</label>
-              <input value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="test@example.com" className="av-input" />
-            </div>
-            <button onClick={testSmtp} disabled={testing || !testEmail.trim()} className="av-btn-yellow w-full rounded-lg py-2.5 text-sm disabled:opacity-50">{testing ? "Sending..." : "Send Test Email"}</button>
-          </div>
-        </Modal>
-      )}
+      <Modal isOpen={testSmtpOpen} onClose={() => setTestSmtpOpen(false)} title="Send Test Email">
+        <div className="space-y-4">
+          <div><label className={LABEL}>Recipient address</label>
+            <input value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="you@example.com" className={INPUT} /></div>
+          <button onClick={testSmtp} disabled={testing || !testEmail.trim()} className={`${BTN_PRIMARY} w-full`}>{testing ? "Sending..." : "Send Test Email"}</button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { DataTable, Modal, ConfirmDialog } from "@/components/admin";
-import { Search, ChevronDown, X } from "lucide-react";
+import { BTN_PRIMARY, CARD, INPUT, LABEL, fmtDate, pill } from "@/components/admin/ui";
+import { Search, ChevronDown } from "lucide-react";
 
 type TicketRow = Record<string, unknown>;
 
@@ -12,7 +13,6 @@ export default function AdminTicketsPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [q, setQ] = useState("");
@@ -25,26 +25,20 @@ export default function AdminTicketsPage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
     setError("");
     const params = new URLSearchParams({ page: String(page), limit: String(limit) });
     if (statusFilter) params.set("status", statusFilter);
     if (q) params.set("q", q);
     const r = await fetch(`/api/admin/tickets?${params}`, { credentials: "include" });
     const j = await r.json();
-    if (!r.ok || j.error) { setError(j.error || "Failed to load"); setLoading(false); return; }
+    if (!r.ok || j.error) { setError(j.error || "Failed to load"); return; }
     setRows(j.rows || []);
     setTotal(j.total || 0);
-    setLoading(false);
   }, [page, limit, statusFilter, q]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  function openTicket(t: TicketRow) {
-    setSelectedTicket(t);
-    setReplyText("");
-    setDetailOpen(true);
-  }
+  function openTicket(t: TicketRow) { setSelectedTicket(t); setReplyText(""); setDetailOpen(true); }
 
   async function submitReply() {
     if (!selectedTicket || !replyText.trim()) return;
@@ -53,11 +47,10 @@ export default function AdminTicketsPage() {
     const j = await r.json();
     setSubmitting(false);
     if (!r.ok || j.error) { alert(j.error || "Failed"); return; }
-    setSelectedTicket((prev) => prev ? { ...prev, admin_reply: replyText, status: "pending" } : prev);
+    setSelectedTicket((prev) => (prev ? { ...prev, admin_reply: replyText, status: "pending" } : prev));
     setReplyText("");
     fetchData();
   }
-
   async function closeTicket(id: string) {
     setSubmitting(true);
     const r = await fetch("/api/admin/tickets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "close", id }), credentials: "include" });
@@ -66,9 +59,8 @@ export default function AdminTicketsPage() {
     if (!r.ok || j.error) { alert(j.error || "Failed"); return; }
     setConfirmClose(null);
     fetchData();
-    if (selectedTicket?.id === id) { setSelectedTicket((prev) => prev ? { ...prev, status: "closed" } : prev); }
+    if (selectedTicket?.id === id) setSelectedTicket((prev) => (prev ? { ...prev, status: "closed" } : prev));
   }
-
   async function deleteTicket(id: string) {
     setSubmitting(true);
     const r = await fetch("/api/admin/tickets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", id }), credentials: "include" });
@@ -80,98 +72,78 @@ export default function AdminTicketsPage() {
     fetchData();
   }
 
-  const statusColors: Record<string, string> = { open: "bg-blue-500/20 text-blue-400", pending: "bg-yellow-500/20 text-yellow-400", closed: "bg-slate-500/20 text-slate-300" };
-
   const columns = [
-    { key: "id", label: "ID", render: (r: TicketRow) => <span className="font-mono text-xs text-slate-300">#{String(r.id ?? "-")?.slice(0, 8)}</span> },
-    { key: "name", label: "User", render: (r: TicketRow) => <span className="font-medium text-white">{String(r.name ?? "-")}</span> },
-    { key: "subject", label: "Subject", render: (r: TicketRow) => <span className="text-slate-300">{String(r.subject ?? "-")}</span> },
-    { key: "message", label: "Preview", render: (r: TicketRow) => <span className="text-xs text-slate-400">{String(r.message ?? "-")?.slice(0, 50)}...</span> },
-    { key: "status", label: "Status", render: (r: TicketRow) => <span className={`rounded-lg px-2 py-0.5 text-xs font-medium ${statusColors[String(r.status)] || "bg-white/10 text-slate-300"}`}>{String(r.status ?? "-")}</span> },
-    { key: "created_at", label: "Date", render: (r: TicketRow) => <span className="text-xs text-slate-400">{new Date(String(r.created_at)).toLocaleDateString()}</span> },
+    { key: "id", label: "Ticket", render: (r: TicketRow) => <span className="font-mono text-xs text-gray-500">#{String(r.id ?? "-").slice(0, 8)}</span> },
+    { key: "name", label: "User", render: (r: TicketRow) => (<span><span className="block font-semibold text-gray-900">{String(r.name ?? "-")}</span><span className="block text-xs text-gray-500">{String(r.email ?? "")}</span></span>) },
+    { key: "subject", label: "Subject", render: (r: TicketRow) => <span className="font-medium text-gray-800">{String(r.subject ?? "-")}</span> },
+    { key: "message", label: "Message", render: (r: TicketRow) => <span className="block max-w-xs truncate text-xs text-gray-500">{String(r.message ?? "-")}</span> },
+    { key: "status", label: "Status", render: (r: TicketRow) => pill(r.status) },
+    { key: "created_at", label: "Date", render: (r: TicketRow) => <span className="text-xs text-gray-500">{fmtDate(r.created_at)}</span> },
     { key: "actions", label: "Actions", render: (r: TicketRow) => (
-      <button onClick={() => openTicket(r)} className="rounded-lg border border-white/10 px-3 py-1 text-xs hover:bg-white/5">View</button>
+      <button onClick={() => openTicket(r)} className="rounded-xl border border-[#e9dfc9] px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">View & Reply</button>
     ) },
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-2xl font-black">Support Tickets</h2>
-        <p className="text-sm text-slate-400">Manage user support tickets</p>
+        <h1 className="font-serif text-3xl font-bold text-gray-900">Support Tickets</h1>
+        <p className="mt-1 text-sm text-gray-500">Reply to members and resolve open queries · {total} total</p>
       </div>
 
-      <div className="av-card p-4">
+      <div className={`${CARD} p-4`}>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search user, subject, message..." className="av-input pl-9" />
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search user, subject, message..." className={`${INPUT} pl-9`} />
           </div>
           <div className="relative">
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="av-input pr-8">
+            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className={`${INPUT} pr-8`}>
               {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s ? s.charAt(0).toUpperCase() + s.slice(1) : "All Status"}</option>)}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           </div>
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</p>}
 
-      <div className="av-card">
+      <div className={CARD}>
         <DataTable columns={columns} data={rows} page={page} limit={limit} total={total} onPageChange={setPage} onLimitChange={(l: number) => { setLimit(l); setPage(1); }} rowKey={(r: TicketRow) => String(r.id)} />
       </div>
 
-      {detailOpen && selectedTicket && (
-        <Modal isOpen={detailOpen} onClose={() => setDetailOpen(false)} title={`Ticket #${String(selectedTicket.id)?.slice(0, 8)}`}>
+      <Modal isOpen={detailOpen} onClose={() => setDetailOpen(false)} title={`Ticket #${String(selectedTicket?.id ?? "").slice(0, 8)}`}>
+        {selectedTicket && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-xs text-slate-400">User:</span><p className="text-white">{String(selectedTicket.name ?? "-")}</p></div>
-              <div><span className="text-xs text-slate-400">Subject:</span><p className="text-white">{String(selectedTicket.subject ?? "-")}</p></div>
-              <div><span className="text-xs text-slate-400">Status:</span><p className="text-white">{String(selectedTicket.status ?? "-")}</p></div>
-              <div><span className="text-xs text-slate-400">Date:</span><p className="text-white">{new Date(String(selectedTicket.created_at)).toLocaleString()}</p></div>
+              <div><p className="text-xs font-semibold text-gray-500">User</p><p className="font-semibold text-gray-900">{String(selectedTicket.name ?? "-")}</p></div>
+              <div><p className="text-xs font-semibold text-gray-500">Subject</p><p className="font-semibold text-gray-900">{String(selectedTicket.subject ?? "-")}</p></div>
+              <div><p className="text-xs font-semibold text-gray-500">Status</p><div className="mt-1">{pill(selectedTicket.status)}</div></div>
+              <div><p className="text-xs font-semibold text-gray-500">Date</p><p className="text-gray-700">{fmtDate(selectedTicket.created_at)}</p></div>
             </div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-              <p className="text-xs text-slate-400 mb-1">User Message:</p>
-              <p className="text-sm text-white">{String(selectedTicket.message ?? "-")}</p>
+            <div className="rounded-xl bg-[#faf6ee] p-3">
+              <p className="mb-1 text-xs font-semibold text-gray-500">Member message</p>
+              <p className="text-sm text-gray-800">{String(selectedTicket.message ?? "-")}</p>
             </div>
             {selectedTicket.admin_reply ? (
-              <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-3">
-                <p className="text-xs text-yellow-400 mb-1">Admin Reply:</p>
-                <p className="text-sm text-white">{String(selectedTicket.admin_reply)}</p>
+              <div className="rounded-xl border border-green-200 bg-green-50 p-3">
+                <p className="mb-1 text-xs font-semibold text-green-700">Your reply</p>
+                <p className="text-sm text-gray-800">{String(selectedTicket.admin_reply)}</p>
               </div>
             ) : null}
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Reply</label>
-              <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Write your reply..." className="av-input" rows={3} />
-            </div>
+            <div><label className={LABEL}>Write a reply</label>
+              <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Type your response..." className={INPUT} rows={3} /></div>
             <div className="flex gap-2">
-              <button onClick={submitReply} disabled={submitting || !replyText.trim()} className="av-btn-yellow flex-1 rounded-lg py-2.5 text-sm disabled:opacity-50">{submitting ? "Sending..." : "Send Reply"}</button>
-              <button onClick={() => { setConfirmClose(String(selectedTicket.id)); }} className="rounded-lg border border-white/10 px-4 py-2.5 text-sm hover:bg-white/5">Close</button>
-              <button onClick={() => { setConfirmDelete(String(selectedTicket.id)); }} className="rounded-lg border border-red-500/20 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10">Delete</button>
+              <button onClick={submitReply} disabled={submitting || !replyText.trim()} className={`${BTN_PRIMARY} flex-1`}>{submitting ? "Sending..." : "Send Reply"}</button>
+              <button onClick={() => setConfirmClose(String(selectedTicket.id))} className="rounded-xl border border-[#e9dfc9] px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50">Close</button>
+              <button onClick={() => setConfirmDelete(String(selectedTicket.id))} className="rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50">Delete</button>
             </div>
           </div>
-        </Modal>
-      )}
+        )}
+      </Modal>
 
-      <ConfirmDialog
-        isOpen={!!confirmClose}
-        onClose={() => setConfirmClose(null)}
-        onConfirm={() => confirmClose && closeTicket(confirmClose)}
-        title="Close Ticket"
-        message="Are you sure you want to close this ticket?"
-        confirmText="Close"
-      />
-
-      <ConfirmDialog
-        isOpen={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={() => confirmDelete && deleteTicket(confirmDelete)}
-        title="Delete Ticket"
-        message="Are you sure? This action cannot be undone."
-        confirmText="Delete"
-        destructive
-      />
+      <ConfirmDialog isOpen={!!confirmClose} onClose={() => setConfirmClose(null)} onConfirm={() => confirmClose && closeTicket(confirmClose)} title="Close Ticket" message="Mark this ticket as resolved?" confirmText="Close Ticket" />
+      <ConfirmDialog isOpen={!!confirmDelete} onClose={() => setConfirmDelete(null)} onConfirm={() => confirmDelete && deleteTicket(confirmDelete)} title="Delete Ticket" message="This cannot be undone." confirmText="Delete" destructive />
     </div>
   );
 }

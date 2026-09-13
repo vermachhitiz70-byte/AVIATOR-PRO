@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { DataTable, Modal, ConfirmDialog } from "@/components/admin";
-import { Search, Plus, Edit3, Trash2, X, ChevronDown, UserPlus } from "lucide-react";
+import { BTN_PRIMARY, CARD, INPUT, LABEL, fmtUSD, pill } from "@/components/admin/ui";
+import { Search, Plus, Edit3, Trash2, UserPlus } from "lucide-react";
 
 type Campaign = Record<string, unknown>;
 type Achiever = Record<string, unknown>;
@@ -9,7 +10,6 @@ type Achiever = Record<string, unknown>;
 export default function AdminCampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [achievers, setAchievers] = useState<Achiever[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -29,14 +29,12 @@ export default function AdminCampaignsPage() {
   const [bulkAchieverText, setBulkAchieverText] = useState("");
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
     setError("");
     const r = await fetch("/api/admin/campaigns", { credentials: "include" });
     const j = await r.json();
-    if (!r.ok || j.error) { setError(j.error || "Failed to load"); setLoading(false); return; }
+    if (!r.ok || j.error) { setError(j.error || "Failed to load"); return; }
     setCampaigns(j.campaigns || []);
     setAchievers(j.achievers || []);
-    setLoading(false);
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -46,7 +44,6 @@ export default function AdminCampaignsPage() {
     setFormName(""); setFormLocation(""); setFormMeetingDate(""); setFormEligibilityEnd(""); setFormStatus("active"); setFormCriteria("{}");
     setCreateOpen(true);
   }
-
   function openEdit(c: Campaign) {
     setEditCampaign(c);
     setFormName(String(c.name || "")); setFormLocation(String(c.location || "")); setFormMeetingDate(String(c.meeting_date || "")); setFormEligibilityEnd(String(c.eligibility_end || ""));
@@ -66,7 +63,6 @@ export default function AdminCampaignsPage() {
     setCreateOpen(false);
     fetchData();
   }
-
   async function deleteCampaign(id: string) {
     setSubmitting(true);
     const r = await fetch("/api/admin/campaigns", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", id }), credentials: "include" });
@@ -76,7 +72,6 @@ export default function AdminCampaignsPage() {
     setConfirmDelete(null);
     fetchData();
   }
-
   async function bulkAddAchievers() {
     setSubmitting(true);
     const ids = bulkAchieverText.split(",").map((s) => s.trim()).filter(Boolean);
@@ -91,143 +86,98 @@ export default function AdminCampaignsPage() {
 
   const filteredAchievers = achieverFilter ? achievers.filter((a) => String(a.campaign_id) === achieverFilter) : achievers;
 
-  const statusColors: Record<string, string> = { active: "bg-emerald-500/20 text-emerald-400", inactive: "bg-red-500/20 text-red-400" };
-
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-black">Campaigns</h2>
-        <p className="text-sm text-slate-400">Manage campaigns and achievers</p>
+        <h1 className="font-serif text-3xl font-bold text-gray-900">Campaigns</h1>
+        <p className="mt-1 text-sm text-gray-500">Reward tours and achiever leaderboards</p>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</p>}
 
       <div className="flex items-center justify-between">
-        <h3 className="font-bold">Campaigns</h3>
-        <button onClick={openCreate} className="av-btn-yellow flex items-center gap-2 rounded-lg px-4 py-2 text-sm"><Plus className="h-4 w-4" />New Campaign</button>
+        <h2 className="text-base font-bold text-gray-900">All Campaigns</h2>
+        <button onClick={openCreate} className="flex items-center gap-2 rounded-xl bg-[#e8821e] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#d1710f]"><Plus className="h-4 w-4" />New Campaign</button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {campaigns.map((c) => (
-          <div key={String(c.id)} className="av-card p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <h4 className="font-bold text-white">{String(c.name)}</h4>
-                <p className="text-xs text-slate-400">{String(c.location || "-")}</p>
+          <div key={String(c.id)} className={`${CARD} p-5`}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="truncate font-bold text-gray-900">{String(c.name)}</h3>
+                <p className="text-xs text-gray-500">{String(c.location || "-")}</p>
               </div>
-              <span className={`rounded-lg px-2 py-0.5 text-xs font-medium ${statusColors[String(c.status)] || "bg-white/10 text-slate-300"}`}>{String(c.status)}</span>
+              {pill(c.status)}
             </div>
-            <div className="mt-3 space-y-1 text-xs text-slate-300">
-              <p>Meeting: {String(c.meeting_date || "-")?.slice(0, 10)}</p>
-              <p>Eligibility End: {String(c.eligibility_end || "-")?.slice(0, 10)}</p>
-              <p className="font-mono text-[10px] text-slate-500">Criteria: {JSON.stringify(c.criteria_json || {})?.slice(0, 60)}...</p>
+            <div className="mt-3 space-y-1 text-xs text-gray-500">
+              <p>Meeting: <span className="font-semibold text-gray-700">{String(c.meeting_date || "-").slice(0, 10)}</span></p>
+              <p>Eligibility ends: <span className="font-semibold text-gray-700">{String(c.eligibility_end || "-").slice(0, 10)}</span></p>
             </div>
-            <div className="mt-3 flex gap-2">
-              <button onClick={() => openEdit(c)} className="flex items-center gap-1 rounded-lg border border-white/10 px-3 py-1.5 text-xs hover:bg-white/5"><Edit3 className="h-3 w-3" />Edit</button>
-              <button onClick={() => setConfirmDelete(String(c.id))} className="flex items-center gap-1 rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/10"><Trash2 className="h-3 w-3" />Delete</button>
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => openEdit(c)} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]"><Edit3 className="h-3 w-3" />Edit</button>
+              <button onClick={() => setConfirmDelete(String(c.id))} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"><Trash2 className="h-3 w-3" />Delete</button>
             </div>
           </div>
         ))}
-        {campaigns.length === 0 && <p className="col-span-full text-sm text-slate-400">No campaigns yet</p>}
+        {campaigns.length === 0 && <p className={`${CARD} col-span-full p-8 text-center text-sm text-gray-400`}>No campaigns yet. Create your first reward campaign.</p>}
       </div>
 
       <div>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-bold">Achievers</h3>
-          <button onClick={() => setAchieverModalOpen(true)} className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-1.5 text-xs hover:bg-white/5"><UserPlus className="h-3.5 w-3.5" />Add Achievers</button>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-bold text-gray-900">Achievers Leaderboard</h2>
+          <button onClick={() => setAchieverModalOpen(true)} className="flex items-center gap-2 rounded-xl border border-[#e9dfc9] bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]"><UserPlus className="h-3.5 w-3.5" />Add Achievers</button>
         </div>
-
-        <div className="av-card">
-          <div className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-3">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input value={achieverFilter} onChange={(e) => setAchieverFilter(e.target.value)} placeholder="Filter by campaign ID..." className="av-input pl-9" />
+        <div className={CARD}>
+          <div className="border-b border-[#f0e6d2] px-4 py-3">
+            <div className="relative max-w-xs">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input value={achieverFilter} onChange={(e) => setAchieverFilter(e.target.value)} placeholder="Filter by campaign ID..." className={`${INPUT} pl-9`} />
             </div>
           </div>
           <DataTable
             columns={[
-              { key: "name", label: "Name", render: (r: Achiever) => <span className="font-medium text-white">{String(r.name ?? "-")}</span> },
-              { key: "country", label: "Country", render: (r: Achiever) => String(r.country ?? "-") },
-              { key: "user_code", label: "User Code", render: (r: Achiever) => <span className="font-mono text-xs text-yellow-400">{String(r.user_code ?? "-")}</span> },
-              { key: "earned", label: "Earned", render: (r: Achiever) => <span className="text-emerald-400">${Number(r.earned ?? 0).toLocaleString()}</span> },
-              { key: "is_demo", label: "Demo", render: (r: Achiever) => <span className={r.is_demo ? "text-yellow-400" : "text-slate-500"}>{r.is_demo ? "Yes" : "No"}</span> },
+              { key: "name", label: "Achiever", render: (r: Achiever) => <span className="font-semibold text-gray-900">{String(r.name ?? "-")}</span> },
+              { key: "country", label: "Country", render: (r: Achiever) => <span className="text-gray-600">{String(r.country ?? "-")}</span> },
+              { key: "user_code", label: "User Code", render: (r: Achiever) => <span className="font-mono text-xs font-semibold text-[#e8821e]">{String(r.user_code ?? "-")}</span> },
+              { key: "earned", label: "Business", render: (r: Achiever) => <span className="font-bold text-green-700">{fmtUSD(r.earned)}</span> },
+              { key: "is_demo", label: "Demo", render: (r: Achiever) => pill(r.is_demo ? "pending" : "active") },
               { key: "actions", label: "Actions", render: (r: Achiever) => (
-                <button onClick={async () => { await fetch("/api/admin/campaigns", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "deleteAchiever", id: r.id }), credentials: "include" }); fetchData(); }} className="rounded-lg p-1 text-red-400 hover:bg-red-500/10"><Trash2 className="h-3.5 w-3.5" /></button>
+                <button onClick={async () => { await fetch("/api/admin/campaigns", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "deleteAchiever", id: r.id }), credentials: "include" }); fetchData(); }} className="rounded-lg p-1.5 text-red-500 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /></button>
               ) },
             ]}
-            data={filteredAchievers}
-            page={1}
-            limit={100}
-            total={filteredAchievers.length}
-            onPageChange={() => {}}
-            onLimitChange={() => {}}
-            rowKey={(r: Achiever) => String(r.id)}
-          />
+            data={filteredAchievers} page={1} limit={100} total={filteredAchievers.length}
+            onPageChange={() => {}} onLimitChange={() => {}} rowKey={(r: Achiever) => String(r.id)} />
         </div>
       </div>
 
-      {createOpen && (
-        <Modal isOpen={createOpen} onClose={() => setCreateOpen(false)} title={editCampaign ? "Edit Campaign" : "New Campaign"}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Name</label>
-              <input value={formName} onChange={(e) => setFormName(e.target.value)} className="av-input" />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Location</label>
-              <input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} className="av-input" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Meeting Date</label>
-                <input type="date" value={formMeetingDate} onChange={(e) => setFormMeetingDate(e.target.value)} className="av-input" />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Eligibility End</label>
-                <input type="date" value={formEligibilityEnd} onChange={(e) => setFormEligibilityEnd(e.target.value)} className="av-input" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Status</label>
-              <select value={formStatus} onChange={(e) => setFormStatus(e.target.value)} className="av-input">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Criteria (JSON)</label>
-              <textarea value={formCriteria} onChange={(e) => setFormCriteria(e.target.value)} className="av-input font-mono text-xs" rows={3} />
-            </div>
-            <button onClick={submitCampaign} disabled={submitting} className="av-btn-yellow w-full rounded-lg py-2.5 text-sm">{submitting ? "Saving..." : editCampaign ? "Update Campaign" : "Create Campaign"}</button>
+      <Modal isOpen={createOpen} onClose={() => setCreateOpen(false)} title={editCampaign ? "Edit Campaign" : "New Campaign"}>
+        <div className="space-y-4">
+          <div><label className={LABEL}>Campaign name</label><input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Vietnam Ticket Achievers" className={INPUT} /></div>
+          <div><label className={LABEL}>Location</label><input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} placeholder="e.g. Vietnam" className={INPUT} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={LABEL}>Meeting date</label><input type="date" value={formMeetingDate} onChange={(e) => setFormMeetingDate(e.target.value)} className={INPUT} /></div>
+            <div><label className={LABEL}>Eligibility end</label><input type="date" value={formEligibilityEnd} onChange={(e) => setFormEligibilityEnd(e.target.value)} className={INPUT} /></div>
           </div>
-        </Modal>
-      )}
+          <div><label className={LABEL}>Status</label>
+            <select value={formStatus} onChange={(e) => setFormStatus(e.target.value)} className={INPUT}><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+          <div><label className={LABEL}>Eligibility criteria (JSON)</label>
+            <textarea value={formCriteria} onChange={(e) => setFormCriteria(e.target.value)} className={`${INPUT} font-mono text-xs`} rows={3} /></div>
+          <button onClick={submitCampaign} disabled={submitting} className={`${BTN_PRIMARY} w-full`}>{submitting ? "Saving..." : editCampaign ? "Update Campaign" : "Create Campaign"}</button>
+        </div>
+      </Modal>
 
-      {achieverModalOpen && (
-        <Modal isOpen={achieverModalOpen} onClose={() => setAchieverModalOpen(false)} title="Add Achievers">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Campaign ID</label>
-              <input value={achieverFilter} onChange={(e) => setAchieverFilter(e.target.value)} placeholder="Campaign ID" className="av-input" />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">User IDs (comma separated)</label>
-              <textarea value={bulkAchieverText} onChange={(e) => setBulkAchieverText(e.target.value)} placeholder="user_id_1, user_id_2, ..." className="av-input" rows={3} />
-            </div>
-            <button onClick={bulkAddAchievers} disabled={submitting} className="av-btn-yellow w-full rounded-lg py-2.5 text-sm">{submitting ? "Adding..." : "Add Achievers"}</button>
-          </div>
-        </Modal>
-      )}
+      <Modal isOpen={achieverModalOpen} onClose={() => setAchieverModalOpen(false)} title="Add Achievers">
+        <div className="space-y-4">
+          <div><label className={LABEL}>Campaign ID</label><input value={achieverFilter} onChange={(e) => setAchieverFilter(e.target.value)} placeholder="Paste campaign ID" className={INPUT} /></div>
+          <div><label className={LABEL}>User IDs (comma separated)</label>
+            <textarea value={bulkAchieverText} onChange={(e) => setBulkAchieverText(e.target.value)} placeholder="u_abc123, u_def456, ..." className={INPUT} rows={3} /></div>
+          <button onClick={bulkAddAchievers} disabled={submitting} className={`${BTN_PRIMARY} w-full`}>{submitting ? "Adding..." : "Add Achievers"}</button>
+        </div>
+      </Modal>
 
-      <ConfirmDialog
-        isOpen={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={() => confirmDelete && deleteCampaign(confirmDelete)}
-        title="Delete Campaign"
-        message="Are you sure? This will also delete all associated achievers."
-        confirmText="Delete"
-        destructive
-      />
+      <ConfirmDialog isOpen={!!confirmDelete} onClose={() => setConfirmDelete(null)} onConfirm={() => confirmDelete && deleteCampaign(confirmDelete)}
+        title="Delete Campaign" message="This will also remove all achievers in this campaign." confirmText="Delete" destructive />
     </div>
   );
 }
