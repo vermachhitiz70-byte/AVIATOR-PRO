@@ -20,10 +20,21 @@ async function migrate(db: Client, sql: string) {
   }
 }
 
-export async function initDb() {
+// Cached per server instance: concurrent requests share one migration run,
+// warm instances skip it entirely. This keeps cold starts fast on Vercel,
+// where each roundtrip to Turso costs ~250ms.
+let ready: Promise<void> | null = null;
+
+export async function initDb(): Promise<void> {
+  if (!ready) ready = migrateAll().catch((e) => { ready = null; throw e; });
+  return ready;
+}
+
+async function migrateAll(): Promise<void> {
   const db = getDb();
-  // Users (PRD 3.1: OTP activation, block, KYC doc, password reset)
-  await db.execute(`CREATE TABLE IF NOT EXISTS users (
+  // Batch 1: core tables (independent — run in parallel)
+  await Promise.all([
+    db.execute(`CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     mobile TEXT UNIQUE NOT NULL,
@@ -44,17 +55,15 @@ export async function initDb() {
     reset_code TEXT DEFAULT '',
     reset_expiry TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  // Existing accounts (created before OTP) stay active
-  await db.execute("UPDATE users SET is_active=1 WHERE is_active IS NULL OR (otp_code='' AND reset_code='' AND is_active=0 AND datetime(created_at) < datetime('now','-1 minute'))");
-  await db.execute(`CREATE TABLE IF NOT EXISTS wallets (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS wallets (
     user_id TEXT PRIMARY KEY,
     principal REAL DEFAULT 0,
     roi REAL DEFAULT 0,
     commission REAL DEFAULT 0,
     reward REAL DEFAULT 0
-  )`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS deposits (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS deposits (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     request_id TEXT UNIQUE NOT NULL,
@@ -64,9 +73,8 @@ export async function initDb() {
     status TEXT DEFAULT 'pending',
     admin_remark TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  await migrate(db, "ALTER TABLE deposits ADD COLUMN admin_remark TEXT DEFAULT ''");
-  await db.execute(`CREATE TABLE IF NOT EXISTS withdrawals (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS withdrawals (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     source_wallet TEXT DEFAULT 'principal',
@@ -78,9 +86,8 @@ export async function initDb() {
     status TEXT DEFAULT 'pending',
     admin_remark TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  await migrate(db, "ALTER TABLE withdrawals ADD COLUMN admin_remark TEXT DEFAULT ''");
-  await db.execute(`CREATE TABLE IF NOT EXISTS bots (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS bots (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     plan TEXT NOT NULL,
@@ -91,8 +98,8 @@ export async function initDb() {
     total_earned REAL DEFAULT 0,
     last_roi_date TEXT DEFAULT '',
     status TEXT DEFAULT 'active'
-  )`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS gameplay (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS gameplay (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     bot_id TEXT DEFAULT '',
@@ -101,8 +108,11 @@ export async function initDb() {
     roi_amount REAL NOT NULL,
     bet_amount REAL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS commissions (
+  )`),
+  ]);
+  // Batch 2: remaining tables (independent — run in parallel)
+  await Promise.all([
+    db.execute(`CREATE TABLE IF NOT EXISTS commissions (
     id TEXT PRIMARY KEY,
     from_user TEXT NOT NULL,
     to_user TEXT NOT NULL,
@@ -111,30 +121,30 @@ export async function initDb() {
     pct REAL NOT NULL,
     amount REAL NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS reward_claims (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS reward_claims (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     tier INTEGER NOT NULL,
     status TEXT DEFAULT 'claimed',
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS activities (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS activities (
     id TEXT PRIMARY KEY,
     kind TEXT NOT NULL,
     message TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS support_tickets (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS support_tickets (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     subject TEXT NOT NULL,
     message TEXT NOT NULL,
     status TEXT DEFAULT 'open',
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  // Wallet ledger – every money movement is recorded (PRD 5)
-  await db.execute(`CREATE TABLE IF NOT EXISTS ledger (
+  )`),
+    // Wallet ledger – every money movement is recorded (PRD 5)
+    db.execute(`CREATE TABLE IF NOT EXISTS ledger (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     kind TEXT NOT NULL,
@@ -142,9 +152,9 @@ export async function initDb() {
     amount REAL NOT NULL,
     note TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  // Campaigns (PRD v1.1 FR-CMP): location, meeting date, eligibility end, criteria JSON
-  await db.execute(`CREATE TABLE IF NOT EXISTS campaigns (
+  )`),
+    // Campaigns (PRD v1.1 FR-CMP): location, meeting date, eligibility end, criteria JSON
+    db.execute(`CREATE TABLE IF NOT EXISTS campaigns (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     location TEXT DEFAULT '',
@@ -153,8 +163,8 @@ export async function initDb() {
     status TEXT DEFAULT 'active',
     criteria_json TEXT DEFAULT '{}',
     created_at TEXT DEFAULT (datetime('now'))
-  )`);
-  await db.execute(`CREATE TABLE IF NOT EXISTS campaign_achievers (
+  )`),
+    db.execute(`CREATE TABLE IF NOT EXISTS campaign_achievers (
     id TEXT PRIMARY KEY,
     campaign_id TEXT NOT NULL,
     user_id TEXT DEFAULT '',
@@ -165,11 +175,25 @@ export async function initDb() {
     is_demo INTEGER DEFAULT 0,
     notified INTEGER DEFAULT 0,
     achieved_at TEXT DEFAULT (datetime('now'))
-  )`);
-  for (const col of ["ALTER TABLE users ADD COLUMN country TEXT DEFAULT ''"]) {
-    await migrate(db, col);
-  }
-  // Seed Vietnam Ticket Achievers campaign (asset A2 figures)
+  )`),
+    // Admin-editable settings (PRD 4 Settings)
+    db.execute(`CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )`),
+  ]);
+  // Batch 3: column backfills + legacy activation (independent — run in parallel)
+  await Promise.all([
+    migrate(db, "ALTER TABLE deposits ADD COLUMN admin_remark TEXT DEFAULT ''"),
+    migrate(db, "ALTER TABLE withdrawals ADD COLUMN admin_remark TEXT DEFAULT ''"),
+    migrate(db, "ALTER TABLE users ADD COLUMN country TEXT DEFAULT ''"),
+    // Existing accounts (created before OTP) stay active
+    db.execute("UPDATE users SET is_active=1 WHERE is_active IS NULL OR (otp_code='' AND reset_code='' AND is_active=0 AND datetime(created_at) < datetime('now','-1 minute'))"),
+    ...Object.entries(DEFAULT_SETTINGS).map(([k, v]) =>
+      db.execute({ sql: "INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)", args: [k, v] })
+    ),
+  ]);
+  // Seeds (run once ever — guarded by existence checks)
   const camp = await db.execute({ sql: "SELECT id FROM campaigns WHERE name='Vietnam Ticket Achievers'", args: [] });
   if (camp.rows.length === 0) {
     const cid = "camp-vietnam-1";
@@ -201,14 +225,6 @@ export async function initDb() {
       });
     }
   }
-  // Admin-editable settings (PRD 4 Settings)
-  await db.execute(`CREATE TABLE IF NOT EXISTS settings (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  )`);
-  for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) {
-    await db.execute({ sql: "INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)", args: [k, v] });
-  }
   // Seed root demo user + admin if missing
   const root = await db.execute({ sql: "SELECT id FROM users WHERE referral_code='AV100001'", args: [] });
   if (root.rows.length === 0) {
@@ -226,12 +242,12 @@ export async function initDb() {
 export async function getSettings(): Promise<Record<string, string>> {
   const db = getDb();
   const r = await db.execute("SELECT key,value FROM settings");
-  const out: Record<string, string> = { ...DEFAULT_SETTINGS };
+  const out: Record<string, unknown> = { ...DEFAULT_SETTINGS };
   for (const row of r.rows) {
     const kv = row as unknown as { key: string; value: string };
     out[kv.key] = kv.value;
   }
-  return out;
+  return out as Record<string, string>;
 }
 
 export function uid(prefix: string) {
