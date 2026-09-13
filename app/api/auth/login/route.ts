@@ -15,5 +15,5 @@ export async function POST(req: NextRequest) {
   if (settings.maintenanceMode === "on" && !u.is_admin) return NextResponse.json({ ok: false, error: "Platform under maintenance. Try later." }, { status: 503 });
   if (!(await verifyPassword(password, u.password_hash))) return NextResponse.json({ ok: false, error: "Wrong password" }, { status: 401 });
   await createSession(u.id);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, is_admin: !!u.is_admin, userId: u.id });
 }

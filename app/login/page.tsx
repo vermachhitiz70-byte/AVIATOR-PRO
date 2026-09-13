@@ -31,7 +31,7 @@ export default function Login() {
         setError(j.error || "Login failed. Please try again.");
         return;
       }
-      router.push("/dash");
+      router.push(j.is_admin ? "/admin" : "/dash");
     } finally {
       setBusy(false);
     }

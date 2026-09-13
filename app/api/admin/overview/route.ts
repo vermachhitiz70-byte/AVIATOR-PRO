@@ -10,12 +10,22 @@ export async function GET() {
   const deps = await db.execute("SELECT COUNT(*) as c FROM deposits");
   const wds = await db.execute("SELECT COUNT(*) as c FROM withdrawals");
   const bots = await db.execute("SELECT COUNT(*) as c FROM bots");
-  const pend = await db.execute("SELECT id,user_id,net FROM withdrawals WHERE status='pending' ORDER BY rowid DESC LIMIT 20");
+  const pendDeps = await db.execute("SELECT COUNT(*) as c FROM deposits WHERE status='pending'");
+  const pendWds = await db.execute("SELECT id,user_id,net FROM withdrawals WHERE status='pending' ORDER BY rowid DESC LIMIT 20");
+  const totalInv = await db.execute("SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE status='confirmed'");
+  const totalWdr = await db.execute("SELECT COALESCE(SUM(net),0) as t FROM withdrawals WHERE status IN ('pending','approved')");
+  const roiPaid = await db.execute("SELECT COALESCE(SUM(amount),0) as t FROM ledger WHERE kind='daily_roi'");
+  const commPaid = await db.execute("SELECT COALESCE(SUM(amount),0) as t FROM commissions");
   return NextResponse.json({
     users: (users.rows[0] as unknown as { c: number }).c,
     deposits: (deps.rows[0] as unknown as { c: number }).c,
     withdrawals: (wds.rows[0] as unknown as { c: number }).c,
     bots: (bots.rows[0] as unknown as { c: number }).c,
-    pendingWithdrawals: pend.rows,
+    pendingDeposits: (pendDeps.rows[0] as unknown as { c: number }).c,
+    pendingWithdrawals: pendWds.rows,
+    totalInvestment: (totalInv.rows[0] as unknown as { t: number }).t,
+    totalWithdrawal: (totalWdr.rows[0] as unknown as { t: number }).t,
+    roiPaid: (roiPaid.rows[0] as unknown as { t: number }).t,
+    commissionPaid: (commPaid.rows[0] as unknown as { t: number }).t,
   });
 }
