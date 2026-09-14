@@ -5,10 +5,10 @@ import { LiveToasts } from "@/components/dash";
 
 const TILES = [
   { href: "/dash/recharge", label: "Recharge", icon: "+" },
-  { href: "/dash/play", label: "Play", icon: ">" },
+  { href: "/dash/play", label: "Trade", icon: ">" },
   { href: "/dash/withdraw", label: "Withdraw", icon: "$" },
   { href: "/dash/team", label: "Team", icon: "&" },
-  { href: "/dash/bot", label: "Aviator Bot", icon: "B" },
+  { href: "/dash/bot", label: "Trading Bot", icon: "B" },
   { href: "/dash/business-plan", label: "Business Plan", icon: "P" },
   { href: "/dash/run", label: "LUDO247", icon: "D" },
   { href: "/dash/support", label: "AI Help", icon: "*" },
@@ -77,16 +77,16 @@ export default function DashHome() {
         </Link>
       ))}
       <div className="hero-plane av-card overflow-hidden p-4">
-        <span className="live-pill">AVIATOR LIVE</span>
+        <span className="live-pill">CRYPTO LIVE</span>
         <h1 className="mt-2 text-2xl font-black">
-          Ready for takeoff, {name}
+          Ready to trade, {name}
         </h1>
         <p className="text-sm text-slate-300">
           User ID {uid} - {rank}
         </p>
         <div className="mt-3 flex gap-2">
           <Link href="/dash/play" className="av-btn-red px-4 py-2 text-sm">
-            Play Aviator
+            Start Trading
           </Link>
           <Link href="/dash/activity" className="rounded-xl border border-white/30 px-4 py-2 text-sm">
             Activity

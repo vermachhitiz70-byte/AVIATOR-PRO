@@ -26,11 +26,14 @@ type BotResult = { paid: boolean; credited: number; capped: boolean; expired: bo
 
 async function processBot(bot: BotRow, today: string): Promise<BotResult> {
   const db = getDb();
-  if (bot.last_roi_date === today) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // idempotent
   if (bot.expiry_date && bot.expiry_date.slice(0, 10) < today) {
     await db.execute({ sql: "UPDATE bots SET status='expired' WHERE id=?", args: [bot.id] });
     return { paid: false, credited: 0, capped: false, expired: true, skipped: false };
   }
+  // Atomic claim: only the worker that flips last_roi_date proceeds.
+  // Overlapping cron runs can never double-pay the same bot.
+  const claim = await db.execute({ sql: "UPDATE bots SET last_roi_date=? WHERE id=? AND status='active' AND (last_roi_date IS NULL OR last_roi_date!=?)", args: [today, bot.id, today] });
+  if ((claim.rowsAffected ?? 0) === 0) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // already paid/claimed today
   const tier = planForAmount(Number(bot.amount));
   if (!tier) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // amount outside all tiers ($10–$100,000)
   const roiPct = tier.dailyPct;
