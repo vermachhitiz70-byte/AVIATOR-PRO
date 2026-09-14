@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/roi?secret=cron_3a9fc8c06d8269bed56478a01625a34ce466cc9b354bf5d6",
+      "schedule": "30 23 * * *"
+    }
+  ]
+}

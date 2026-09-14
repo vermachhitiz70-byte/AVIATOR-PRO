@@ -151,7 +151,7 @@ export default function AdminSettingsPage() {
               <button onClick={() => setTestSmtpOpen(true)} className="rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">Test Email</button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">{SMTP_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
-            <p className="mt-3 text-xs text-gray-400">Daily ROI cron: call <span className="font-mono font-semibold">/api/cron/roi?secret=CRON_SECRET</span> (Vercel Cron).</p>
+            <p className="mt-3 text-xs text-gray-400">Daily ROI runs automatically every day at <span className="font-semibold">5:00 AM IST</span> (Vercel Cron) — tier rate per bot + 10-level team income, credited to earning wallets.</p>
           </div>
 
           <div className={`${CARD} p-5`}>

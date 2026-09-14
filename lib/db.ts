@@ -193,9 +193,9 @@ async function migrateAll(): Promise<void> {
     ...Object.entries(DEFAULT_SETTINGS).map(([k, v]) =>
       db.execute({ sql: "INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)", args: [k, v] })
     ),
-    // Client spec update: withdrawal min $2 -> $24 (only where still the old seed default,
-    // so real admin customizations are never overwritten) + new $25K max default.
-    db.execute("UPDATE settings SET value='24' WHERE key='minWithdrawal' AND value='2'"),
+    // Withdrawal min follows client spec ($2). Only flips the old $24 seed
+    // default back — never touches real admin customizations.
+    db.execute("UPDATE settings SET value='2' WHERE key='minWithdrawal' AND value='24'"),
     db.execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('maxWithdrawal','25000')"),
   ]);
   // Seeds (run once ever — guarded by existence checks)

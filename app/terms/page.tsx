@@ -6,7 +6,7 @@ const RULES = [
   ["Eligibility", "Members must be 18+. One account per person — multi-account farming leads to suspension and commission clawback."],
   ["Deposits", `Minimum $${BUSINESS_RULES.minInvestment} via USDT-BEP20. Funds credit to Principal only after admin verification of your TX hash.`],
   ["Daily income", `Automated daily share of your active bot amount (3%–10% by tier), auto-credited daily. Bots stop at 2X–5X direct earnings or ${BUSINESS_RULES.botValidityDays} days. Direct + level commissions never cap.`],
-  ["Commissions", "First-recharge bonuses pay once per member (5/2/1/1/1). ROI team commissions (5/2/2/2/1…) pay on downline daily earnings."],
+  ["Commissions", "First-recharge bonuses pay once per member (5/2/1/1/1). ROI team commissions (6/3/2/2/1…) pay on downline daily earnings."],
   ["Withdrawals", `Minimum $${BUSINESS_RULES.minWithdrawal}, maximum $${BUSINESS_RULES.maxWithdrawal.toLocaleString()} with a ${BUSINESS_RULES.withdrawalChargePct}% deduction, processed during ${BUSINESS_RULES.withdrawalWindowIST} IST. Rejected requests are refunded to Principal.`],
   ["Milestones & campaigns", "Reward vaults credit on claim after thresholds; campaign tickets follow published criteria and eligibility dates."],
   ["Fair play", "Bots, scripts or TX-hash reuse to game the system will be blocked. Balances and referrals are audited."],

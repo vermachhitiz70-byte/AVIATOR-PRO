@@ -12,8 +12,8 @@ export const BOT_PLANS = [
   { id: "diamond", name: "Diamond Tier", min: 51000, max: 100000, multiplier: 5, dailyPct: 10, color: "red" },
 ] as const;
 
-// Client spec – 10-Level ROI-on-ROI Income (on downline daily profits)
-export const ROI_LEVELS = [5, 2, 2, 2, 1, 1, 1, 1, 1, 1];
+// Client spec – 10-Level ROI-on-ROI Income: L1 6%, L2 3%, L3 2%, L4 2%, L5–L10 1%
+export const ROI_LEVELS = [6, 3, 2, 2, 1, 1, 1, 1, 1, 1];
 // Client spec – 5-Level Direct (First Recharge) Income, first recharge only
 export const FIRST_RECHARGE_LEVELS = [5, 2, 1, 1, 1];
 
@@ -23,7 +23,7 @@ export const BUSINESS_RULES = {
   dailyRunLimit: 10,
   botRoundsPerDay: "6 - 7 / day",
   withdrawalChargePct: 10,
-  minWithdrawal: 24,
+  minWithdrawal: 2,
   maxWithdrawal: 25000,
   minInvestment: 10,
   // Client spec: 2X–5X income capping per tier (direct ROI only;
@@ -38,7 +38,7 @@ export const BUSINESS_RULES = {
 // Admin-editable settings (DB table `settings`, seeded from here)
 export const DEFAULT_SETTINGS: Record<string, string> = {
   minDeposit: "10",
-  minWithdrawal: "24",
+  minWithdrawal: "2",
   maxWithdrawal: "25000",
   withdrawalChargePct: "10",
   withdrawStartIST: "07:00",
