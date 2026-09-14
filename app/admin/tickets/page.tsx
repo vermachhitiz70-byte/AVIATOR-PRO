@@ -80,7 +80,7 @@ export default function AdminTicketsPage() {
     { key: "status", label: "Status", render: (r: TicketRow) => pill(r.status) },
     { key: "created_at", label: "Date", render: (r: TicketRow) => <span className="text-xs text-gray-500">{fmtDate(r.created_at)}</span> },
     { key: "actions", label: "Actions", render: (r: TicketRow) => (
-      <button onClick={() => openTicket(r)} className="rounded-xl border border-[#e9dfc9] px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">View & Reply</button>
+      <button onClick={() => openTicket(r)} className="rounded-xl border border-[#e9dfc9] px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-[#faf6ec]">View & Reply</button>
     ) },
   ];
 
@@ -121,7 +121,7 @@ export default function AdminTicketsPage() {
               <div><p className="text-xs font-semibold text-gray-500">Status</p><div className="mt-1">{pill(selectedTicket.status)}</div></div>
               <div><p className="text-xs font-semibold text-gray-500">Date</p><p className="text-gray-700">{fmtDate(selectedTicket.created_at)}</p></div>
             </div>
-            <div className="rounded-xl bg-[#faf6ee] p-3">
+            <div className="rounded-xl bg-[#faf6ec] p-3">
               <p className="mb-1 text-xs font-semibold text-gray-500">Member message</p>
               <p className="text-sm text-gray-800">{String(selectedTicket.message ?? "-")}</p>
             </div>

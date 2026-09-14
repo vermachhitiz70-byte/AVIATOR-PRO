@@ -88,9 +88,9 @@ export default function AdminDashboard() {
             <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-[#b45309]">{pdCount + pwCount}</span>
           </div>
           <div className="space-y-2">
-            {approvals.length === 0 && pwCount === 0 && <p className="rounded-xl bg-[#faf6ee] px-4 py-6 text-center text-sm text-gray-400">Nothing waiting. All deposits and withdrawals are processed.</p>}
+            {approvals.length === 0 && pwCount === 0 && <p className="rounded-xl bg-[#faf6ec] px-4 py-6 text-center text-sm text-gray-400">Nothing waiting. All deposits and withdrawals are processed.</p>}
             {approvals.map((a) => (
-              <Link key={a.id} href="/admin/deposits" className="flex items-center justify-between gap-3 rounded-xl bg-[#faf6ee] px-4 py-3 hover:bg-[#f5eddc]">
+              <Link key={a.id} href="/admin/deposits" className="flex items-center justify-between gap-3 rounded-xl bg-[#faf6ec] px-4 py-3 hover:bg-[#f5eddc]">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-gray-900">{a.title}</p>
                   <p className="truncate text-xs text-gray-500">{a.sub}</p>
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
               </Link>
             ))}
             {pwCount > 0 && (
-              <Link href="/admin/withdrawals" className="flex items-center justify-between gap-3 rounded-xl bg-[#faf6ee] px-4 py-3 hover:bg-[#f5eddc]">
+              <Link href="/admin/withdrawals" className="flex items-center justify-between gap-3 rounded-xl bg-[#faf6ec] px-4 py-3 hover:bg-[#f5eddc]">
                 <div><p className="text-sm font-bold text-gray-900">{pwCount} withdrawal{pwCount > 1 ? "s" : ""} awaiting payout</p><p className="text-xs text-gray-500">Review amounts and wallet addresses</p></div>
                 <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">review</span>
               </Link>
@@ -113,9 +113,9 @@ export default function AdminDashboard() {
             <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-[#b45309]">{recent.length} latest</span>
           </div>
           <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-            {recent.length === 0 && <p className="rounded-xl bg-[#faf6ee] px-4 py-6 text-center text-sm text-gray-400">No activity yet.</p>}
+            {recent.length === 0 && <p className="rounded-xl bg-[#faf6ec] px-4 py-6 text-center text-sm text-gray-400">No activity yet.</p>}
             {recent.map((a) => (
-              <div key={a.id} className="rounded-xl bg-[#faf6ee] px-4 py-3">
+              <div key={a.id} className="rounded-xl bg-[#faf6ec] px-4 py-3">
                 <p className="text-sm font-semibold text-gray-900">{a.message}</p>
                 <p className="mt-0.5 text-xs text-gray-500">{a.kind} · {fmtDate(a.created_at)}</p>
               </div>
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
           <Link href="/admin/deposits" className="text-xs font-semibold text-[#e8821e] hover:underline">View all ↗</Link>
         </div>
         <div className="overflow-x-auto p-2">
-          <table className="w-full text-left text-sm">
+          <table className="w-full bg-white text-left text-sm">
             <thead>
               <tr className="border-b border-[#f0e6d2] text-xs uppercase tracking-wide text-gray-400">
                 <th className="px-4 py-3 font-semibold">User</th>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {(data?.recentDeposits || []).map((d) => (
-                <tr key={String(d.id)} className="border-b border-[#f8f2e4] last:border-0 hover:bg-orange-50/50">
+                <tr key={String(d.id)} className="border-b border-[#f8f2e4] bg-white last:border-0">
                   <td className="px-4 py-3"><p className="font-semibold text-gray-900">{String(d.name ?? "-")}</p><p className="text-xs text-gray-500">{String(d.email ?? "")}</p></td>
                   <td className="px-4 py-3 font-mono text-xs text-gray-500">{String(d.request_id ?? "-")}</td>
                   <td className="px-4 py-3 font-bold text-gray-900">{fmtUSD(d.actual)}</td>

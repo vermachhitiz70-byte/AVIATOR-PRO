@@ -128,7 +128,7 @@ export default function AdminReportsPage() {
               {TAB_OPTIONS.map((t) => (
                 <button key={t} onClick={() => { setActiveTab(t); setDetailPage(1); }} className={`rounded-t-lg px-4 py-2.5 text-xs font-bold transition ${activeTab === t ? "border-b-2 border-[#e8821e] text-[#e8821e]" : "text-gray-400 hover:text-gray-700"}`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
               ))}
-              <a href={`/api/admin/reports?export=${activeTab}${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`} className="mb-2 ml-auto flex items-center gap-1.5 rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">
+              <a href={`/api/admin/reports?export=${activeTab}${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`} className="mb-2 ml-auto flex items-center gap-1.5 rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ec]">
                 <Download className="h-3.5 w-3.5" />Export CSV
               </a>
             </div>

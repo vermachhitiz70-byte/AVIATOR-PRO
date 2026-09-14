@@ -39,10 +39,10 @@ export function AdminTopBar({ admin }: { admin: { name: string; email: string; r
         <div className="flex items-center gap-2 md:gap-4">
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Search users, deposits..." className="w-56 rounded-xl border border-[#e9dfc9] bg-[#faf6ee] py-2 pl-9 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-[#e8821e] focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") window.location.href = `/admin/users?q=${encodeURIComponent((e.target as HTMLInputElement).value)}`; }} />
+            <input type="text" placeholder="Search users, deposits..." className="w-56 rounded-xl border border-[#e9dfc9] bg-[#faf6ec] py-2 pl-9 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-[#e8821e] focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") window.location.href = `/admin/users?q=${encodeURIComponent((e.target as HTMLInputElement).value)}`; }} />
           </div>
           <div className="relative">
-            <button onClick={() => setShow((s) => !s)} className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#faf6ee] text-gray-600 hover:bg-[#f3ead6]" aria-label="Notifications">
+            <button onClick={() => setShow((s) => !s)} className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#faf6ec] text-gray-600 hover:bg-[#f3ead6]" aria-label="Notifications">
               <Bell className="h-5 w-5" />
               {alerts.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">{alerts.length}</span>}
             </button>
@@ -54,7 +54,7 @@ export function AdminTopBar({ admin }: { admin: { name: string; email: string; r
                   <div className="max-h-80 overflow-y-auto">
                     {alerts.length === 0 && <p className="px-4 py-6 text-center text-sm text-gray-400">All clear. Nothing needs attention.</p>}
                     {alerts.map((a) => (
-                      <Link key={a.id} href={a.href} onClick={() => setShow(false)} className="block border-b border-[#f8f2e4] px-4 py-3 last:border-0 hover:bg-[#faf6ee]">
+                      <Link key={a.id} href={a.href} onClick={() => setShow(false)} className="block border-b border-[#f8f2e4] px-4 py-3 last:border-0 hover:bg-[#faf6ec]">
                         <p className="text-sm font-semibold text-gray-900">{a.title}</p>
                         <p className="text-xs text-gray-500">{a.sub}</p>
                       </Link>

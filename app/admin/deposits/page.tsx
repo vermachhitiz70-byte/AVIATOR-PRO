@@ -113,7 +113,7 @@ export default function AdminDepositsPage() {
       <div className={`${CARD} p-4`}>
         <div className="mb-3 flex flex-wrap gap-2">
           {TABS.map((t) => (
-            <button key={t} onClick={() => { setTab(t); setPage(1); }} className={`rounded-xl px-4 py-2 text-xs font-bold transition ${tab === t ? "bg-[#e8821e] text-white shadow-sm" : "border border-[#e9dfc9] bg-white text-gray-500 hover:bg-[#faf6ee]"}`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
+            <button key={t} onClick={() => { setTab(t); setPage(1); }} className={`rounded-xl px-4 py-2 text-xs font-bold transition ${tab === t ? "bg-[#e8821e] text-white shadow-sm" : "border border-[#e9dfc9] bg-white text-gray-500 hover:bg-[#faf6ec]"}`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-3">

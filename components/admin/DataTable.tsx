@@ -9,8 +9,8 @@ export function DataTable<T>({ columns, data, page, limit, total, onPageChange, 
   const someSelected = data.some((row) => selectedIds?.has(rowKey(row))) && !allSelected;
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
+    <div className="overflow-x-auto rounded-2xl bg-white">
+      <table className="w-full bg-white text-left text-sm">
         <thead>
           <tr className="border-b border-[#f0e6d2] text-xs uppercase tracking-wide text-gray-400">
             {onToggleSelect && <th className="w-10 px-4 py-3"><input type="checkbox" checked={allSelected} ref={(el) => { if (el) el.indeterminate = someSelected; }} onChange={onToggleAll} className="h-4 w-4 rounded accent-[#e8821e]" /></th>}
@@ -21,7 +21,7 @@ export function DataTable<T>({ columns, data, page, limit, total, onPageChange, 
         </thead>
         <tbody>
           {data.map((row) => (
-            <tr key={rowKey(row)} className={`border-b border-[#f8f2e4] last:border-0 hover:bg-orange-50/50 ${selectedIds?.has(rowKey(row)) ? "bg-orange-50" : ""}`}>
+            <tr key={rowKey(row)} className={`border-b border-[#f8f2e4] bg-white last:border-0 ${selectedIds?.has(rowKey(row)) ? "bg-orange-50" : ""}`}>
               {onToggleSelect && <td className="px-4 py-3"><input type="checkbox" checked={selectedIds?.has(rowKey(row))} onChange={() => onToggleSelect(rowKey(row))} className="h-4 w-4 rounded accent-[#e8821e]" /></td>}
               {columns.map((col) => (
                 <td key={col.key} className="whitespace-nowrap px-4 py-3 text-gray-700">
@@ -47,9 +47,9 @@ export function DataTable<T>({ columns, data, page, limit, total, onPageChange, 
             <span>of {total} entries</span>
           </div>
           <div className="flex items-center gap-1">
-            <button disabled={page <= 1} onClick={() => onPageChange(page - 1)} className="rounded-lg border border-[#e9dfc9] bg-white p-1.5 text-gray-600 disabled:opacity-40 hover:bg-[#faf6ee]"><ChevronLeft className="h-4 w-4" /></button>
+            <button disabled={page <= 1} onClick={() => onPageChange(page - 1)} className="rounded-lg border border-[#e9dfc9] bg-white p-1.5 text-gray-600 disabled:opacity-40 hover:bg-[#faf6ec]"><ChevronLeft className="h-4 w-4" /></button>
             <span className="px-3 text-xs text-gray-500">Page {page} of {totalPages}</span>
-            <button disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} className="rounded-lg border border-[#e9dfc9] bg-white p-1.5 text-gray-600 disabled:opacity-40 hover:bg-[#faf6ee]"><ChevronRight className="h-4 w-4" /></button>
+            <button disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} className="rounded-lg border border-[#e9dfc9] bg-white p-1.5 text-gray-600 disabled:opacity-40 hover:bg-[#faf6ec]"><ChevronRight className="h-4 w-4" /></button>
           </div>
         </div>
       )}

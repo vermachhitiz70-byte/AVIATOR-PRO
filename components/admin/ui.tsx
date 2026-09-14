@@ -2,7 +2,7 @@ export const INPUT = "w-full rounded-xl border border-[#e9dfc9] bg-white px-4 py
 export const BTN_PRIMARY = "rounded-xl bg-[#e8821e] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#d1710f] disabled:opacity-50";
 export const BTN_GREEN = "rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-green-700 disabled:opacity-50";
 export const BTN_RED = "rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-red-600 disabled:opacity-50";
-export const BTN_GHOST = "rounded-xl border border-[#e9dfc9] bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-[#faf6ee]";
+export const BTN_GHOST = "rounded-xl border border-[#e9dfc9] bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-[#faf6ec]";
 export const CARD = "rounded-2xl border border-[#f0e6d2] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]";
 export const LABEL = "mb-1 block text-xs font-semibold text-gray-500";
 

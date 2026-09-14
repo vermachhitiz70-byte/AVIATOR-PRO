@@ -39,7 +39,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <NotificationProvider>
-      <div className="flex min-h-screen bg-[#faf6ee] text-gray-900">
+      <div className="flex min-h-screen overflow-x-clip bg-[#faf6ec] text-gray-900">
         <AdminSidebar admin={admin} />
         <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
           <AdminTopBar admin={admin} />

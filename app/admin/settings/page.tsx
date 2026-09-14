@@ -89,7 +89,7 @@ export default function AdminSettingsPage() {
       const onVal = key === "maintenanceMode" ? "on" : "true";
       const offVal = key === "maintenanceMode" ? "off" : "false";
       return (
-        <div key={key} className="flex items-center justify-between rounded-xl bg-[#faf6ee] px-4 py-3">
+        <div key={key} className="flex items-center justify-between rounded-xl bg-[#faf6ec] px-4 py-3">
           <label className="text-sm font-medium text-gray-700">{label}</label>
           <button onClick={() => updateSetting(key, val ? offVal : onVal)} className={`relative h-6 w-11 rounded-full transition ${val ? "bg-[#e8821e]" : "bg-gray-300"}`}>
             <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${val ? "translate-x-5" : "translate-x-0"}`} />
@@ -121,7 +121,7 @@ export default function AdminSettingsPage() {
           <p className="mt-1 text-sm text-gray-500">Platform, email and security configuration</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowSecrets((p) => !p)} className="flex items-center gap-1.5 rounded-xl border border-[#e9dfc9] bg-white px-3 py-2.5 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">
+          <button onClick={() => setShowSecrets((p) => !p)} className="flex items-center gap-1.5 rounded-xl border border-[#e9dfc9] bg-white px-3 py-2.5 text-xs font-semibold text-gray-600 hover:bg-[#faf6ec]">
             {showSecrets ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}{showSecrets ? "Hide Secrets" : "Show Secrets"}
           </button>
           <button onClick={saveAll} disabled={saving} className="flex items-center gap-2 rounded-xl bg-[#e8821e] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#d1710f]">
@@ -148,7 +148,7 @@ export default function AdminSettingsPage() {
           <div className={`${CARD} p-5`}>
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600"><Mail className="h-4 w-4" /></span><h2 className="font-bold text-gray-900">Email (SMTP) Settings</h2></div>
-              <button onClick={() => setTestSmtpOpen(true)} className="rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ee]">Test Email</button>
+              <button onClick={() => setTestSmtpOpen(true)} className="rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ec]">Test Email</button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">{SMTP_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
             <p className="mt-3 text-xs text-gray-400">Daily ROI runs automatically every day at <span className="font-semibold">5:00 AM IST</span> (Vercel Cron) — tier rate per bot + 10-level team income, credited to earning wallets.</p>
