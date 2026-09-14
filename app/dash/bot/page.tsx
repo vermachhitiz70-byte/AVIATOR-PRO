@@ -17,8 +17,8 @@ export default function Bot() {
   }
   return (
     <div className="space-y-3">
-      <div className="av-card p-4"><h2 className="font-black">BOT PLANS</h2><p className="text-sm text-slate-300">Activate any Bot Plan. Automated <b>daily income</b> on total active investment (3X cap, 365 days). Plan tiers decide your bracket.</p></div>
-      {BOT_PLANS.map((p) => (<div key={p.id} className="av-card p-4"><h3 className="font-black">{p.name}</h3><p>{p.min.toLocaleString()}–{p.max.toLocaleString()} USDT · Daily auto-profits · 3X capping · 365 days</p></div>))}
+      <div className="av-card p-4"><h2 className="font-black">BOT PLANS</h2><p className="text-sm text-slate-300">Activate any Bot Plan. Automated <b>daily income</b> on total active investment (2X–5X cap per tier, 365 days). Plan tiers decide your bracket.</p></div>
+      {BOT_PLANS.map((p) => (<div key={p.id} className="av-card p-4"><h3 className="font-black">{p.name}</h3><p>{p.min.toLocaleString()}–{p.max.toLocaleString()} USDT · {p.dailyPct}% daily auto-profits · {p.multiplier}X capping · 365 days</p></div>))}
       <div className="av-card p-4">
         <h3 className="font-bold">Activate Bot (from Principal wallet)</h3>
         <form onSubmit={activate} className="mt-2 flex gap-2"><input className="av-input" value={amount} onChange={(e) => setAmount(e.target.value)} /><button className="av-btn-yellow px-5">Activate</button></form>

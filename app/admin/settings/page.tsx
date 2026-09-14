@@ -7,13 +7,14 @@ import { Eye, EyeOff, Save, Mail, Server, Shield, Loader2 } from "lucide-react";
 type Settings = Record<string, string>;
 
 const PLATFORM_KEYS = [
-  { key: "min_deposit", label: "Minimum Deposit (USD)", type: "number" },
-  { key: "withdrawal_charge_pct", label: "Withdrawal Charge %", type: "number" },
-  { key: "roi_daily_pct", label: "Daily ROI %", type: "number" },
-  { key: "withdrawal_window_start", label: "Withdrawal Window Opens (IST)", type: "time" },
-  { key: "withdrawal_window_end", label: "Withdrawal Window Closes (IST)", type: "time" },
-  { key: "maintenance_mode", label: "Maintenance Mode", type: "toggle" },
-  { key: "bep20_address", label: "BEP20 Deposit Address", type: "text" },
+  { key: "minDeposit", label: "Min Deposit ($)", type: "number" },
+  { key: "minWithdrawal", label: "Min Withdrawal ($)", type: "number" },
+  { key: "maxWithdrawal", label: "Max Withdrawal ($)", type: "number" },
+  { key: "withdrawalChargePct", label: "Withdrawal Deduction %", type: "number" },
+  { key: "withdrawStartIST", label: "Withdrawal Window Start", type: "time" },
+  { key: "withdrawEndIST", label: "Withdrawal Window Closes", type: "time" },
+  { key: "maintenanceMode", label: "Maintenance Mode", type: "toggle" },
+  { key: "depositAddress", label: "BEP20 Deposit Address", type: "text" },
 ];
 
 const SMTP_KEYS = [
@@ -79,16 +80,18 @@ export default function AdminSettingsPage() {
 
   function renderInput(key: string, label: string, type: string) {
     const isPassword = type === "password";
-    const isToggle = type === "toggle";
+    const isToggle = type === "toggle" || key === "maintenanceMode";
     const isSecret = key.includes("secret");
     const masked = (isPassword || isSecret) && !showSecrets;
 
     if (isToggle) {
-      const val = getValue(key) === "true" || getValue(key) === "1";
+      const val = getValue(key) === "true" || getValue(key) === "1" || getValue(key) === "on";
+      const onVal = key === "maintenanceMode" ? "on" : "true";
+      const offVal = key === "maintenanceMode" ? "off" : "false";
       return (
         <div key={key} className="flex items-center justify-between rounded-xl bg-[#faf6ee] px-4 py-3">
           <label className="text-sm font-medium text-gray-700">{label}</label>
-          <button onClick={() => updateSetting(key, val ? "false" : "true")} className={`relative h-6 w-11 rounded-full transition ${val ? "bg-[#e8821e]" : "bg-gray-300"}`}>
+          <button onClick={() => updateSetting(key, val ? offVal : onVal)} className={`relative h-6 w-11 rounded-full transition ${val ? "bg-[#e8821e]" : "bg-gray-300"}`}>
             <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${val ? "translate-x-5" : "translate-x-0"}`} />
           </button>
         </div>

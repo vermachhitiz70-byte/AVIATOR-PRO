@@ -13,10 +13,10 @@ export async function GET() {
   const w = await walletOf(u.id as string);
   const max = Number(w.principal) + Number(w.roi) + Number(w.commission) + Number(w.reward);
   const win = inWithdrawWindow(settings.withdrawStartIST || "07:00", settings.withdrawEndIST || "10:00");
-  return NextResponse.json({ ok: true, rows: r.rows, max, window: win, min: Number(settings.minWithdrawal || 2), chargePct: Number(settings.withdrawalChargePct || 10) });
+  return NextResponse.json({ ok: true, rows: r.rows, max, window: win, min: Number(settings.minWithdrawal || 24), maxLimit: Number(settings.maxWithdrawal || 25000), chargePct: Number(settings.withdrawalChargePct || 10) });
 }
 
-// PRD 3.7: min $2, 10% charge, ONLY 7–10 AM IST, admin approves manually
+// Client spec: min $24, max $25K, 10% charge, ONLY 7–10 AM IST, admin approves manually
 export async function POST(req: NextRequest) {
   await initDb();
   const u = await currentUser();
@@ -24,10 +24,12 @@ export async function POST(req: NextRequest) {
   if ((u as unknown as { is_blocked: number }).is_blocked) return NextResponse.json({ ok: false, error: "Account blocked" }, { status: 403 });
   const { amount, address } = await req.json();
   const settings = await getSettings();
-  const minW = Number(settings.minWithdrawal || 2);
+  const minW = Number(settings.minWithdrawal || 24);
+  const maxW = Number(settings.maxWithdrawal || 25000);
   const chargePct = Number(settings.withdrawalChargePct || 10);
   const amt = Number(amount);
   if (!amt || amt < minW) return NextResponse.json({ ok: false, error: `Minimum withdrawal $${minW}` }, { status: 400 });
+  if (amt > maxW) return NextResponse.json({ ok: false, error: `Maximum withdrawal $${maxW.toLocaleString()}` }, { status: 400 });
   if (!address) return NextResponse.json({ ok: false, error: "BEP20 address required (verify in Profile)" }, { status: 400 });
   const win = inWithdrawWindow(settings.withdrawStartIST || "07:00", settings.withdrawEndIST || "10:00");
   if (!win.ok) return NextResponse.json({ ok: false, error: `Withdrawals only 7:00–10:00 AM IST. Now: ${win.nowIST}` }, { status: 400 });

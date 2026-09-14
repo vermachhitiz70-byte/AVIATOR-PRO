@@ -1,29 +1,34 @@
-// Single source of truth – PRD v1.0 (PDF values).
+// Single source of truth – client business plan (photo spec).
 // Custom client logic: NO real Aviator game; fake trading screen is visual only.
-// Daily income is FIXED 1% of total active investment via daily cron (bets don't change it).
+// Daily income is credited by cron per bot, using the tier matching the bot amount.
 
+// Client ROI tiers: investment range -> total-return cap multiplier + daily ROI %.
 export const BOT_PLANS = [
-  { id: "conservative", name: "Conservative Plan", min: 10, max: 5099, dailyPct: 5, color: "green" },
-  { id: "balanced", name: "Balanced Plan", min: 5100, max: 10999, dailyPct: 6, color: "gold" },
-  { id: "aggressive", name: "Aggressive Plan", min: 11000, max: 100000, dailyPct: 8, color: "red" },
+  { id: "starter", name: "Starter Tier", min: 10, max: 1099, multiplier: 2, dailyPct: 3, color: "green" },
+  { id: "booster", name: "Booster Tier", min: 1100, max: 5099, multiplier: 3, dailyPct: 4, color: "green" },
+  { id: "silver", name: "Silver Tier", min: 5100, max: 10999, multiplier: 3, dailyPct: 5, color: "gold" },
+  { id: "gold", name: "Gold Tier", min: 11000, max: 20999, multiplier: 3, dailyPct: 7, color: "gold" },
+  { id: "platinum", name: "Platinum Tier", min: 21000, max: 50999, multiplier: 4, dailyPct: 8, color: "red" },
+  { id: "diamond", name: "Diamond Tier", min: 51000, max: 100000, multiplier: 5, dailyPct: 10, color: "red" },
 ] as const;
 
-// PRD 3.6 – PDF 10-Level ROI Income
-export const ROI_LEVELS = [6, 3, 2, 2, 1, 1, 1, 1, 1, 1];
-// PRD 3.6 – PDF 5-Level First Recharge Income (one time, first recharge only)
+// Client spec – 10-Level ROI-on-ROI Income (on downline daily profits)
+export const ROI_LEVELS = [5, 2, 2, 2, 1, 1, 1, 1, 1, 1];
+// Client spec – 5-Level Direct (First Recharge) Income, first recharge only
 export const FIRST_RECHARGE_LEVELS = [5, 2, 1, 1, 1];
 
 export const BUSINESS_RULES = {
-  // Custom logic: fixed daily ROI credited by cron, regardless of bets placed
-  dailyFixedPct: 1,
+  // Custom logic: tier-based daily ROI credited by cron per bot
   // Fake-trading visual: max bets per day (visual only, no ROI effect)
   dailyRunLimit: 10,
   botRoundsPerDay: "6 - 7 / day",
   withdrawalChargePct: 10,
-  minWithdrawal: 2,
+  minWithdrawal: 24,
+  maxWithdrawal: 25000,
   minInvestment: 10,
-  // PDF 3X income capping
-  incomeCapX: 3,
+  // Client spec: 2X–5X income capping per tier (direct ROI only;
+  // Direct Income + ROI-on-ROI level bonuses are OUT of capping)
+  incomeCapX: "2–5 per tier",
   botValidityDays: 365,
   withdrawalWindowIST: "7:00 AM - 10:00 AM",
   cryptoGateway: "Enabled / USDTBSC",
@@ -33,9 +38,9 @@ export const BUSINESS_RULES = {
 // Admin-editable settings (DB table `settings`, seeded from here)
 export const DEFAULT_SETTINGS: Record<string, string> = {
   minDeposit: "10",
-  minWithdrawal: "2",
+  minWithdrawal: "24",
+  maxWithdrawal: "25000",
   withdrawalChargePct: "10",
-  roiPct: "1",
   withdrawStartIST: "07:00",
   withdrawEndIST: "10:00",
   maintenanceMode: "off",

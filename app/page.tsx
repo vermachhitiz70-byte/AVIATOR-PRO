@@ -88,7 +88,7 @@ export default function Home() {
 
       {/* plans preview */}
       <section className="mx-auto max-w-6xl px-4 py-14">
-        <SectionHead kicker="Bot plans" title={<>Pick your <span className="mint">altitude</span></>} sub={`Automated daily income · ${BUSINESS_RULES.incomeCapX}X capping · 365-day validity on every tier.`} />
+        <SectionHead kicker="Bot plans" title={<>Pick your <span className="mint">altitude</span></>} sub={`Automated daily income · 2X–5X capping per tier · 365-day validity on every tier.`} />
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {BOT_PLANS.map((p, idx) => (
             <Reveal key={p.id} delay={idx * 0.1}>
@@ -97,8 +97,8 @@ export default function Home() {
                 <h3 className="text-xl font-black">{p.name}</h3>
                 <p className="mt-3 text-3xl font-black text-yellow-300">${p.min.toLocaleString()}<span className="text-base text-slate-400"> – ${p.max.toLocaleString()}</span></p>
                 <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                  <li>✓ Automated daily profits</li>
-                  <li>✓ {BUSINESS_RULES.incomeCapX}X profit capping</li>
+                  <li>✓ {p.dailyPct}% automated daily profits</li>
+                  <li>✓ {p.multiplier}X profit capping</li>
                   <li>✓ 365-day validity</li>
                   <li>✓ 10-level team commissions</li>
                 </ul>

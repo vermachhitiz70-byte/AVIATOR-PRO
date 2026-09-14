@@ -7,7 +7,7 @@ import { Search, ChevronDown, Play, Pause, Square, Plus } from "lucide-react";
 type BotRow = Record<string, unknown>;
 
 const STATUS_OPTIONS = ["", "active", "paused", "expired", "cancelled"];
-const PLAN_OPTIONS = ["", "Basic", "Pro", "Premium"];
+const PLAN_OPTIONS = ["", "Starter Tier", "Booster Tier", "Silver Tier", "Gold Tier", "Platinum Tier", "Diamond Tier"];
 
 export default function AdminBotsPage() {
   const [rows, setRows] = useState<BotRow[]>([]);
@@ -24,7 +24,7 @@ export default function AdminBotsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [formUserId, setFormUserId] = useState("");
-  const [formPlan, setFormPlan] = useState("Basic");
+  const [formPlan, setFormPlan] = useState("Starter Tier");
   const [formAmount, setFormAmount] = useState("");
   const [formDailyPct, setFormDailyPct] = useState("1");
   const [formExpiry, setFormExpiry] = useState("");
@@ -63,7 +63,7 @@ export default function AdminBotsPage() {
     if (!formUserId || !formAmount) return;
     await postAction({ action: "create", userId: formUserId, plan: formPlan, amount: Number(formAmount), daily_pct: Number(formDailyPct), expiry_date: formExpiry });
     setCreateOpen(false);
-    setFormUserId(""); setFormPlan("Basic"); setFormAmount(""); setFormDailyPct("1"); setFormExpiry("");
+    setFormUserId(""); setFormPlan("Starter Tier"); setFormAmount(""); setFormDailyPct("1"); setFormExpiry("");
   }
 
   const columns = [
@@ -129,7 +129,7 @@ export default function AdminBotsPage() {
           <div><label className={LABEL}>User ID or referral code</label>
             <input value={formUserId} onChange={(e) => setFormUserId(e.target.value)} placeholder="e.g. AV100002" className={INPUT} /></div>
           <div><label className={LABEL}>Plan</label>
-            <select value={formPlan} onChange={(e) => setFormPlan(e.target.value)} className={INPUT}>{["Basic", "Pro", "Premium"].map((p) => <option key={p} value={p}>{p}</option>)}</select></div>
+                          <select value={formPlan} onChange={(e) => setFormPlan(e.target.value)} className={INPUT}>{["Starter Tier", "Booster Tier", "Silver Tier", "Gold Tier", "Platinum Tier", "Diamond Tier"].map((p) => <option key={p} value={p}>{p}</option>)}</select></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={LABEL}>Amount (USD)</label>
               <input type="number" value={formAmount} onChange={(e) => setFormAmount(e.target.value)} placeholder="0.00" className={INPUT} /></div>
