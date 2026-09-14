@@ -187,6 +187,7 @@ async function migrateAll(): Promise<void> {
     migrate(db, "ALTER TABLE deposits ADD COLUMN admin_remark TEXT DEFAULT ''"),
     migrate(db, "ALTER TABLE withdrawals ADD COLUMN admin_remark TEXT DEFAULT ''"),
     migrate(db, "ALTER TABLE users ADD COLUMN country TEXT DEFAULT ''"),
+    migrate(db, "ALTER TABLE support_tickets ADD COLUMN admin_reply TEXT DEFAULT ''"),
     // Existing accounts (created before OTP) stay active
     db.execute("UPDATE users SET is_active=1 WHERE is_active IS NULL OR (otp_code='' AND reset_code='' AND is_active=0 AND datetime(created_at) < datetime('now','-1 minute'))"),
     ...Object.entries(DEFAULT_SETTINGS).map(([k, v]) =>
