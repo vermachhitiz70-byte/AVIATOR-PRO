@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, getSettings, initDb } from "@/lib/db";
 import { verifyPassword, createSession } from "@/lib/auth";
 
+// Cold starts talk to Turso across regions — allow extra time so logins never die mid-way.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   await initDb();
   const { email, password } = await req.json();

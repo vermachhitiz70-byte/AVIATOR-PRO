@@ -13,6 +13,16 @@ export default function Login() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  async function tryLogin(signal: AbortSignal) {
+    const r = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      signal,
+    });
+    return (await r.json()) as { ok: boolean; error?: string; is_admin?: boolean };
+  }
+
   async function handleSignIn() {
     if (!email || !password) {
       setError("Please enter both email/mobile and password.");
@@ -21,17 +31,41 @@ export default function Login() {
     setError("");
     setBusy(true);
     try {
-      const r = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const j = await r.json();
-      if (!j.ok) {
-        setError(j.error || "Login failed. Please try again.");
+      // Attempt 1 (may wake a cold server — can take 10–20s first time)
+      const ctrl1 = new AbortController();
+      const t1 = setTimeout(() => ctrl1.abort(), 45000);
+      try {
+        const j = await tryLogin(ctrl1.signal);
+        clearTimeout(t1);
+        if (!j.ok) {
+          setError(j.error || "Login failed. Please try again.");
+          return;
+        }
+        router.push(j.is_admin ? "/admin" : "/dash");
         return;
+      } catch (e) {
+        clearTimeout(t1);
+        if ((e as Error).name !== "AbortError") throw e;
+        // Timed out — server was likely cold. One automatic retry on the now-warm server.
+        setError("Server taking too long — retrying automatically, please wait...");
       }
-      router.push(j.is_admin ? "/admin" : "/dash");
+      // Attempt 2 (server should be warm now)
+      const ctrl2 = new AbortController();
+      const t2 = setTimeout(() => ctrl2.abort(), 45000);
+      try {
+        const j = await tryLogin(ctrl2.signal);
+        clearTimeout(t2);
+        if (!j.ok) {
+          setError(j.error || "Login failed. Please try again.");
+          return;
+        }
+        router.push(j.is_admin ? "/admin" : "/dash");
+      } catch {
+        clearTimeout(t2);
+        setError("Network is too slow right now. Please check your connection and try again.");
+      }
+    } catch {
+      setError("Something went wrong. Please check your connection and try again.");
     } finally {
       setBusy(false);
     }
