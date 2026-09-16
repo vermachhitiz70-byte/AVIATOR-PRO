@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aviator Pro — Gaming Network Plan (Pitch Deck)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #ff2d2d; --red-d: #8f1020; --gold: #f5b90d; --green: #22e584;
+    --white: #f4f4f6; --muted: #b9b9c7;
+  }
+  body { background: #111; color: var(--white); font-family: 'Segoe UI', Arial, Helvetica, sans-serif; }
+  .deck { max-width: 1180px; margin: 0 auto; padding: 26px 18px 60px; }
+  .slide {
+    position: relative; overflow: hidden; border-radius: 22px;
+    background:
+      radial-gradient(1000px 420px at 82% -12%, rgba(255,45,45,.20), transparent 62%),
+      radial-gradient(760px 380px at 6% 112%, rgba(245,185,13,.10), transparent 60%),
+      radial-gradient(620px 300px at 50% 120%, rgba(255,45,45,.07), transparent 65%),
+      linear-gradient(180deg, #101018 0%, #060609 100%);
+    border: 1px solid rgba(255,60,60,.22);
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    aspect-ratio: 16/9; padding: 46px 56px; margin-bottom: 30px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .brand { position: absolute; top: 26px; left: 56px; display: flex; align-items: center; gap: 10px; z-index: 2; }
+  .brand .mark { width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(135deg, var(--red), #7a0d1c); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 19px; box-shadow: 0 0 22px rgba(255,45,45,.5); }
+  .brand b { font-size: 14px; letter-spacing: 3px; }
+  .brand b span { color: var(--red); }
+  .content { position: relative; z-index: 1; max-width: 880px; }
+  .center { text-align: center; margin-left: auto; margin-right: auto; }
+  .kicker { color: var(--gold); font-size: 13px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; }
+  h1.title { font-size: 62px; line-height: 1.04; font-weight: 900; letter-spacing: -1px; margin-top: 8px; }
+  h1.title .w { color: #fff; }
+  h1.title .r { color: var(--red); }
+  h1.title .g { color: var(--green); }
+  h1.title .gd { background: linear-gradient(180deg, #ffe9a8, var(--gold) 60%, #9a6200); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1.mid { font-size: 46px; }
+  h2.stitle { font-size: 42px; font-weight: 900; letter-spacing: -1px; }
+  .tag { margin-top: 12px; color: var(--muted); font-size: 16.5px; }
+  .tag b.y { color: var(--gold); } .tag b.r { color: var(--red); } .tag b.g { color: var(--green); }
+  .rule { height: 3px; width: 220px; margin: 14px 0 0; background: linear-gradient(90deg, var(--red), transparent); border-radius: 3px; box-shadow: 0 0 14px rgba(255,45,45,.8); }
+  .center .rule { margin-left: auto; margin-right: auto; background: linear-gradient(90deg, transparent, var(--red), transparent); }
+  .badges { display: flex; gap: 14px; margin-top: 24px; flex-wrap: wrap; }
+  .center .badges { justify-content: center; }
+  .badge { border: 1.5px solid rgba(255,60,60,.45); background: rgba(255,255,255,.03); border-radius: 16px; padding: 12px 22px; box-shadow: inset 0 0 24px rgba(255,45,45,.07); }
+  .badge.green { border-color: rgba(34,229,132,.45); }
+  .badge b { font-size: 21px; letter-spacing: 1px; }
+  .badge small { display: block; font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-top: 2px; }
+  .urlbar { margin-top: 24px; display: inline-block; border: 1.5px solid rgba(34,229,132,.5); border-radius: 999px; padding: 10px 28px; font-size: 16px; letter-spacing: 1px; box-shadow: 0 0 26px rgba(34,229,132,.22), inset 0 0 18px rgba(34,229,132,.08); }
+  .rows { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .row { border: 1px solid rgba(255,60,60,.3); border-radius: 14px; padding: 11px 18px; background: rgba(255,255,255,.025); }
+  .row b { font-size: 14.5px; letter-spacing: 1px; }
+  .row p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .cards { display: grid; gap: 14px; margin-top: 22px; }
+  .cards.c4 { grid-template-columns: repeat(4, 1fr); }
+  .cards.c3 { grid-template-columns: repeat(3, 1fr); }
+  .cards.c2 { grid-template-columns: repeat(2, 1fr); }
+  .card { border: 1.5px solid rgba(255,60,60,.4); border-radius: 16px; padding: 20px 18px; background: rgba(255,255,255,.03); position: relative; text-align: center; }
+  .card .step { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #0a0a10; border: 1.5px solid var(--red); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 18px; box-shadow: 0 0 16px rgba(255,45,45,.5); white-space: nowrap; }
+  .card h3 { color: var(--red); font-size: 16.5px; letter-spacing: 1px; margin: 8px 0 6px; }
+  .card p { font-size: 12.5px; color: var(--muted); }
+  .card .big { font-size: 28px; font-weight: 900; }
+  .cic { display: flex; justify-content: center; color: var(--red); margin: 2px 0 6px; filter: drop-shadow(0 0 10px rgba(255,45,45,.45)); }
+  .row .ic { width: 44px; height: 44px; flex: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--red); background: rgba(255,45,45,.1); border: 1px solid rgba(255,45,45,.5); box-shadow: 0 0 14px rgba(255,45,45,.3); }
+  .row { display: flex; align-items: center; gap: 14px; }
+  .lvl { display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 9px 16px; margin-top: 8px; background: rgba(255,255,255,.03); }
+  .lvl .pill { background: var(--red); border-radius: 9px; padding: 4px 16px; font-weight: 900; font-size: 14px; white-space: nowrap; box-shadow: 0 0 14px rgba(255,45,45,.5); }
+  .lvl .pc { margin-left: auto; color: var(--gold); font-weight: 900; font-size: 20px; }
+  table.miles { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 14px; }
+  table.miles th { text-align: left; color: #ffb3b3; font-size: 10.5px; letter-spacing: 1.5px; padding: 7px 10px; border-bottom: 1px solid rgba(255,60,60,.4); }
+  table.miles td { padding: 5.5px 10px; border-bottom: 1px solid rgba(255,255,255,.07); }
+  table.miles td.n { color: var(--gold); font-weight: 800; }
+  table.miles td.w { color: var(--green); font-weight: 800; }
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .terms { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .term { border: 1.5px solid rgba(255,60,60,.4); border-radius: 16px; padding: 18px 22px; background: rgba(255,255,255,.025); }
+  .term .t { font-size: 11px; letter-spacing: 2.5px; color: var(--muted); }
+  .term .v { font-size: 34px; font-weight: 900; margin-top: 4px; }
+  .foot { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; padding: 11px; font-size: 12px; letter-spacing: 3px; color: var(--muted); border-top: 1px solid rgba(255,60,60,.25); background: rgba(0,0,0,.35); }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; color: #888; font-size: 13px; }
+  .btn { border: none; cursor: pointer; border-radius: 10px; padding: 11px 22px; font-size: 14px; font-weight: 800; background: var(--red); color: #fff; box-shadow: 0 0 20px rgba(255,45,45,.5); }
+  @page { size: A4 landscape; margin: 8mm; }
+  @media print {
+    body { background: #fff; }
+    .deck { max-width: 100%; padding: 0; }
+    .no-print { display: none !important; }
+    .slide { break-after: page; page-break-after: always; page-break-inside: avoid; margin: 0 0 6mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; aspect-ratio: 16/9; border-radius: 12px; }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 15l4-6"/><path d="M4 15a8 8 0 1 1 16 0"/><path d="M4 19h16"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="7" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M17.5 14a6.5 6.5 0 0 1 4 6"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/></symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M16 13h.01M3 9h18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+    <symbol id="i-game" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v4M5 13h4"/><circle cx="16" cy="12" r="1" fill="currentColor"/><circle cx="18.5" cy="14.5" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13M12 8s-4 0-5.5-1.5S8 3.5 9.5 4.5 12 8 12 8zm0 0s4 0 5.5-1.5S16 3.5 14.5 4.5 12 8 12 8z"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="8" width="14" height="10" rx="3"/><circle cx="10" cy="13" r="1" fill="currentColor"/><circle cx="14" cy="13" r="1" fill="currentColor"/><path d="M12 8V4M9 4h6"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></symbol>
+    <symbol id="i-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  </defs>
+</svg>
+<div class="deck">
+  <div class="toolbar no-print">
+    <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+    <span>16 slides · Landscape A4 · Chrome: enable <b>Background graphics</b></span>
+  </div>
+
+  <!-- 1 COVER -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content center">
+      <div class="kicker">Gaming Network Plan</div>
+      <h1 class="title"><span class="w">GAMING</span> <span class="r">NETWORK</span> <span class="g">PLAN</span></h1>
+      <p class="tag">Network Marketing Meets <b class="r">Gaming</b> Innovation — BEP20 rails, automated daily income, 10-level team earnings.</p>
+      <div class="badges">
+        <div class="badge"><b>BEP20</b><small>USDT RAILS</small></div>
+        <div class="badge green"><b>2X–5X CAP</b><small>PER TIER</small></div>
+        <div class="badge"><b>20</b><small>REWARDS</small></div>
+      </div>
+      <div><span class="urlbar">www.aviatorpro.co.uk</span></div>
+    </div>
+    <div class="foot">AVIATOR PRO · GAMING NETWORK PLAN · CONFIDENTIAL</div>
+  </section>
+
+  <!-- 2 ABOUT -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content">
+      <h2 class="stitle"><span style="color:#fff">About</span> <span style="color:var(--red)">Us</span></h2>
+      <div class="rule"></div>
+      <p class="tag" style="margin-top:16px"><b style="color:#fff">AVIATOR PRO</b> is a modern gaming platform focused on delivering an engaging, exciting and smooth gaming experience. Our goal is to bring innovative gaming features, a user-friendly interface and an enjoyable digital gaming environment together on one platform.</p>
+      <div class="badges">
+        <div class="badge"><b>10 / day</b><small>GAMEPLAY</small></div>
+        <div class="badge green"><b>5 AM IST</b><small>AUTO CREDIT</small></div>
+        <div class="badge"><b>365 days</b><small>BOT VALIDITY</small></div>
+      </div>
+      <div><span class="urlbar">www.aviatorpro.co.uk</span></div>
+    </div>
+    <div class="foot">WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 3 MISSION + VISION -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content">
+      <div class="kicker"><svg width="15" height="15" style="vertical-align:-2px;color:var(--red)"><use href="#i-target"/></svg> Our Mission</div>
+      <h2 class="stitle">Modern · Reliable · <span style="color:var(--red)">Entertaining</span></h2>
+      <p class="tag">To create a gaming platform where technology, simplicity and user experience come together — and keep improving it every day.</p>
+      <div class="kicker" style="margin-top:26px"><svg width="15" height="15" style="vertical-align:-2px;color:var(--red)"><use href="#i-eye"/></svg> Our Vision</div>
+      <h2 class="stitle">Trusted Name in <span style="color:var(--red)">Digital Gaming</span></h2>
+      <p class="tag">Known for quality technology, smooth performance and an exceptional user experience.</p>
+      <div><span class="urlbar">www.aviatorpro.co.uk</span></div>
+    </div>
+    <div class="foot">MISSION · VISION · WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 4 WHY CHOOSE US -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content" style="max-width:100%">
+      <h2 class="stitle">WHY <span style="color:var(--red)">CHOOSE US</span></h2>
+      <div class="rule"></div>
+      <div class="rows">
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-game"/></svg></span><span><b>ENGAGING GAMING EXPERIENCE</b><p>Immersive gameplay with high engagement and exciting rewards.</p></span></div>
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-gauge"/></svg></span><span><b>FAST &amp; SMOOTH PLATFORM</b><p>Optimized for speed, quick access, seamless performance.</p></span></div>
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-phone"/></svg></span><span><b>MOBILE-FRIENDLY EXPERIENCE</b><p>Play anytime, anywhere. Fully responsive platform.</p></span></div>
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-shield"/></svg></span><span><b>SECURE &amp; RELIABLE TECHNOLOGY</b><p>Advanced security systems ensuring safety and reliability.</p></span></div>
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-users"/></svg></span><span><b>MODERN USER-FRIENDLY INTERFACE</b><p>Intuitive design for smooth navigation and easy gameplay.</p></span></div>
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-globe"/></svg></span><span><b>ACCESSIBLE WORLDWIDE</b><p>A global platform built for gamers around the world.</p></span></div>
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-trend"/></svg></span><span><b>CONTINUOUS IMPROVEMENTS</b><p>Regular updates and innovations for the best experience.</p></span></div>
+        <div class="row"><span class="ic"><svg width="22" height="22"><use href="#i-coins"/></svg></span><span><b>BEP20 CRYPTO RAILS</b><p>USDT deposits, QR flow and TX-hash verification.</p></span></div>
+      </div>
+    </div>
+    <div class="foot">WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 5 CORE VALUES -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content" style="max-width:100%">
+      <h2 class="stitle">CORE <span style="color:var(--red)">VALUES</span></h2>
+      <div class="badges">
+        <div class="badge"><b style="font-size:15px">INNOVATION</b></div>
+        <div class="badge"><b style="font-size:15px">RELIABILITY</b></div>
+        <div class="badge"><b style="font-size:15px">TRANSPARENCY</b></div>
+        <div class="badge"><b style="font-size:15px">PERFORMANCE</b></div>
+        <div class="badge"><b style="font-size:15px">USER FIRST</b></div>
+      </div>
+      <div class="cards c2" style="margin-top:16px">
+        <div class="card" style="text-align:left"><h3>WHAT MAKES US DIFFERENT</h3><p>Simple, modern and engaging gaming where technology and entertainment come together.</p></div>
+        <div class="card" style="text-align:left"><h3>THE EXPERIENCE</h3><p>Fast. Modern. Engaging. Innovative. Daily auto-ROI, 10 trades a day, 20 reward vaults.</p></div>
+      </div>
+    </div>
+    <div class="foot">WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 6 HOW IT WORKS -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content" style="max-width:100%">
+      <h2 class="stitle">HOW IT <span style="color:var(--red)">WORKS</span></h2>
+      <p class="tag">Four steps — from <b class="y">registration</b> to <b class="y">tracking</b> and <b class="y">withdrawal</b>.</p>
+      <div class="cards c4">
+        <div class="card"><span class="step">01</span><div class="cic"><svg width="34" height="34"><use href="#i-user"/></svg></div><h3>REGISTER</h3><p>Create account, complete KYC, add sponsor details.</p></div>
+        <div class="card"><span class="step">02</span><div class="cic"><svg width="34" height="34"><use href="#i-wallet"/></svg></div><h3>RECHARGE</h3><p>BEP20 crypto gateway, QR or payment URL. Min $10.</p></div>
+        <div class="card"><span class="step">03</span><div class="cic"><svg width="34" height="34"><use href="#i-game"/></svg></div><h3>PLAY / ACTIVATE</h3><p>Activate trading bots, play 10 crypto trades daily.</p></div>
+        <div class="card"><span class="step">04</span><div class="cic"><svg width="34" height="34"><use href="#i-trend"/></svg></div><h3>TRACK &amp; WITHDRAW</h3><p>Monitor wallets, income history and support.</p></div>
+      </div>
+    </div>
+    <div class="foot">REGISTER → RECHARGE → ACTIVATE → TRACK REWARDS</div>
+  </section>
+
+  <!-- 7 GAMEPLAY -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content center">
+      <div class="kicker">Daily Gameplay</div>
+      <h1 class="title"><span class="gd">OPPORTUNITY</span></h1>
+      <p class="tag" style="margin-left:auto;margin-right:auto">Users get <b class="y">10 gameplay opportunities per day</b>. Each gameplay can generate a return ranging from <b class="y">0% to 20%</b>, depending on the game outcome.</p>
+      <div class="badges">
+        <div class="badge"><b>10 / DAY</b><small>TRADES</small></div>
+        <div class="badge green"><b>MIN $0.10</b><small>STAKE</small></div>
+        <div class="badge"><b>LIVE</b><small>BTC CHART + FEED</small></div>
+      </div>
+      <div><span class="urlbar">www.aviatorpro.co.uk</span></div>
+    </div>
+    <div class="foot">10 GAMEPLAYS/DAY · 0–20% EACH · WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 8 BOT PLANS -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>BOT <span>PLANS</span></b></div>
+    <div class="content" style="max-width:100%">
+      <h2 class="stitle">BOT <span style="color:var(--red)">PLANS</span></h2>
+      <p class="tag">Activate any Bot Plan according to your budget and start earning <b class="y">Daily ROI</b>.</p>
+      <div class="cards c3">
+        <div class="card"><div class="cic"><svg width="34" height="34"><use href="#i-shield"/></svg></div><h3 style="color:var(--green)">Starter · 3%</h3><p class="big">$10 – $1,099</p><p>2X cap · 365 days</p><div class="lvl"><span class="pill" style="background:var(--green)">Booster · 4%</span><span class="pc">$1.1K–5K · 3X</span></div></div>
+        <div class="card"><div class="cic"><svg width="34" height="34"><use href="#i-trend"/></svg></div><h3 style="color:var(--gold)">Silver · 5% / Gold · 7%</h3><p class="big">$5.1K – $21K</p><p>3X cap · 365 days</p><div class="lvl"><span class="pill" style="background:var(--gold);color:#000">Platinum · 8%</span><span class="pc">$21K–51K · 4X</span></div></div>
+        <div class="card"><div class="cic"><svg width="34" height="34"><use href="#i-bolt"/></svg></div><h3>Diamond · 10%</h3><p class="big">$51K – $100K</p><p>5X cap · 365 days</p><div class="lvl"><span class="pill">365 days</span><span class="pc">validity</span></div></div>
+      </div>
+    </div>
+    <div class="foot">WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 9 BOT CONDITIONS -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content">
+      <h2 class="stitle" style="color:var(--gold)">BOT CONDITIONS</h2>
+      <div class="card" style="margin-top:16px;text-align:left"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-trend"/></svg></div><h3>CAPPING: 2X–5X</h3><p>Once direct earnings reach your tier cap, the bot stops automatically. Direct + team commissions never cap.</p></div>
+      <div class="card" style="margin-top:12px;text-align:left"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-cal"/></svg></div><h3>VALIDITY: 365 DAYS</h3><p>After investment, the bot operates free of charge for up to 365 days.</p></div>
+      <div><span class="urlbar">www.aviatorpro.co.uk</span></div>
+    </div>
+    <div class="foot">2X–5X CAPPING · 365 DAYS · WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 10 FIVE LEVEL -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content">
+      <h1 class="title mid"><span class="r">5-LEVEL FIRST</span><br><span class="w">RECHARGE INCOME</span></h1>
+      <p class="tag">Instant commission when your network makes their <b>first recharge</b>. Paid <b>once</b> per member.</p>
+      <div class="lvl"><span class="pill">Level 1</span><span class="pc">5%</span></div>
+      <div class="lvl"><span class="pill">Level 2</span><span class="pc">2%</span></div>
+      <div class="lvl"><span class="pill">Level 3</span><span class="pc">1%</span></div>
+      <div class="lvl"><span class="pill">Level 4</span><span class="pc">1%</span></div>
+      <div class="lvl"><span class="pill">Level 5</span><span class="pc">1%</span></div>
+    </div>
+    <div class="foot">FIRST RECHARGE ONLY · WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 11 TEN LEVEL -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content">
+      <h1 class="title mid"><span class="w">10-LEVEL</span> <span class="r">ROI INCOME</span></h1>
+      <p class="tag">Lifetime ROI commission from your team's daily ROI — <b>up to 10 levels</b>.</p>
+      <div class="lvl"><span class="pill">Level 1</span><span class="pc">6%</span></div>
+      <div class="lvl"><span class="pill">Level 2</span><span class="pc">3%</span></div>
+      <div class="lvl"><span class="pill">Level 3–4</span><span class="pc">2% each</span></div>
+      <div class="lvl"><span class="pill">Levels 5–10</span><span class="pc">1% each</span></div>
+    </div>
+    <div class="foot">LIFETIME TEAM ROI · WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 12 MILESTONES -->
+  <section class="slide" style="aspect-ratio:auto;min-height:630px">
+    <div class="brand"><div class="mark">A</div><b>20 TEAM <span>MILESTONES</span></b></div>
+    <div class="content" style="max-width:100%;margin-top:40px">
+      <h2 class="stitle">20 TEAM <span style="color:var(--red)">REWARD MILESTONES</span></h2>
+      <p class="tag">Build your team. Grow together. <b class="y">Earn bigger rewards.</b></p>
+      <div class="cols2">
+        <table class="miles">
+          <tr><th>#</th><th>Reward Tier</th><th>Self</th><th>Team</th><th>Wallet</th></tr>
+          <tr><td class="n">01</td><td>Bronze Flight</td><td>$100</td><td>$5,000</td><td class="w">$100</td></tr>
+          <tr><td class="n">02</td><td>Silver Flight</td><td>$250</td><td>$15,000</td><td class="w">$250</td></tr>
+          <tr><td class="n">03</td><td>Gold Flight</td><td>$500</td><td>$50,000</td><td class="w">$500</td></tr>
+          <tr><td class="n">04</td><td>Platinum Flight</td><td>$1,000</td><td>$100,000</td><td class="w">$1,000</td></tr>
+          <tr><td class="n">05</td><td>Diamond Flight</td><td>$5,000</td><td>$250,000</td><td class="w">$2,000</td></tr>
+          <tr><td class="n">06</td><td>Captain Club</td><td>$10,000</td><td>$500,000</td><td class="w">$3,500</td></tr>
+          <tr><td class="n">07</td><td>Sky Commander</td><td>$15,000</td><td>$750,000</td><td class="w">$5,000</td></tr>
+          <tr><td class="n">08</td><td>Aviator Star</td><td>$20,000</td><td>$1,000,000</td><td class="w">$7,500</td></tr>
+          <tr><td class="n">09</td><td>Runway Leader</td><td>$30,000</td><td>$1,500,000</td><td class="w">$10,000</td></tr>
+          <tr><td class="n">10</td><td>Flight Mentor</td><td>$40,000</td><td>$2,000,000</td><td class="w">$15,000</td></tr>
+        </table>
+        <table class="miles">
+          <tr><th>#</th><th>Reward Tier</th><th>Self</th><th>Team</th><th>Wallet</th></tr>
+          <tr><td class="n">11</td><td>Jet Stream</td><td>$50,000</td><td>$3,000,000</td><td class="w">$24,000</td></tr>
+          <tr><td class="n">12</td><td>Elite Pilot</td><td>$75,000</td><td>$4,000,000</td><td class="w">$25,000</td></tr>
+          <tr><td class="n">13</td><td>Airline Builder</td><td>$100,000</td><td>$5,000,000</td><td class="w">$36,000</td></tr>
+          <tr><td class="n">14</td><td>Turbo Team</td><td>$125,000</td><td>$6,500,000</td><td class="w">$40,000</td></tr>
+          <tr><td class="n">15</td><td>Cloud Champion</td><td>$150,000</td><td>$8,000,000</td><td class="w">$50,000</td></tr>
+          <tr><td class="n">16</td><td>Global Aviator</td><td>$200,000</td><td>$12,000,000</td><td class="w">$75,000</td></tr>
+          <tr><td class="n">17</td><td>Supreme Capital</td><td>$250,000</td><td>$12,500,000</td><td class="w">$100,000</td></tr>
+          <tr><td class="n">18</td><td>Royal Fleet</td><td>$300,000</td><td>$15,000,000</td><td class="w">$150,000</td></tr>
+          <tr><td class="n">19</td><td>Legend Aviator</td><td>$500,000</td><td>$20,000,000</td><td class="w">$200,000</td></tr>
+          <tr><td class="n">20</td><td>Crown Aviator</td><td>$1,000,000</td><td>$50,000,000</td><td class="w">$500,000</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="foot">WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 13 BENEFITS -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content" style="max-width:100%">
+      <h2 class="stitle">Key <span style="color:var(--red)">Benefits</span></h2>
+      <p class="tag">Gaming, network marketing and crypto-ready operations — combined.</p>
+      <div class="cards c2">
+        <div class="card" style="text-align:left"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-game"/></svg></div><h3>01 · GAMING + MARKETING</h3><p>Multiplier gameplay with team-driven network growth.</p></div>
+        <div class="card" style="text-align:left"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-users"/></svg></div><h3>02 · MULTIPLE INCOMES</h3><p>10-level ROI, first-recharge bonuses, 20 milestones.</p></div>
+        <div class="card" style="text-align:left"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-wallet"/></svg></div><h3>03 · PRO CRYPTO PLATFORM</h3><p>BEP20 recharge, QR/URL payment, support chat, wallet tracking.</p></div>
+        <div class="card" style="text-align:left"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-trend"/></svg></div><h3>04 · NEXT STEPS</h3><p>Register, KYC, recharge, activate, build team, track income.</p></div>
+      </div>
+    </div>
+    <div class="foot">FAST GAMEPLAY · VISIBLE WALLETS · CLEAR REWARDS</div>
+  </section>
+
+  <!-- 14 JOURNEY -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content" style="max-width:100%">
+      <h2 class="stitle">PLATFORM <span style="color:var(--red)">USER JOURNEY</span></h2>
+      <p class="tag">Premium gaming onboarding in three stages.</p>
+      <div class="cards c3">
+        <div class="card"><span class="step">STEP 1</span><div class="cic"><svg width="34" height="34"><use href="#i-user"/></svg></div><h3>ONBOARD</h3><p>Register &amp; recharge — account, KYC, sponsor, BEP20.</p></div>
+        <div class="card"><span class="step">STEP 2</span><div class="cic"><svg width="34" height="34"><use href="#i-game"/></svg></div><h3>ENGAGE</h3><p>Play &amp; activate — bots and 10 daily trades.</p></div>
+        <div class="card"><span class="step">STEP 3</span><div class="cic"><svg width="34" height="34"><use href="#i-trend"/></svg></div><h3>EARN</h3><p>Track &amp; withdraw — wallets, milestones, support.</p></div>
+      </div>
+    </div>
+    <div class="foot">ONBOARD → ENGAGE → EARN</div>
+  </section>
+
+  <!-- 15 TERMS -->
+  <section class="slide">
+    <div class="brand"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+    <div class="content" style="max-width:100%">
+      <h2 class="stitle">TERMS &amp; <span style="color:var(--red)">CONDITIONS</span></h2>
+      <p class="tag">Review before investing or withdrawing.</p>
+      <div class="terms">
+        <div class="term"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-wallet"/></svg></div><div class="t">01 · MINIMUM WITHDRAWAL</div><div class="v" style="color:var(--red)">$2</div></div>
+        <div class="term"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-check"/></svg></div><div class="t">02 · WITHDRAWAL CHARGE</div><div class="v" style="color:var(--green)">10%</div></div>
+        <div class="term"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-coins"/></svg></div><div class="t">03 · MINIMUM INVESTMENT</div><div class="v" style="color:var(--green)">$10</div></div>
+        <div class="term"><div class="cic" style="justify-content:flex-start"><svg width="30" height="30"><use href="#i-clock"/></svg></div><div class="t">04 · WITHDRAWAL TIMING</div><div class="v" style="color:var(--red);font-size:26px">7:00 – 10:00 AM</div><div class="t">INDIAN TIME · MAX $25,000</div></div>
+      </div>
+    </div>
+    <div class="foot">WWW.AVIATORPRO.CO.UK</div>
+  </section>
+
+  <!-- 16 THANKS -->
+  <section class="slide">
+    <div class="content center">
+      <div class="brand" style="position:static;margin-bottom:14px;justify-content:center"><div class="mark">A</div><b>AVIATOR <span>PRO</span></b></div>
+      <h1 class="title">THANK YOU<br><span class="r">Join Aviator Pro</span></h1>
+      <p class="tag" style="margin-left:auto;margin-right:auto">Activate your bot · Build your team · Experience the platform.</p>
+      <div><span class="urlbar">www.aviatorpro.co.uk</span></div>
+    </div>
+    <div class="foot">ACTIVATE YOUR BOT · BUILD YOUR TEAM · EXPERIENCE THE PLATFORM</div>
+  </section>
+
+</div>
+<script>
+  var slides = document.querySelectorAll('.slide');
+  var idx = 0;
+  function go(i) {
+    idx = (i + slides.length) % slides.length;
+    slides[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') go(idx + 1);
+    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') go(idx - 1);
+  });
+</script>
+</body>
+</html>
