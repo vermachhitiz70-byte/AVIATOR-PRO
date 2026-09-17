@@ -41,10 +41,11 @@ export async function POST(req: NextRequest) {
   const win = inWithdrawWindow(settings.withdrawStartIST || "08:00", settings.withdrawEndIST || "10:00");
   if (!win.ok) return NextResponse.json({ ok: false, error: `Withdrawals only 8:00–10:00 AM IST. Now: ${win.nowIST}` }, { status: 400 });
   const db = getDb();
-  // Client rule: only ONE withdrawal request per user per day
-  const todayCount = await db.execute({ sql: "SELECT COUNT(*) as c FROM withdrawals WHERE user_id=? AND date(created_at)=date('now')", args: [u.id as string] });
+  // Client rule: only ONE withdrawal per wallet per day (one wallet at a time,
+  // never all incomes together — gives admin breathing room for payouts).
+  const todayCount = await db.execute({ sql: "SELECT COUNT(*) as c FROM withdrawals WHERE user_id=? AND source_wallet=? AND date(created_at)=date('now')", args: [u.id as string, src] });
   if (Number((todayCount.rows[0] as unknown as { c: number }).c) > 0)
-    return NextResponse.json({ ok: false, error: "Only one withdrawal per day. Please try again tomorrow." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "One withdrawal per wallet per day. Try another wallet or come back tomorrow." }, { status: 400 });
   const w = await walletOf(u.id as string);
   const srcBal = Number((w as unknown as Record<string, number>)[src] ?? 0);
   if (amt > srcBal) return NextResponse.json({ ok: false, error: `Insufficient ${src} balance ($${srcBal.toFixed(2)})` }, { status: 400 });

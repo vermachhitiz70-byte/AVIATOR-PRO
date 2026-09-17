@@ -33,6 +33,7 @@ export default function Play() {
   const [limit] = useState(10);
   const [balance, setBalance] = useState(0);
   const [pnl, setPnl] = useState(0);
+  const [target, setTarget] = useState(0);
   const [resolving, setResolving] = useState(false);
   const [result, setResult] = useState<{ delta: number; outcome: string; round: number } | null>(null);
   const [trades, setTrades] = useState<MyTrade[]>([]);
@@ -94,7 +95,7 @@ export default function Play() {
 
   async function refresh() {
     const j = await fetch("/api/gameplay/history").then((r) => r.json()).catch(() => null);
-    if (j?.ok) { setTrades(j.today); setUsed(j.used); setBalance(j.earningBalance); setPnl(j.todayPnl); }
+    if (j?.ok) { setTrades(j.today); setUsed(j.used); setBalance(j.earningBalance); setPnl(j.todayPnl); setTarget(j.dailyTarget || 0); }
   }
   useEffect(() => { refresh(); }, []);
 
@@ -134,7 +135,7 @@ export default function Play() {
       <div className="av-card p-4">
         <div className="flex items-center justify-between text-sm">
           <p className="text-slate-300">Earning balance: <b className="text-white">${balance.toFixed(2)}</b></p>
-          <p className="text-slate-300">Today: <b className={pnl >= 0 ? "text-emerald-300" : "text-red-300"}>{pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}</b></p>
+          <p className="text-slate-300">Today: <b className={pnl >= 0 ? "text-emerald-300" : "text-red-300"}>{pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}</b><span className="text-slate-400"> / ${target.toFixed(2)}</span></p>
         </div>
         <form onSubmit={startTrade} className="mt-2 flex gap-2">
           <input className="av-input" value={stake} onChange={(e) => setStake(e.target.value)} placeholder="Stake USD (min $0.10)" inputMode="decimal" />
@@ -147,7 +148,7 @@ export default function Play() {
             Trade #{result.round}: {result.outcome === "profit" ? `+$${result.delta.toFixed(2)} profit` : result.outcome === "loss" ? `−$${Math.abs(result.delta).toFixed(2)} loss` : "No change"} — settled to ROI wallet
           </p>
         )}
-        <p className="mt-1 text-xs text-slate-400">10 trades/day · stake from earning balance · results settle instantly.</p>
+        <p className="mt-1 text-xs text-slate-400">10 trades/day · earn part of today&apos;s ROI early — the rest auto-credits at 5 AM.</p>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <div className="av-card p-3">
