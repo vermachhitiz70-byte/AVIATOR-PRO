@@ -39,9 +39,12 @@ export async function POST(req: NextRequest) {
   const { bet = 0 } = await req.json().catch(() => ({ bet: 0 }));
   const stake = Number(bet) || 0;
   const w = await walletOf(userId);
-  const earning = round2(Number(w.roi) + Number(w.commission) + Number(w.reward));
+  // Stake is display-only (never leaves the wallet — only the settled P&L moves,
+  // into the ROI wallet). Cap it at everything the user holds, so fresh users
+  // with only Principal can still play; min $0.10.
+  const stakeCap = round2(Number(w.principal) + Number(w.roi) + Number(w.commission) + Number(w.reward));
   if (stake < MIN_STAKE) return NextResponse.json({ ok: false, error: `Minimum trade is $${MIN_STAKE}` }, { status: 400 });
-  if (stake > earning) return NextResponse.json({ ok: false, error: `Stake exceeds earning balance ($${earning.toFixed(2)})` }, { status: 400 });
+  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds balance ($${stakeCap.toFixed(2)})` }, { status: 400 });
 
   // Daily target = this bot's tier % for today, minus anything already
   // credited (live game earnings so far + any cron ROI already paid today).
