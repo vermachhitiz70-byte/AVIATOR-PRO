@@ -12,8 +12,9 @@ export const BOT_PLANS = [
   { id: "diamond", name: "Diamond Tier", min: 51000, max: 100000, multiplier: 5, dailyPct: 10, color: "red" },
 ] as const;
 
-// Client spec – 10-Level ROI-on-ROI Income: L1 6%, L2 3%, L3 2%, L4 2%, L5–L10 1%
-export const ROI_LEVELS = [6, 3, 2, 2, 1, 1, 1, 1, 1, 1];
+// Client spec (handwritten) – 10-Level ROI-on-ROI Income, total 18%
+// L1 5%, L2–L5 2% each, L6–L10 1% each — on downline daily ROI, outside capping
+export const ROI_LEVELS = [5, 2, 2, 2, 2, 1, 1, 1, 1, 1];
 // Client spec – 5-Level Direct (First Recharge) Income, first recharge only
 export const FIRST_RECHARGE_LEVELS = [5, 2, 1, 1, 1];
 
@@ -30,7 +31,7 @@ export const BUSINESS_RULES = {
   // Direct Income + ROI-on-ROI level bonuses are OUT of capping)
   incomeCapX: "2–5 per tier",
   botValidityDays: 365,
-  withdrawalWindowIST: "7:00 AM - 10:00 AM",
+  withdrawalWindowIST: "8:00 AM - 10:00 AM",
   cryptoGateway: "Enabled / USDTBSC",
   aiHelpDesk: "Enabled",
 };
@@ -41,7 +42,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   minWithdrawal: "2",
   maxWithdrawal: "25000",
   withdrawalChargePct: "10",
-  withdrawStartIST: "07:00",
+  withdrawStartIST: "08:00",
   withdrawEndIST: "10:00",
   maintenanceMode: "off",
   depositAddress: process.env.BEP20_DEPOSIT_ADDRESS || "0xYOURBEP20ADDRESSHERE",
@@ -51,28 +52,30 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   smtpPass: "",
 };
 
-export type Milestone = { tier: number; name: string; self: number; team: number; wallet: number };
+export type Milestone = { tier: number; name: string; self: number; direct: number; team: number; wallet: number };
+// Client rank system (handwritten): Self + Direct + Team thresholds -> withdrawable reward.
+// Derived rule: each "X - Y" range splits (lower -> left metric, upper -> right metric).
 export const MILESTONES: Milestone[] = [
-  { tier: 1, name: "Bronze Flight Reward", self: 100, team: 5000, wallet: 100 },
-  { tier: 2, name: "Silver Flight Reward", self: 250, team: 15000, wallet: 250 },
-  { tier: 3, name: "Gold Flight Reward", self: 500, team: 50000, wallet: 500 },
-  { tier: 4, name: "Platinum Flight Reward", self: 1000, team: 100000, wallet: 1000 },
-  { tier: 5, name: "Diamond Flight Reward", self: 5000, team: 250000, wallet: 2000 },
-  { tier: 6, name: "Captain Club Reward", self: 10000, team: 500000, wallet: 3500 },
-  { tier: 7, name: "Sky Commander Reward", self: 15000, team: 750000, wallet: 5000 },
-  { tier: 8, name: "Aviator Star Reward", self: 20000, team: 1000000, wallet: 7500 },
-  { tier: 9, name: "Runway Leader Reward", self: 30000, team: 1500000, wallet: 10000 },
-  { tier: 10, name: "Flight Mentor Reward", self: 40000, team: 2000000, wallet: 15000 },
-  { tier: 11, name: "Jet Stream Reward", self: 50000, team: 3000000, wallet: 24000 },
-  { tier: 12, name: "Elite Pilot Reward", self: 75000, team: 4000000, wallet: 25000 },
-  { tier: 13, name: "Airline Builder Reward", self: 100000, team: 5000000, wallet: 36000 },
-  { tier: 14, name: "Turbo Team Reward", self: 125000, team: 6500000, wallet: 40000 },
-  { tier: 15, name: "Cloud Champion Reward", self: 150000, team: 8000000, wallet: 50000 },
-  { tier: 16, name: "Global Aviator Reward", self: 200000, team: 12000000, wallet: 75000 },
-  { tier: 17, name: "Supreme Capital Reward", self: 250000, team: 12500000, wallet: 100000 },
-  { tier: 18, name: "Royal Fleet Reward", self: 300000, team: 15000000, wallet: 150000 },
-  { tier: 19, name: "Legend Aviator Reward", self: 500000, team: 20000000, wallet: 200000 },
-  { tier: 20, name: "Crown Aviator Reward", self: 1000000, team: 50000000, wallet: 500000 },
+  { tier: 1, name: "Bronze Flight Reward", self: 100, direct: 200, team: 5000, wallet: 100 },
+  { tier: 2, name: "Silver Flight Reward", self: 250, direct: 500, team: 15000, wallet: 250 },
+  { tier: 3, name: "Gold Flight Reward", self: 500, direct: 1000, team: 50000, wallet: 500 },
+  { tier: 4, name: "Platinum Flight Reward", self: 1000, direct: 2000, team: 100000, wallet: 1000 },
+  { tier: 5, name: "Diamond Flight Reward", self: 5000, direct: 10000, team: 250000, wallet: 2000 },
+  { tier: 6, name: "Captain Club Reward", self: 10000, direct: 20000, team: 500000, wallet: 3500 },
+  { tier: 7, name: "Sky Commander Reward", self: 15000, direct: 30000, team: 750000, wallet: 5000 },
+  { tier: 8, name: "Aviator Star Reward", self: 20000, direct: 40000, team: 1000000, wallet: 7500 },
+  { tier: 9, name: "Runway Leader Reward", self: 30000, direct: 60000, team: 1500000, wallet: 10000 },
+  { tier: 10, name: "Flight Mentor Reward", self: 40000, direct: 80000, team: 2000000, wallet: 15000 },
+  { tier: 11, name: "Jet Stream Reward", self: 50000, direct: 100000, team: 3000000, wallet: 24000 },
+  { tier: 12, name: "Elite Pilot Reward", self: 75000, direct: 150000, team: 4000000, wallet: 25000 },
+  { tier: 13, name: "Airline Builder Reward", self: 100000, direct: 200000, team: 5000000, wallet: 36000 },
+  { tier: 14, name: "Turbo Team Reward", self: 125000, direct: 250000, team: 6500000, wallet: 40000 },
+  { tier: 15, name: "Cloud Champion Reward", self: 150000, direct: 300000, team: 8000000, wallet: 50000 },
+  { tier: 16, name: "Global Aviator Reward", self: 200000, direct: 400000, team: 12000000, wallet: 75000 },
+  { tier: 17, name: "Supreme Capital Reward", self: 250000, direct: 500000, team: 12500000, wallet: 100000 },
+  { tier: 18, name: "Royal Fleet Reward", self: 300000, direct: 600000, team: 15000000, wallet: 150000 },
+  { tier: 19, name: "Legend Aviator Reward", self: 500000, direct: 1000000, team: 20000000, wallet: 200000 },
+  { tier: 20, name: "Crown Aviator Reward", self: 1000000, direct: 2000000, team: 50000000, wallet: 500000 },
 ];
 
 // 100 Indian names for the fake-trading live activity feed

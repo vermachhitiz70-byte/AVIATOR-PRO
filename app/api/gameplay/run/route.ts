@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb, uid } from "@/lib/db";
 import { currentUser } from "@/lib/auth";
-import { BUSINESS_RULES } from "@/lib/config";
-import { logLedger, walletOf } from "@/lib/mlm";
+import { BUSINESS_RULES, planForAmount } from "@/lib/config";
+import { cappedExtras, logLedger, walletOf } from "@/lib/mlm";
 
 // Crypto trading game (client spec).
 // - 10 chances per user per day, stake from EARNING wallets only (ROI + Commission + Reward)
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const b = await db.execute({ sql: "SELECT * FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC LIMIT 1", args: [userId] });
   if (!b.rows.length) return NextResponse.json({ ok: false, error: "Activate a trading bot first" }, { status: 400 });
-  const bot = b.rows[0] as unknown as { id: string };
+  const bot = b.rows[0] as unknown as { id: string; amount: number; start_date: string };
   const today = new Date().toISOString().slice(0, 10);
 
   const s = await db.execute({ sql: "SELECT COALESCE(SUM(roi_amount),0) as pnl, COUNT(*) as c FROM gameplay WHERE user_id=? AND substr(created_at,1,10)=?", args: [userId, today] });
@@ -44,6 +44,14 @@ export async function POST(req: NextRequest) {
   // Hidden 1% net rule
   const dep = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [userId] });
   const target = round2((Number((dep.rows[0] as unknown as { t: number }).t ?? 0) * 1) / 100);
+  // Package cap counts ROI + Rewards + Game: no game earnings once capped
+  const tier = planForAmount(Number(bot.amount));
+  if (tier) {
+    const bfull = await db.execute({ sql: "SELECT total_earned FROM bots WHERE id=?", args: [bot.id] });
+    const earned = Number((bfull.rows[0] as unknown as { total_earned: number }).total_earned ?? 0);
+    const room = tier.multiplier * Number(bot.amount) - earned - (await cappedExtras(userId, (bot.start_date || today).slice(0, 10)));
+    if (room <= 0) return NextResponse.json({ ok: false, error: "Bot earnings capped — no further game profit." }, { status: 400 });
+  }
   const left = CHANCES - used;
   const remaining = round2(target - settled);
   let delta: number;

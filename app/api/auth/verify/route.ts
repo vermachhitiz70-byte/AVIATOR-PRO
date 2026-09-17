@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb, uid } from "@/lib/db";
-import { createSession } from "@/lib/auth";
+import { createSession, hashPassword } from "@/lib/auth";
 
-// POST { email, otp } -> activates account, creates session
+// POST { email, otp } -> activates account, emails fresh login credentials, creates session
 export async function POST(req: NextRequest) {
   await initDb();
   const { email, otp } = await req.json();
@@ -17,8 +17,17 @@ export async function POST(req: NextRequest) {
   }
   if (!u.otp_code || u.otp_code !== String(otp)) return NextResponse.json({ ok: false, error: "Invalid OTP" }, { status: 400 });
   if (u.otp_expiry && new Date(u.otp_expiry).getTime() < Date.now()) return NextResponse.json({ ok: false, error: "OTP expired. Resend a new one." }, { status: 400 });
-  await db.execute({ sql: "UPDATE users SET is_active=1, otp_code='', otp_expiry='' WHERE id=?", args: [u.id] });
-  await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "registration", `${u.name} joined AVIATOR PRO`] });
+  // Client rule: on final registration, issue a fresh password and email the credentials.
+  // Activation never fails because of mail — SMTP errors are logged as an activity instead.
+  const tempPassword = `Av${Math.floor(100000 + Math.random() * 900000)}!`;
+  await db.execute({ sql: "UPDATE users SET is_active=1, otp_code='', otp_expiry='', password_hash=? WHERE id=?", args: [await hashPassword(tempPassword), u.id] });
+  await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "registration", `${u.name} joined AVIATOR SMART AI`] });
+  try {
+    const { sendCredentialsEmail } = await import("@/lib/mail");
+    await sendCredentialsEmail(email, u.name, email, tempPassword);
+  } catch {
+    await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "registration", `Credentials email skipped (SMTP not configured) for ${email}`] });
+  }
   await createSession(u.id);
   return NextResponse.json({ ok: true });
 }

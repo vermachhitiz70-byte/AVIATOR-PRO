@@ -34,7 +34,7 @@ export function AdminTopBar({ admin }: { admin: { name: string; email: string; r
     <header className="sticky top-0 z-30 border-b border-[#f0e6d2] bg-white/95 backdrop-blur">
       <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-8">
         <div className="ml-10 lg:ml-0">
-          <p className="hidden text-xs uppercase tracking-widest text-gray-400 sm:block">Aviator Pro · Admin</p>
+          <p className="hidden text-xs uppercase tracking-widest text-gray-400 sm:block">Aviator Smart AI · Admin</p>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <div className="relative hidden md:block">

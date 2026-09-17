@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb, uid } from "@/lib/db";
 import { planForAmount } from "@/lib/config";
-import { creditRoiLevels, logLedger } from "@/lib/mlm";
+import { cappedExtras, creditRoiLevels, logLedger } from "@/lib/mlm";
 import type { Campaign } from "@/lib/campaigns";
 
 export const maxDuration = 60;
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   return run(req);
 }
 
-type BotRow = { id: string; user_id: string; amount: number; total_earned: number; last_roi_date: string; expiry_date: string };
+type BotRow = { id: string; user_id: string; amount: number; total_earned: number; last_roi_date: string; expiry_date: string; start_date: string };
 type BotResult = { paid: boolean; credited: number; capped: boolean; expired: boolean; skipped: boolean; tier?: string };
 
 async function processBot(bot: BotRow, today: string): Promise<BotResult> {
@@ -36,10 +36,14 @@ async function processBot(bot: BotRow, today: string): Promise<BotResult> {
   if ((claim.rowsAffected ?? 0) === 0) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // already paid/claimed today
   const tier = planForAmount(Number(bot.amount));
   if (!tier) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // amount outside all tiers ($10–$100,000)
-  const roiPct = tier.dailyPct;
-  let roi = (Number(bot.amount) * roiPct) / 100;
-  const cap = Number(bot.amount) * tier.multiplier;
-  const room = cap - Number(bot.total_earned);
+    const roiPct = tier.dailyPct;
+    let roi = (Number(bot.amount) * roiPct) / 100;
+    const cap = Number(bot.amount) * tier.multiplier;
+    // Client capping: direct ROI + Rewards + Game earnings ALL count toward the cap
+    // (Direct + Level income stay outside). Rewards/game are per-user, counted
+    // from this bot's start date against this bot's cap.
+    const extras = await cappedExtras(bot.user_id, (bot.start_date || today).slice(0, 10));
+    const room = cap - Number(bot.total_earned) - extras;
   if (room <= 0) {
     await db.execute({ sql: "UPDATE bots SET status='capped' WHERE id=?", args: [bot.id] });
     return { paid: false, credited: 0, capped: true, expired: false, skipped: false };

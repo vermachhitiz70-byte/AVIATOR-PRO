@@ -11,8 +11,8 @@ const VALUES = [
 ];
 
 const JOURNEY = [
-  ["2024 — Takeoff", "Aviator Pro launches with the Conservative bot and a 500-member founding squad."],
-  ["2025 — Climb", "Balanced and Aggressive tiers go live; 10-level ROI engine ships with full ledger transparency."],
+  ["2024 — Takeoff", "Aviator Smart AI launches with six bot tiers and a 500-member founding squad."],
+  ["2025 — Climb", "10-level ROI engine ships with full ledger transparency."],
   ["2026 — Cruise", "Vietnam Ticket campaign, AI help desk and 20 milestone vaults. 25,000-member target."],
 ];
 
@@ -26,7 +26,7 @@ export default function About() {
           <Reveal>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">About us</p>
             <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-6xl">Gaming soul.<br /><span className="red">Network engine.</span></h1>
-            <p className="mt-4 max-w-2xl text-slate-300">AVIATOR PRO is a modern gaming platform delivering an engaging, exciting and smooth Aviator experience — innovative features, a user-friendly interface and an enjoyable digital environment, all on one platform.</p>
+            <p className="mt-4 max-w-2xl text-slate-300">AVIATOR SMART AI is a modern gaming platform delivering an engaging, exciting and smooth Aviator experience — innovative features, a user-friendly interface and an enjoyable digital environment, all on one platform.</p>
           </Reveal>
           <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
             <Stat value={25000} suffix="+" label="Members targeted" />

@@ -265,7 +265,7 @@ export function CtaBand() {
           <h2 className="text-3xl font-black md:text-5xl">Ready for takeoff?</h2>
           <p className="mx-auto mt-2 max-w-xl text-slate-300">Activate your bot · Build your team · Track every dollar live.</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/register" className="av-btn-red px-8 py-3">Join Aviator Pro</Link>
+            <Link href="/register" className="av-btn-red px-8 py-3">Join Aviator Smart AI</Link>
             <Link href="/plans" className="rounded-xl border border-white/25 px-8 py-3 font-bold">Compare Plans</Link>
           </div>
         </div>
@@ -285,7 +285,7 @@ export function ProFooter() {
     <footer className="border-t border-white/10 bg-[#04070f]">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div>
-          <p className="text-xl font-black text-yellow-400">AVIATOR PRO</p>
+          <p className="text-xl font-black text-yellow-400">AVIATOR SMART AI</p>
           <p className="mt-2 max-w-xs text-sm text-slate-400">Network Marketing Meets Gaming Innovation. BEP20 rails, 3X capped bots, 20 team rewards.</p>
           <div className="mt-4 flex gap-2">
             {["X", "f", "in", "ig"].map((s) => (
@@ -306,8 +306,8 @@ export function ProFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 py-4 text-center text-xs text-slate-500">
-          <p>www.aviatorpro.co.uk · High-return programs carry high risk. Figures shown are plan targets, not guaranteed returns.</p>
-          <p className="mt-1">© 2026 Aviator Pro. All rights reserved.</p>
+          <p>www.aviatorsmartai.com · High-return programs carry high risk. Figures shown are plan targets, not guaranteed returns.</p>
+          <p className="mt-1">© 2026 Aviator Smart AI. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -45,7 +45,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid items-center gap-8 md:grid-cols-2">
           <Reveal>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">About Aviator Pro</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">About Aviator Smart AI</p>
             <h2 className="mt-2 text-3xl font-black md:text-4xl">A modern gaming platform, <span className="red">rebuilt for earners.</span></h2>
             <p className="mt-4 text-slate-300">Engaging Aviator gameplay, a user-friendly interface and an enjoyable digital environment — fused with network marketing mechanics: bot plans, level commissions and 20 milestone rewards.</p>
             <div className="mt-5 flex gap-3">
@@ -112,7 +112,7 @@ export default function Home() {
       {/* why choose us */}
       <section className="border-y border-white/10 bg-[#080e1c]">
         <div className="mx-auto max-w-6xl px-4 py-14">
-          <SectionHead kicker="Why Aviator Pro" title={<>Built for <span className="red">players & builders</span></>} />
+          <SectionHead kicker="Why Aviator Smart AI" title={<>Built for <span className="red">players & builders</span></>} />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {WHY.map(([t, d], idx) => (
               <Reveal key={t} delay={(idx % 3) * 0.1}>
@@ -137,7 +137,7 @@ export default function Home() {
                 <p className="text-xs font-black tracking-widest text-slate-400">TIER {String(m.tier).padStart(2, "0")}</p>
                 <h3 className="mt-1 font-black">{m.name}</h3>
                 <p className="mt-3 text-3xl font-black text-emerald-300">${m.wallet.toLocaleString()}</p>
-                <p className="mt-1 text-xs text-slate-400">Self ${m.self.toLocaleString()} · Team ${m.team.toLocaleString()}</p>
+                <p className="mt-1 text-xs text-slate-400">Self ${m.self.toLocaleString()} · Direct ${m.direct.toLocaleString()} · Team ${m.team.toLocaleString()}</p>
               </div>
             </Reveal>
           ))}
@@ -163,8 +163,8 @@ export default function Home() {
             ["What is the minimum to start?", "Just $10 USDT (BEP20). Pick any bot tier from $10 to $100,000 and activate instantly from your principal wallet."],
             ["How do daily profits work?", "Every active bot earns automated profits daily, auto-credited by the system — plus 10-level team ROI commissions."],
             ["What is 3X capping?", "A bot stops automatically once total earnings reach 3× its amount. Validity is 365 days, whichever comes first."],
-            ["When can I withdraw?", "Daily between 7:00–10:00 AM IST. Minimum $2 with a 10% charge shown upfront as debit / charge / net."],
-            ["How do team commissions work?", "Earn 5/2/1/1/1% on first recharges across 5 levels, and 6/3/2/2/1%… across 10 levels on daily ROI — for life."],
+            ["When can I withdraw?", "Daily between 8:00–10:00 AM IST. Minimum $2 with a 10% charge shown upfront as debit / charge / net."],
+            ["How do team commissions work?", "Earn 5/2/1/1/1% on first recharges across 5 levels, and 5/2/2/2/2/1%… across 10 levels on daily ROI — for life."],
           ].map(([q, a]) => (
             <Reveal key={q}>
               <details className="av-card group p-5">

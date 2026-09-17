@@ -31,7 +31,7 @@ export function DashTop() {
   return (
     <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0b1426]">
       <div className="flex items-center justify-between px-4 py-3">
-        <Link href="/dash" className="text-lg font-black text-yellow-400">AVIATOR PRO</Link>
+        <Link href="/dash" className="text-lg font-black text-yellow-400">AVIATOR SMART AI</Link>
         <button
           onClick={() => setOpen((o) => !o)}
           className="rounded-lg border border-white/15 p-2 text-slate-300"
@@ -116,7 +116,7 @@ export function DashSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-white/10 bg-[#0b1426] lg:flex">
       <div className="px-5 pb-2 pt-5">
-        <Link href="/dash" className="text-lg font-black tracking-wide text-yellow-400">AVIATOR PRO</Link>
+        <Link href="/dash" className="text-lg font-black tracking-wide text-yellow-400">AVIATOR SMART AI</Link>
         <p className="text-[11px] uppercase tracking-widest text-slate-400">Member Panel</p>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4 pt-2">

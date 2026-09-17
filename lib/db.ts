@@ -196,6 +196,8 @@ async function migrateAll(): Promise<void> {
     // Withdrawal min follows client spec ($2). Only flips the old $24 seed
     // default back — never touches real admin customizations.
     db.execute("UPDATE settings SET value='2' WHERE key='minWithdrawal' AND value='24'"),
+    // Withdrawal window moved to 08:00–10:00 IST (only where still old default).
+    db.execute("UPDATE settings SET value='08:00' WHERE key='withdrawStartIST' AND value='07:00'"),
     db.execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('maxWithdrawal','25000')"),
   ]);
   // Seeds (run once ever — guarded by existence checks)

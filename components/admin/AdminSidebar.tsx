@@ -50,7 +50,7 @@ export function AdminSidebar({ admin }: { admin: { name: string; email: string; 
           <div className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e8821e]"><Plane className="h-5 w-5 text-white" /></span>
             <div>
-              <h1 className="font-serif text-lg font-bold leading-tight tracking-wide">AVIATOR PRO</h1>
+              <h1 className="font-serif text-lg font-bold leading-tight tracking-wide">AVIATOR SMART AI</h1>
               <p className="text-[11px] uppercase tracking-widest text-white/50">Admin Console</p>
             </div>
           </div>

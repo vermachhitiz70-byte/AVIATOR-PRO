@@ -67,8 +67,7 @@ export async function creditRoiLevels(earnerId: string, roiAmount: number) {
   }
 }
 
-export async function teamBusiness(userId: string): Promise<{ self: number; team: number }> {
-  const db = getDb();
+export async function teamBusiness(userId: string): Promise<{ self: number; team: number }> {  const db = getDb();
   const s = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [userId] });
   const self = Number((s.rows[0] as unknown as { t: number }).t ?? 0);
   let team = 0;
@@ -89,6 +88,33 @@ export async function teamBusiness(userId: string): Promise<{ self: number; team
     }
   }
   return { self, team };
+}
+
+// Client rank system: self + DIRECT (L1 only) business for milestone evaluation.
+export async function directBusiness(userId: string): Promise<{ self: number; direct: number }> {
+  const db = getDb();
+  const s = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [userId] });
+  const self = Number((s.rows[0] as unknown as { t: number }).t ?? 0);
+  const me = await db.execute({ sql: "SELECT referral_code FROM users WHERE id=?", args: [userId] });
+  const myCode = (me.rows[0] as unknown as { referral_code: string } | undefined)?.referral_code;
+  if (!myCode) return { self, direct: 0 };
+  const d = await db.execute({
+    sql: "SELECT COALESCE(SUM((SELECT COALESCE(SUM(actual),0) FROM deposits WHERE user_id=u.id AND status='confirmed')),0) as t FROM users u WHERE u.referred_by=?",
+    args: [myCode],
+  });
+  return { self, direct: Number((d.rows[0] as unknown as { t: number }).t ?? 0) };
+}
+
+// Client capping rule: ROI + Rewards + Self-Game earnings ALL count toward the
+// package cap (Direct + Level income stay outside). Rewards and game P&L are
+// per-user, so they count from the bot's start date against that bot's cap.
+export async function cappedExtras(userId: string, sinceDate: string): Promise<number> {
+  const db = getDb();
+  const r = await db.execute({
+    sql: "SELECT COALESCE(SUM(amount),0) as t FROM ledger WHERE user_id=? AND kind IN ('reward','game_profit','game_loss') AND date(created_at)>=date(?)",
+    args: [userId, sinceDate.slice(0, 10)],
+  });
+  return Math.max(0, Number((r.rows[0] as unknown as { t: number }).t ?? 0));
 }
 
 // Level-wise downline tree for Team page (BFS, 10 levels)

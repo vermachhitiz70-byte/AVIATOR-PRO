@@ -87,7 +87,7 @@ export default function Login() {
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-300 text-xl font-black text-black shadow-lg">
               A
             </div>
-            <h2 className="mb-1 text-center text-2xl font-black text-white">AVIATOR PRO</h2>
+            <h2 className="mb-1 text-center text-2xl font-black text-white">AVIATOR SMART AI</h2>
             <p className="mb-6 text-center text-sm text-slate-400">Log in to your account</p>
 
             {/* form */}
@@ -148,7 +148,7 @@ export default function Login() {
           {/* social proof */}
           <div className="mt-8 flex flex-col items-center text-center">
             <p className="mb-3 text-sm text-gray-400">
-              Join <span className="font-bold text-white">thousands</span> of members already flying with Aviator Pro.
+              Join <span className="font-bold text-white">thousands</span> of members already flying with Aviator Smart AI.
             </p>
             <div className="flex">
               {["R", "P", "A", "V"].map((c, i) => (

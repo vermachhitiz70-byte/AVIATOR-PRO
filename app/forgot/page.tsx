@@ -31,7 +31,7 @@ export default function Forgot() {
   }
   return (
     <div className="mx-auto w-full max-w-md px-4 py-10">
-      <h1 className="text-xl font-black text-yellow-400">AVIATOR PRO</h1>
+      <h1 className="text-xl font-black text-yellow-400">AVIATOR SMART AI</h1>
       <div className="av-card mt-4 p-5">
         <h2 className="text-lg font-bold">Forgot Password</h2>
         {step === 1 ? (

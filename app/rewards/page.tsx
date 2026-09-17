@@ -67,7 +67,7 @@ export default function Rewards() {
                   <p className="text-xs font-black tracking-widest text-slate-400">{String(m.tier).padStart(2, "0")}</p>
                   <h3 className="mt-1 text-sm font-black">{m.name}</h3>
                   <p className="mt-3 text-3xl font-black text-emerald-300">${m.wallet >= 1000 ? `${m.wallet / 1000}k` : m.wallet}</p>
-                  <p className="mt-1 text-xs text-slate-400">Self ${m.self.toLocaleString()}<br />Team ${m.team.toLocaleString()}</p>
+                  <p className="mt-1 text-xs text-slate-400">Self ${m.self.toLocaleString()} · Direct ${m.direct.toLocaleString()}<br />Team ${m.team.toLocaleString()}</p>
                 </div>
               </Reveal>
             ))}
@@ -85,7 +85,7 @@ export default function Rewards() {
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/50 font-black text-yellow-300">{String(m.tier).padStart(2, "0")}</span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold">{m.name}</p>
-                  <p className="text-xs text-slate-400">Self ${m.self.toLocaleString()} · Team ${m.team.toLocaleString()}</p>
+                  <p className="text-xs text-slate-400">Self ${m.self.toLocaleString()} · Direct ${m.direct.toLocaleString()} · Team ${m.team.toLocaleString()}</p>
                 </div>
                 <p className="font-black text-emerald-300">${m.wallet.toLocaleString()}</p>
               </div>
