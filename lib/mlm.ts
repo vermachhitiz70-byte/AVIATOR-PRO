@@ -66,23 +66,27 @@ export async function creditRoiLevels(earnerId: string, roiAmount: number) {
     await logLedger(chain[i].id, "roi_level", "commission", amt, `L${i + 1} ROI of ${earnerId}`);
   }
 }
-
-export async function teamBusiness(userId: string): Promise<{ self: number; team: number }> {  const db = getDb();
+export async function teamBusiness(userId: string): Promise<{ self: number; team: number }> {
+  const db = getDb();
   const s = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [userId] });
   const self = Number((s.rows[0] as unknown as { t: number }).t ?? 0);
+  // NOTE: referred_by stores REFERRAL CODES, so BFS must walk codes (not user ids).
+  const me = await db.execute({ sql: "SELECT referral_code FROM users WHERE id=?", args: [userId] });
+  const myCode = (me.rows[0] as unknown as { referral_code: string } | undefined)?.referral_code;
+  if (!myCode) return { self, team: 0 };
   let team = 0;
-  const queue = [userId];
-  const seen = new Set<string>([userId]);
+  let queue = [myCode];
+  const seen = new Set<string>([myCode]);
   for (let depth = 0; depth < 12 && queue.length; depth++) {
     const placeholders = queue.map(() => "?").join(",");
     const kids = await db.execute({ sql: `SELECT id,referral_code FROM users WHERE referred_by IN (${placeholders})`, args: queue });
-    queue.length = 0;
+    queue = [];
     for (const k of kids.rows) {
-      const id = (k as unknown as Record<string, string>).id;
-      if (seen.has(id)) continue;
-      seen.add(id);
-      queue.push(id);
-      const d = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [id] });
+      const row = k as unknown as { id: string; referral_code: string };
+      if (!row.referral_code || seen.has(row.referral_code)) continue;
+      seen.add(row.referral_code);
+      queue.push(row.referral_code);
+      const d = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [row.id] });
       team += Number((d.rows[0] as unknown as { t: number }).t ?? 0);
       if (seen.size > 5000) break;
     }

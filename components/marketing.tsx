@@ -286,7 +286,7 @@ export function ProFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div>
           <p className="text-xl font-black text-yellow-400">AVIATOR SMART AI</p>
-          <p className="mt-2 max-w-xs text-sm text-slate-400">Network Marketing Meets Gaming Innovation. BEP20 rails, 3X capped bots, 20 team rewards.</p>
+          <p className="mt-2 max-w-xs text-sm text-slate-400">Network Marketing Meets Gaming Innovation. BEP20 rails, 2X–5X tier bots, 20 team rewards.</p>
           <div className="mt-4 flex gap-2">
             {["X", "f", "in", "ig"].map((s) => (
               <span key={s} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-xs font-black text-slate-300">{s}</span>
