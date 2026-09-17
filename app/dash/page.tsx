@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LiveToasts } from "@/components/dash";
+import { FakeNotifications, LiveToasts } from "@/components/dash";
 
 const TILES = [
   { href: "/dash/recharge", label: "Recharge", icon: "+" },
@@ -71,6 +71,7 @@ export default function DashHome() {
   return (
     <div className="space-y-3">
       <LiveToasts items={toasts} />
+      <FakeNotifications />
       {fresh.map((f) => (
         <Link key={f.campaign_id} href={`/dash/campaigns/${f.campaign_id}`} className="block rounded-2xl border border-emerald-300/50 bg-emerald-900/40 p-3 text-center text-sm font-bold text-emerald-200">
           Ticket Achieved: {f.name} — tap to view

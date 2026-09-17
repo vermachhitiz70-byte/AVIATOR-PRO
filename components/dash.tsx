@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FEED_NAMES } from "@/lib/config";
 import {
   Activity,
   ArrowDownToLine,
@@ -177,7 +178,6 @@ export function DashBackButton() {
     </div>
   );
 }
-
 export function LiveToasts({ items }: { items: { kind: string; message: string; time: string }[] }) {
   if (!items.length) return null;
   return (
@@ -188,6 +188,52 @@ export function LiveToasts({ items }: { items: { kind: string; message: string; 
           <p className="font-semibold">{t.message}</p>
           <p className="text-xs text-yellow-400/80">{t.time}</p>
         </div>
+      ))}
+    </div>
+  );
+}
+
+// Client rule: live social-proof ticker on the member dashboard.
+// Fake rotation every 3–5 sec from 100 Indian names:
+// - withdrawals ALWAYS under $20, - "just joined Aviator Smart AI" registrations.
+// Pure frontend simulation — touches no wallets, no DB.
+type FakeNotif = { id: number; icon: string; text: string };
+
+function randomFakeNotif(): FakeNotif {
+  const name = FEED_NAMES[Math.floor(Math.random() * FEED_NAMES.length)];
+  const id = Date.now() + Math.floor(Math.random() * 100000);
+  if (Math.random() < 0.6) {
+    const amt = 1 + Math.floor(Math.random() * 19); // $1–$19, always under $20
+    return { id, icon: "💸", text: `${name} withdrew $${amt}` };
+  }
+  return { id, icon: "🎉", text: `${name} just joined Aviator Smart AI` };
+}
+
+export function FakeNotifications() {
+  const [items, setItems] = useState<FakeNotif[]>(() => [randomFakeNotif(), randomFakeNotif()]);
+  useEffect(() => {
+    let alive = true;
+    let t: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      if (!alive) return;
+      setItems((prev) => [randomFakeNotif(), ...prev].slice(0, 4));
+      t = setTimeout(tick, 3000 + Math.random() * 2000);
+    };
+    t = setTimeout(tick, 3000);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, []);
+  if (!items.length) return null;
+  return (
+    <div className="av-card space-y-1.5 px-3 py-2.5">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">🔔 Live updates</p>
+      {items.map((n) => (
+        <p key={n.id} className="text-sm">
+          <span className="mr-1.5">{n.icon}</span>
+          <span className="font-semibold">{n.text}</span>
+        </p>
       ))}
     </div>
   );
