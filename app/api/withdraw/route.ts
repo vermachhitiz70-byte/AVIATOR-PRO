@@ -20,7 +20,7 @@ export async function GET() {
 
 // Client two-wallet rule: the Deposit (Principal) wallet can NEVER be withdrawn.
 // Withdrawals come ONLY from earning wallets: ROI + Commission + Reward.
-// 10% deduction, min $2, max $25K, ONLY 7–10 AM IST, admin approves manually.
+// 10% deduction, min $2, max $25K, ONLY 8–10 AM IST, admin approves manually.
 export async function POST(req: NextRequest) {
   await initDb();
   const u = await currentUser();

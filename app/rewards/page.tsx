@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site";
 import { FIRST_RECHARGE_LEVELS, MILESTONES, ROI_LEVELS } from "@/lib/config";
-import { CtaBand, ProFooter, Reveal, SectionHead } from "@/components/marketing";
+import { CtaBand, PayoutTicker, ProFooter, Reveal, SectionHead } from "@/components/marketing";
 
 const SHOWCASE = [1, 5, 10, 15, 20];
 
@@ -9,15 +9,21 @@ export default function Rewards() {
   return (
     <div>
       <SiteHeader />
-      <div className="hero-plane">
-        <div className="mx-auto max-w-6xl px-4 pb-14 pt-16">
+      <div className="cine-bg relative overflow-hidden">
+        <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16">
           <Reveal>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">Rewards</p>
-            <h1 className="mt-3 text-4xl font-black md:text-6xl">20 vaults.<br /><span className="mint">Up to $500,000.</span></h1>
-            <p className="mt-4 max-w-2xl text-slate-300">Grow self business + team business to crack each vault. Rewards land straight in your Reward wallet — plus lifetime commissions on two tracks.</p>
+            <h1 className="mt-3 text-4xl font-black md:text-6xl">20 vaults.<br /><span className="gold-text">Up to $500,000.</span></h1>
+            <p className="mt-4 max-w-2xl text-slate-300">Grow self + direct + team business to crack each vault. Rewards land straight in your withdrawable Reward wallet — plus lifetime commissions on two tracks.</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/register" className="av-btn-red btn-shine px-7 py-3 text-sm">Claim Your Future</Link>
+              <Link href="/dash/business-plan" className="rounded-xl border border-white/25 px-7 py-3 text-sm font-bold">Track Progress</Link>
+            </div>
           </Reveal>
         </div>
       </div>
+      <PayoutTicker />
 
       {/* commission tracks */}
       <section className="mx-auto max-w-6xl px-4 py-12">

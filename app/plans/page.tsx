@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site";
 import { BOT_PLANS } from "@/lib/config";
-import { CtaBand, ProFooter, Reveal, SectionHead } from "@/components/marketing";
+import { CtaBand, PayoutTicker, ProFooter, Reveal, SectionHead } from "@/components/marketing";
 
 export default function Plans() {
   const [amount, setAmount] = useState(1000);
@@ -14,21 +14,27 @@ export default function Plans() {
   return (
     <div>
       <SiteHeader />
-      <div className="hero-plane">
-        <div className="mx-auto max-w-6xl px-4 pb-14 pt-16">
+      <div className="cine-bg relative overflow-hidden">
+        <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16">
           <Reveal>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">Bot plans</p>
-            <h1 className="mt-3 text-4xl font-black md:text-6xl">Six tiers.<br /><span className="mint">Daily profits, on autopilot.</span></h1>
+            <h1 className="mt-3 text-4xl font-black md:text-6xl">Six tiers.<br /><span className="gold-text">Daily profits, on autopilot.</span></h1>
             <p className="mt-4 max-w-2xl text-slate-300">Your tier sets your bracket — predictable automated earnings every day, with 2X–5X capping and 365-day validity on all plans.</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/register" className="av-btn-red btn-shine px-7 py-3 text-sm">Activate Your Bot</Link>
+              <Link href="/rewards" className="rounded-xl border border-white/25 px-7 py-3 text-sm font-bold">See Rewards</Link>
+            </div>
           </Reveal>
         </div>
       </div>
+      <PayoutTicker />
 
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-5 md:grid-cols-3">
           {BOT_PLANS.map((p, idx) => (
             <Reveal key={p.id} delay={idx * 0.1}>
-              <div className={`relative flex h-full flex-col rounded-3xl p-8 ${idx === 1 ? "border border-yellow-300/60 bg-gradient-to-b from-yellow-300/10 to-transparent shadow-[0_0_40px_rgba(250,204,21,0.15)]" : "av-card"}`}>
+              <div className={`glass-red relative flex h-full flex-col p-8 ${idx < 2 ? "tier-glow-green" : idx < 4 ? "tier-glow-gold" : "tier-glow-red"}`}>
                 {idx === 1 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-yellow-300 px-4 py-1 text-xs font-black text-black">MOST POPULAR</span>}
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400">{p.id}</p>
                 <h2 className="mt-1 text-2xl font-black">{p.name}</h2>
