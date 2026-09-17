@@ -1,33 +1,27 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site";
-import { CtaBand, PayoutTicker, ProFooter, Reveal, SectionHead } from "@/components/marketing";
+import { CtaBand, ProFooter, Reveal, SectionHead } from "@/components/marketing";
 
 const STEPS = [
   { n: "01", t: "Register & verify", d: "Sign up with your sponsor ID, verify the 6-digit email OTP and set your BEP20 address. Under 5 minutes.", points: ["Sponsor auto-linked", "OTP-secured account", "Country-tagged profile"] },
   { n: "02", t: "Recharge with BEP20", d: "Send USDT to the gateway address and paste your TX hash. Admin verifies and your Principal wallet is credited.", points: ["Min $10", "QR + address + TX flow", "Verification table"] },
-  { n: "03", t: "Activate your bot", d: "Choose any of 6 tiers (3%–10% daily). Automated profits with 2X–5X cap and 365-day validity.", points: ["Instant activation", "Live cap tracker", "10-level team earnings"] },
-  { n: "04", t: "Track & withdraw", d: "Watch wallets, ROI, team and milestones live. Withdraw $2+ during the 8–10 AM IST window.", points: ["Debit / charge / net view", "10% transparent fee", "Reward claims"] },
+  { n: "03", t: "Activate your bot", d: "Choose Conservative, Balanced or Aggressive. Automated daily profits with 3X cap and 365-day validity.", points: ["Instant activation", "Live cap tracker", "10-level team earnings"] },
+  { n: "04", t: "Track & withdraw", d: "Watch wallets, ROI, team and milestones live. Withdraw $2+ during the 7–10 AM IST window.", points: ["Debit / charge / net view", "10% transparent fee", "Reward claims"] },
 ];
 
 export default function HowItWorks() {
   return (
     <div>
       <SiteHeader />
-      <div className="cine-bg relative overflow-hidden">
-        <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16">
+      <div className="hero-plane">
+        <div className="mx-auto max-w-6xl px-4 pb-14 pt-16">
           <Reveal>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">How it works</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black md:text-6xl">From signup to payout in <span className="gold-text">four moves.</span></h1>
+            <h1 className="mt-3 max-w-3xl text-4xl font-black md:text-6xl">From signup to payout in <span className="red">four moves.</span></h1>
             <p className="mt-4 max-w-2xl text-slate-300">Register → Recharge → Activate → Track rewards. Every step shows clear wallets, status and support — onboarding feels like a game, not paperwork.</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/register" className="av-btn-red btn-shine px-7 py-3 text-sm">Start Now — It&apos;s Free</Link>
-              <Link href="/plans" className="rounded-xl border border-white/25 px-7 py-3 text-sm font-bold">Compare Plans</Link>
-            </div>
           </Reveal>
         </div>
       </div>
-      <PayoutTicker />
 
       <section className="mx-auto max-w-5xl px-4 py-10">
         {STEPS.map((s, idx) => (
@@ -45,7 +39,7 @@ export default function HowItWorks() {
                   ))}
                 </ul>
               </div>
-              <div className="glass-red relative overflow-hidden p-8">
+              <div className="av-card relative overflow-hidden p-8">
                 <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-yellow-300 to-emerald-300" />
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400">Step {s.n} of 04</p>
                 <div className="progress"><div className="progress-fill" style={{ width: `${(idx + 1) * 25}%` }} /></div>

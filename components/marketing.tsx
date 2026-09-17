@@ -54,40 +54,27 @@ function Streaks({ c1, c2 }: { c1: string; c2: string }) {
   );
 }
 
-/* ---------------- Hero slider (pure CSS art, no images) ---------------- */
-type Slide = {
-  id: string; eyebrow: string; titleA: string; titleB: string; accent: string;
-  copy: string; cta1: { label: string; href: string }; cta2: { label: string; href: string };
-  bigStat: string; bigLabel: string; chip1: [string, string]; chip2: [string, string];
-};
-const SLIDES: Slide[] = [
+/* ---------------- Hero slider ---------------- */
+const SLIDES = [
   {
     id: "network",
-    eyebrow: "BEP20 · 2X–5X CAP · 20 REWARDS",
+    eyebrow: "BEP20 · 3X CAP · 20 REWARDS",
     titleA: "GAMING",
     titleB: "NETWORK PLAN",
     accent: "red",
     copy: "Network Marketing Meets Gaming Innovation — activate a bot, grow your team, track everything live.",
     cta1: { label: "Register Free", href: "/register" },
     cta2: { label: "Open Dashboard", href: "/dash" },
-    bigStat: "10%",
-    bigLabel: "Max daily ROI",
-    chip1: ["$100K", "Top tier size"],
-    chip2: ["10", "Gameplays / day"],
   },
   {
     id: "bots",
-    eyebrow: "6 TIERS · 3%–10% DAILY · 365 DAYS",
+    eyebrow: "CONSERVATIVE · BALANCED · AGGRESSIVE",
     titleA: "BOT PLANS",
     titleB: "DAILY PROFITS",
     accent: "gold",
-    copy: "Six tiers for every budget, from $10 Starter to $100K Diamond. Earnings auto-credited daily with 2X–5X capping.",
+    copy: "Three tiers for every budget. Earnings auto-credited daily with 3X capping and 365-day validity.",
     cta1: { label: "View Plans", href: "/plans" },
     cta2: { label: "How It Works", href: "/how-it-works" },
-    bigStat: "5X",
-    bigLabel: "Max total return",
-    chip1: ["3%", "Starter daily"],
-    chip2: ["365", "Days validity"],
   },
   {
     id: "rewards",
@@ -98,32 +85,8 @@ const SLIDES: Slide[] = [
     copy: "Lifetime ROI commissions across 10 levels plus 20 team business reward milestones up to $500,000.",
     cta1: { label: "See Rewards", href: "/rewards" },
     cta2: { label: "About Us", href: "/about" },
-    bigStat: "$500K",
-    bigLabel: "Crown vault",
-    chip1: ["10", "ROI levels"],
-    chip2: ["20", "Milestones"],
   },
 ];
-
-function HeroArt({ accent, bigStat, bigLabel, chip1, chip2 }: { accent: string; bigStat: string; bigLabel: string; chip1: [string, string]; chip2: [string, string] }) {
-  const glow = accent === "red" ? "rgba(255,45,45,.5)" : accent === "gold" ? "rgba(250,204,21,.5)" : "rgba(94,234,212,.5)";
-  return (
-    <div className="ring-art mx-auto flex h-72 w-72 items-center justify-center md:h-96 md:w-96">
-      <div className="floaty absolute left-2 top-8 rounded-2xl border border-white/15 bg-black/60 px-4 py-2 text-center shadow-2xl backdrop-blur">
-        <p className="text-xl font-black text-yellow-300">{chip1[0]}</p>
-        <p className="text-[11px] text-slate-300">{chip1[1]}</p>
-      </div>
-      <div className="floaty-slow absolute bottom-8 right-2 rounded-2xl border border-white/15 bg-black/60 px-4 py-2 text-center shadow-2xl backdrop-blur">
-        <p className="text-xl font-black text-emerald-300">{chip2[0]}</p>
-        <p className="text-[11px] text-slate-300">{chip2[1]}</p>
-      </div>
-      <div className="relative rounded-3xl border px-10 py-8 text-center backdrop-blur" style={{ borderColor: glow, background: "rgba(0,0,0,.55)", boxShadow: `0 0 70px ${glow}` }}>
-        <p className="gold-text text-6xl font-black md:text-7xl">{bigStat}</p>
-        <p className="mt-1 text-sm font-bold uppercase tracking-widest text-slate-300">{bigLabel}</p>
-      </div>
-    </div>
-  );
-}
 
 export function HeroSlider() {
   const [i, setI] = useState(0);
@@ -155,8 +118,8 @@ export function HeroSlider() {
       <div className="hero-plane absolute inset-0" />
       <Streaks c1={s.accent === "red" ? "#ff3b3b" : s.accent === "gold" ? "#facc15" : "#5eead4"} c2="#ff3b3b" />
 
-      <div className="relative mx-auto max-w-6xl gap-6 px-4 pb-16 pt-14 md:grid md:grid-cols-[1.1fr_0.9fr] md:items-center md:pb-24 md:pt-20">
-        <div className="min-h-[300px] md:min-h-[340px]">
+      <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 md:pb-24 md:pt-20">
+        <div className="min-h-[300px] max-w-3xl md:min-h-[340px]">
           <AnimatePresence mode="wait">
             <motion.div key={s.id} initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -60 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
               <p className="live-pill">{s.eyebrow}</p>
@@ -169,19 +132,6 @@ export function HeroSlider() {
                 <Link href={s.cta1.href} className="av-btn-red px-7 py-3">{s.cta1.label}</Link>
                 <Link href={s.cta2.href} className="rounded-xl border border-white/25 px-7 py-3 font-bold hover:border-yellow-300">{s.cta2.label}</Link>
               </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        <div className="relative hidden items-center justify-center md:flex">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={s.id + "-visual"}
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.6 }}
-            >
-              <HeroArt accent={s.accent} bigStat={s.bigStat} bigLabel={s.bigLabel} chip1={s.chip1} chip2={s.chip2} />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -248,87 +198,39 @@ function Stars() {
 const REVIEWS = [
   { name: "Rahul Sharma", meta: "Mumbai · 2 weeks ago", text: "Recharge took 10 minutes to reflect after admin approval. Daily profits land every morning like clockwork. Dashboard is super clear.", tag: "Verified member" },
   { name: "Priya Nair", meta: "Kochi · 1 month ago", text: "I compared the numbers with my upline daily — 10-level ROI commission matches the plan PDF exactly. Withdrawal charge shown upfront, no surprises.", tag: "Team leader" },
-  { name: "Amit Verma", meta: "Delhi · 3 weeks ago", text: "Bot activation was instant from my principal wallet. The tier cap tracker is transparent — you can see total earned vs cap right on the bot card.", tag: "Verified member" },
+  { name: "Amit Verma", meta: "Delhi · 3 weeks ago", text: "Bot activation was instant from my principal wallet. The 3X cap logic is transparent — you can see total earned vs cap right on the bot card.", tag: "Verified member" },
   { name: "Sneha Reddy", meta: "Hyderabad · 2 months ago", text: "Built a team of 40 using just the referral QR. Level-wise tree makes it easy to show new members where commissions come from.", tag: "Team leader" },
   { name: "Vikram Patel", meta: "Ahmedabad · 1 month ago", text: "Withdrew twice during the morning window. Net amount after 10% charge matched to the paisa. Support tickets get answered same day.", tag: "Verified member" },
   { name: "Ethan Brooks", meta: "Texas, US · 3 weeks ago", text: "Joined for the Vietnam Ticket campaign. KPI cards and leaderboard update daily — finally an MLM dashboard that doesn't hide the math.", tag: "Campaign achiever" },
 ];
 
 export function GoogleReviews() {
-  const [i, setI] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const go = useCallback((n: number) => setI((n + REVIEWS.length) % REVIEWS.length), []);
-  useEffect(() => {
-    if (paused) return;
-    const t = setInterval(() => setI((v) => (v + 1) % REVIEWS.length), 5000);
-    return () => clearInterval(t);
-  }, [paused]);
-  const visible = [REVIEWS[i % REVIEWS.length], REVIEWS[(i + 1) % REVIEWS.length], REVIEWS[(i + 2) % REVIEWS.length]];
   return (
-    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <div>
       <div className="flex items-center justify-center gap-3">
         <GLogo />
         <p className="text-lg font-bold">4.8 · 2,300+ Google reviews</p>
         <Stars />
       </div>
-      <div className="relative mt-6">
-        <AnimatePresence mode="wait">
-          <motion.div key={i} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.45 }} className="grid gap-4 md:grid-cols-3">
-            {visible.map((r) => (
-              <div key={r.name} className="av-card flex h-full flex-col p-5">
-                <div className="flex items-center justify-between">
-                  <Stars />
-                  <GLogo />
-                </div>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-200">&ldquo;{r.text}&rdquo;</p>
-                <div className="mt-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 font-black">{r.name[0]}</div>
-                  <div>
-                    <p className="text-sm font-bold">{r.name}</p>
-                    <p className="text-xs text-slate-400">{r.meta} · {r.tag}</p>
-                  </div>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        {REVIEWS.map((r, idx) => (
+          <Reveal key={r.name} delay={(idx % 3) * 0.1}>
+            <div className="av-card flex h-full flex-col p-5">
+              <div className="flex items-center justify-between">
+                <Stars />
+                <GLogo />
+              </div>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-200">&ldquo;{r.text}&rdquo;</p>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 font-black">{r.name[0]}</div>
+                <div>
+                  <p className="text-sm font-bold">{r.name}</p>
+                  <p className="text-xs text-slate-400">{r.meta} · {r.tag}</p>
                 </div>
               </div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
-        <div className="mt-5 flex items-center justify-center gap-3">
-          <button onClick={() => go(i - 1)} aria-label="Previous reviews" className="rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-lg hover:border-yellow-300">‹</button>
-          <div className="flex gap-2">
-            {REVIEWS.map((r, n) => (
-              <button key={r.name} onClick={() => go(n)} aria-label={`Go to review ${n + 1}`} className={`h-2 rounded-full transition-all ${n === i ? "w-8 bg-yellow-300" : "w-2 bg-white/30"}`} />
-            ))}
-          </div>
-          <button onClick={() => go(i + 1)} aria-label="Next reviews" className="rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-lg hover:border-yellow-300">›</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- Payout ticker (marquee scroller) ---------------- */
-const PAYOUTS: [string, string][] = [
-  ["Rahul S.", "$1,240"], ["Priya N.", "$860"], ["Amit V.", "$2,105"], ["Sneha R.", "$430"],
-  ["Vikram P.", "$3,300"], ["Ethan B.", "$5,000"], ["Kavya I.", "$275"], ["Rohit K.", "$980"],
-  ["Anjali M.", "$1,520"], ["Omar H.", "$4,150"], ["Divya N.", "$640"], ["Maya P.", "$2,780"],
-  ["Karan M.", "$390"], ["Fatima K.", "$1,075"], ["Arjun N.", "$2,460"], ["Meera J.", "$815"],
-];
-
-export function PayoutTicker() {
-  const items = [...PAYOUTS, ...PAYOUTS];
-  return (
-    <div className="border-y border-white/10 bg-black/40 py-4">
-      <div className="marquee-mask">
-        <div className="marquee-track">
-          {items.map(([n, a], idx) => (
-            <div key={idx} className="glass-red flex items-center gap-3 whitespace-nowrap px-5 py-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-sm font-black">{n[0]}</span>
-              <span className="text-sm font-bold">{n}</span>
-              <span className="text-sm font-black text-emerald-300">+{a}</span>
-              <span className="text-[11px] uppercase tracking-wider text-slate-400">withdrawn</span>
             </div>
-          ))}
-        </div>
+          </Reveal>
+        ))}
       </div>
     </div>
   );
