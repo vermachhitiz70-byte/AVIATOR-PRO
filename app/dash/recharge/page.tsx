@@ -10,6 +10,7 @@ export default function Recharge() {
   const [addr, setAddr] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
+  const [qrError, setQrError] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -52,7 +53,13 @@ export default function Recharge() {
         <p className="mt-1 text-xs text-slate-400">Choose any tier (Starter $10 – Diamond $100K). Scan QR or copy address, send USDT-BEP20, then submit proof. Admin verifies → dashboard unlocks.</p>
         <div className="mt-4 grid gap-4 md:grid-cols-[220px_1fr]">
           <div className="flex flex-col items-center rounded-xl bg-white p-4">
-            {addr ? <QRCodeSVG value={addr} size={180} /> : <p className="text-xs text-slate-500">Loading QR...</p>}
+            {!qrError ? (
+              <img src="/wallet-qr.jpeg" alt="Wallet QR" className="h-[180px] w-[180px] object-contain" onError={() => setQrError(true)} />
+            ) : addr ? (
+              <QRCodeSVG value={addr} size={180} />
+            ) : (
+              <p className="text-xs text-slate-500">Loading QR...</p>
+            )}
             <p className="mt-2 text-center text-[11px] text-slate-600">Scan to pay USDT-BEP20</p>
           </div>
           <div>
