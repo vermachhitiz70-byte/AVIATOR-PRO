@@ -31,7 +31,7 @@ export default function Play() {
   const [stake, setStake] = useState("1");
   const [used, setUsed] = useState(0);
   const [limit] = useState(10);
-  const [balance, setBalance] = useState(0);
+  const [deposit, setDeposit] = useState(0);
   const [pnl, setPnl] = useState(0);
   const [target, setTarget] = useState(0);
   const [resolving, setResolving] = useState(false);
@@ -95,7 +95,7 @@ export default function Play() {
 
   async function refresh() {
     const j = await fetch("/api/gameplay/history").then((r) => r.json()).catch(() => null);
-    if (j?.ok) { setTrades(j.today); setUsed(j.used); setBalance(j.earningBalance); setPnl(j.todayPnl); setTarget(j.dailyTarget || 0); }
+    if (j?.ok) { setTrades(j.today); setUsed(j.used); setDeposit(j.depositBalance || 0); setPnl(j.todayPnl); setTarget(j.dailyTarget || 0); }
   }
   useEffect(() => { refresh(); }, []);
 
@@ -113,7 +113,7 @@ export default function Play() {
       if (!j.ok) { setResult(null); refresh(); return; }
       setResult({ delta: j.delta, outcome: j.outcome, round: j.round });
       setUsed(limit - j.chancesLeft);
-      setBalance(j.earningBalance);
+      if (typeof j.depositBalance === "number") setDeposit(j.depositBalance);
       setPnl(j.todayPnl);
       refresh();
     }, wait);
@@ -134,11 +134,11 @@ export default function Play() {
       </div>
       <div className="av-card p-4">
         <div className="flex items-center justify-between text-sm">
-          <p className="text-slate-300">Earning balance: <b className="text-white">${balance.toFixed(2)}</b></p>
+          <p className="text-slate-300">Deposit balance: <b className="text-white">${deposit.toFixed(2)}</b></p>
           <p className="text-slate-300">Today: <b className={pnl >= 0 ? "text-emerald-300" : "text-red-300"}>{pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}</b><span className="text-slate-400"> / ${target.toFixed(2)}</span></p>
         </div>
         <form onSubmit={startTrade} className="mt-2 flex gap-2">
-          <input className="av-input" value={stake} onChange={(e) => setStake(e.target.value)} placeholder="Stake USD (min $0.10)" inputMode="decimal" />
+          <input className="av-input" value={stake} onChange={(e) => setStake(e.target.value)} placeholder={`Stake USD (min $0.10, max $${deposit.toFixed(2)})`} inputMode="decimal" />
           <button disabled={resolving || used >= limit} className="av-btn-red whitespace-nowrap px-5 disabled:opacity-50">
             {resolving ? "Trading..." : `Start Trade (${limit - used} left)`}
           </button>

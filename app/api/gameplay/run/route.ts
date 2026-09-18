@@ -5,8 +5,8 @@ import { BUSINESS_RULES, planForAmount } from "@/lib/config";
 import { cappedExtras, creditRoiLevels, logLedger, walletOf } from "@/lib/mlm";
 
 // Crypto trading game (client spec).
-// - 10 chances per user per day, stake from EARNING wallets only (ROI + Commission + Reward)
-// - min stake $0.10, max stake = earning balance
+// - 10 chances per user per day, stake from DEPOSIT (Principal) wallet only
+// - min stake $0.10, max stake = deposit balance
 // - each trade settles instantly to the ROI wallet and is shown as profit OR loss
 // - DAILY MODEL: the day's target is the bot's tier % (e.g. $10 Starter = $0.30).
 //   Game earns part of it live during the day; the 5 AM cron credits only the
@@ -40,11 +40,11 @@ export async function POST(req: NextRequest) {
   const stake = Number(bet) || 0;
   const w = await walletOf(userId);
   // Stake is display-only (never leaves the wallet — only the settled P&L moves,
-  // into the ROI wallet). Cap it at everything the user holds, so fresh users
-  // with only Principal can still play; min $0.10.
-  const stakeCap = round2(Number(w.principal) + Number(w.roi) + Number(w.commission) + Number(w.reward));
+  // into the ROI wallet). Cap it at the DEPOSIT (Principal) balance only —
+  // earning wallets (ROI/Commission/Reward) do not count; min $0.10.
+  const stakeCap = round2(Number(w.principal));
   if (stake < MIN_STAKE) return NextResponse.json({ ok: false, error: `Minimum trade is $${MIN_STAKE}` }, { status: 400 });
-  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds balance ($${stakeCap.toFixed(2)})` }, { status: 400 });
+  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds deposit balance ($${stakeCap.toFixed(2)})` }, { status: 400 });
 
   // Daily target = this bot's tier % for today, minus anything already
   // credited (live game earnings so far + any cron ROI already paid today).
@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
   });
   const w2 = await walletOf(userId);
   const newEarning = round2(Number(w2.roi) + Number(w2.commission) + Number(w2.reward));
+  const newDeposit = round2(Number(w2.principal));
   return NextResponse.json({
     ok: true,
     round: roundNo,
@@ -98,5 +99,6 @@ export async function POST(req: NextRequest) {
     todayPnl: round2(settled + delta),
     dailyTarget: target,
     earningBalance: newEarning,
+    depositBalance: newDeposit,
   });
 }

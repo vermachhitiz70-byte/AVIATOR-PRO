@@ -27,5 +27,6 @@ export async function GET() {
     todayPnl: Math.round(Number((c.rows[0] as unknown as { pnl: number }).pnl ?? 0) * 100) / 100,
     dailyTarget,
     earningBalance: earning,
+    depositBalance: Math.round(Number(w.principal) * 100) / 100,
   });
 }
