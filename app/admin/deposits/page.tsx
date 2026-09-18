@@ -90,6 +90,7 @@ export default function AdminDepositsPage() {
     { key: "requested", label: "Requested", render: (r: DepositRow) => <span className="font-semibold text-gray-900">{fmtUSD(r.requested)}</span> },
     { key: "actual", label: "Actual", render: (r: DepositRow) => <span className="font-bold text-green-700">{fmtUSD(r.actual)}</span> },
     { key: "tx_hash", label: "TX Hash", render: (r: DepositRow) => <span className="font-mono text-xs text-gray-500">{String(r.tx_hash ?? "-").slice(0, 16) || "-"}</span> },
+    { key: "screenshot_url", label: "Screenshot", render: (r: DepositRow) => (r.screenshot_url ? <a href={String(r.screenshot_url)} target="_blank" rel="noopener"><img src={String(r.screenshot_url)} alt="proof" className="h-12 w-16 rounded-lg border object-cover" /></a> : <span className="text-xs text-gray-400">—</span>) },
     { key: "status", label: "Status", render: (r: DepositRow) => pill(r.status) },
     { key: "created_at", label: "Date", render: (r: DepositRow) => <span className="text-xs text-gray-500">{fmtDate(r.created_at)}</span> },
     { key: "actions", label: "Actions", render: (r: DepositRow) => {

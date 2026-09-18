@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site";
 import { BOT_PLANS } from "@/lib/config";
-import { CtaBand, ProFooter, Reveal, SectionHead } from "@/components/marketing";
+import { CtaBand, PageHero, ProFooter, Reveal, SectionHead } from "@/components/marketing";
 
 export default function Plans() {
   const [amount, setAmount] = useState(1000);
@@ -14,15 +14,7 @@ export default function Plans() {
   return (
     <div>
       <SiteHeader />
-      <div className="hero-plane">
-        <div className="mx-auto max-w-6xl px-4 pb-14 pt-16">
-          <Reveal>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">Bot plans</p>
-            <h1 className="mt-3 text-4xl font-black md:text-6xl">Six tiers.<br /><span className="mint">Daily profits, on autopilot.</span></h1>
-            <p className="mt-4 max-w-2xl text-slate-300">Your tier sets your bracket — predictable automated earnings every day, with 2X–5X capping and 365-day validity on all plans.</p>
-          </Reveal>
-        </div>
-      </div>
+      <PageHero kicker="Bot plans" titleA="Six tiers." titleB="Daily profits, on autopilot." accent="gold" sub="Your tier sets your bracket — predictable automated earnings every day, with 2X–5X capping and 365-day validity on all plans." />
 
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-5 md:grid-cols-3">

@@ -185,6 +185,7 @@ async function migrateAll(): Promise<void> {
   // Batch 3: column backfills + legacy activation (independent — run in parallel)
   await Promise.all([
     migrate(db, "ALTER TABLE deposits ADD COLUMN admin_remark TEXT DEFAULT ''"),
+    migrate(db, "ALTER TABLE deposits ADD COLUMN screenshot_url TEXT DEFAULT ''"),
     migrate(db, "ALTER TABLE withdrawals ADD COLUMN admin_remark TEXT DEFAULT ''"),
     migrate(db, "ALTER TABLE users ADD COLUMN country TEXT DEFAULT ''"),
     migrate(db, "ALTER TABLE support_tickets ADD COLUMN admin_reply TEXT DEFAULT ''"),

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site";
-import { CtaBand, PayoutTicker, ProFooter, Reveal, SectionHead } from "@/components/marketing";
+import { CtaBand, PageHero, ProFooter, Reveal, SectionHead } from "@/components/marketing";
 
 const STEPS = [
   { n: "01", t: "Register & verify", d: "Sign up with your sponsor ID, verify the 6-digit email OTP and set your BEP20 address. Under 5 minutes.", points: ["Sponsor auto-linked", "OTP-secured account", "Country-tagged profile"] },
@@ -13,21 +13,7 @@ export default function HowItWorks() {
   return (
     <div>
       <SiteHeader />
-      <div className="cine-bg relative overflow-hidden">
-        <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16">
-          <Reveal>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">How it works</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black md:text-6xl">From signup to payout in <span className="gold-text">four moves.</span></h1>
-            <p className="mt-4 max-w-2xl text-slate-300">Register → Recharge → Activate → Track rewards. Every step shows clear wallets, status and support — onboarding feels like a game, not paperwork.</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/register" className="av-btn-red btn-shine px-7 py-3 text-sm">Start Now — It&apos;s Free</Link>
-              <Link href="/plans" className="rounded-xl border border-white/25 px-7 py-3 text-sm font-bold">Compare Plans</Link>
-            </div>
-          </Reveal>
-        </div>
-      </div>
-      <PayoutTicker />
+      <PageHero kicker="How it works" titleA="From signup to payout in" titleB="four moves." accent="gold" sub="Register → Recharge → Activate → Track rewards. Every step shows clear wallets, status and support — onboarding feels like a game, not paperwork." cta1={{ label: "Start Now — It's Free", href: "/register" }} cta2={{ label: "Compare Plans", href: "/plans" }} />
 
       <section className="mx-auto max-w-5xl px-4 py-10">
         {STEPS.map((s, idx) => (

@@ -32,27 +32,7 @@ export function SectionHead({ kicker, title, sub, align = "center" }: { kicker: 
 }
 
 /* ---------------- SVG scene art (self-contained, no external images) ---------------- */
-function Streaks({ c1, c2 }: { c1: string; c2: string }) {
-  return (
-    <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 1200 500">
-      <defs>
-        <linearGradient id={`g-${c1}`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor={c1} stopOpacity="0" />
-          <stop offset="0.6" stopColor={c1} stopOpacity="0.55" />
-          <stop offset="1" stopColor={c2} stopOpacity="0.9" />
-        </linearGradient>
-      </defs>
-      {[60, 140, 230, 330, 430].map((y, i) => (
-        <g key={y}>
-          <rect x="0" y={y} width="1200" height={i % 2 ? 3 : 6} fill={`url(#g-${c1})`} opacity={0.5 - i * 0.06} rx="3" />
-          <circle cx={900 + i * 60} cy={y} r={i % 2 ? 60 : 110} fill={c1} opacity="0.07" />
-        </g>
-      ))}
-      <circle cx="1020" cy="110" r="150" fill="none" stroke={c2} strokeOpacity="0.25" strokeWidth="2" />
-      <circle cx="1020" cy="110" r="110" fill="none" stroke={c2} strokeOpacity="0.35" strokeWidth="1.5" />
-    </svg>
-  );
-}
+function StreaksUnused() { return null; }
 
 /* ---------------- Hero slider ---------------- */
 const SLIDES = [
@@ -101,9 +81,14 @@ export function HeroSlider() {
   }, [paused]);
 
   const s = SLIDES[i];
+  const slideGradient =
+    s.accent === "red" ? "linear-gradient(180deg, #1a0a0a 0%, #07070a 100%)" :
+    s.accent === "gold" ? "linear-gradient(180deg, #1a1500 0%, #07070a 100%)" :
+                          "linear-gradient(180deg, #071510 0%, #07070a 100%)";
   return (
     <div
       className="relative overflow-hidden"
+      style={{ background: slideGradient }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
@@ -115,9 +100,6 @@ export function HeroSlider() {
         touchX.current = null;
       }}
     >
-      <div className="hero-plane absolute inset-0" />
-      <Streaks c1={s.accent === "red" ? "#ff3b3b" : s.accent === "gold" ? "#facc15" : "#5eead4"} c2="#ff3b3b" />
-
       <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 md:pb-24 md:pt-20">
         <div className="min-h-[300px] max-w-3xl md:min-h-[340px]">
           <AnimatePresence mode="wait">
@@ -288,10 +270,9 @@ export function PayoutTicker() {
 export function CtaBand() {
   return (
     <Reveal>
-      <div className="hero-plane relative overflow-hidden rounded-3xl border border-red-500/30 px-6 py-12 text-center">
-        <Streaks c1="#ff3b3b" c2="#facc15" />
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0d1729] px-6 py-12 text-center">
         <div className="relative">
-          <h2 className="text-3xl font-black md:text-5xl">Ready for takeoff?</h2>
+          <h2 className="text-3xl font-black md:text-5xl">Start your journey today</h2>
           <p className="mx-auto mt-2 max-w-xl text-slate-300">Activate your bot · Build your team · Track every dollar live.</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link href="/register" className="av-btn-red px-8 py-3">Join Aviator Smart AI</Link>
@@ -303,29 +284,27 @@ export function CtaBand() {
   );
 }
 
-/* ---------------- Shared deck-style page hero ---------------- */
+/* ---------------- Shared deck-style page hero — thin header strip ---------------- */
 export function PageHero({ kicker, titleA, titleB, accent = "red", sub, cta1, cta2 }: {
   kicker: string; titleA: string; titleB: string; accent?: "red" | "gold" | "green";
   sub?: string; cta1?: { label: string; href: string }; cta2?: { label: string; href: string };
 }) {
-  const accentCls = accent === "red" ? "text-red-500 [text-shadow:0_0_30px_rgba(255,45,45,.6)]" : accent === "gold" ? "gold-text" : "text-emerald-400 [text-shadow:0_0_30px_rgba(34,229,132,.5)]";
+  const grad = accent === "red" ? "linear-gradient(180deg, #1a0a0a, #0a0a0a)" : accent === "gold" ? "linear-gradient(180deg, #1a1400, #0a0a0a)" : "linear-gradient(180deg, #0a1a14, #0a0a0a)";
+  const titleBCls = accent === "red" ? "text-red-500" : accent === "gold" ? "text-yellow-400" : "text-emerald-400";
   return (
-    <div className="cine-bg relative overflow-hidden">
-      <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
-      <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16">
-        <Reveal>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">{kicker}</p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-6xl">
-            {titleA} <br /><span className={accentCls}>{titleB}</span>
-          </h1>
-          {sub && <p className="mt-4 max-w-2xl text-slate-300">{sub}</p>}
-          {(cta1 || cta2) && (
-            <div className="mt-6 flex flex-wrap gap-3">
-              {cta1 && <Link href={cta1.href} className="rounded-xl bg-red-600 px-7 py-3 text-sm font-bold text-white shadow-[0_0_22px_rgba(255,45,45,.5)] hover:bg-red-500">{cta1.label}</Link>}
-              {cta2 && <Link href={cta2.href} className="rounded-xl border border-white/25 px-7 py-3 text-sm font-bold hover:border-yellow-300">{cta2.label}</Link>}
-            </div>
-          )}
-        </Reveal>
+    <div className="relative overflow-hidden border-b border-white/10" style={{ background: grad }}>
+      <div className="relative mx-auto max-w-6xl px-4 py-10">
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">{kicker}</p>
+        <h1 className="mt-2 max-w-3xl text-3xl font-black leading-tight md:text-5xl">
+          {titleA} <span className={titleBCls}>{titleB}</span>
+        </h1>
+        {sub && <p className="mt-3 max-w-2xl text-slate-300">{sub}</p>}
+        {(cta1 || cta2) && (
+          <div className="mt-5 flex flex-wrap gap-3">
+            {cta1 && <Link href={cta1.href} className="rounded-xl bg-red-600 px-7 py-2.5 text-sm font-bold text-white hover:bg-red-500">{cta1.label}</Link>}
+            {cta2 && <Link href={cta2.href} className="rounded-xl border border-white/25 px-7 py-2.5 text-sm font-bold hover:border-yellow-300">{cta2.label}</Link>}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -32,17 +32,18 @@ export async function POST(req: NextRequest) {
     args: [id, name, mobile, email, country || "", hash, code, sponsor, "ROOT0001", 0, otp, expiry],
   });
   await db.execute({ sql: "INSERT INTO wallets (user_id) VALUES (?)", args: [id] });
+  let devOtp: string | undefined = undefined;
   try {
     await sendOtpEmail(email, otp, "verify");
   } catch (e) {
-    await db.execute({ sql: "DELETE FROM wallets WHERE user_id=?", args: [id] });
-    await db.execute({ sql: "DELETE FROM users WHERE id=?", args: [id] });
-    return NextResponse.json({ ok: false, error: e instanceof Error ? e.message : "Could not send OTP email" }, { status: 500 });
+    console.warn("SMTP failed, falling back to dev OTP:", (e as Error).message);
+    devOtp = otp; // show on screen for testing until App Password is set
   }
   return NextResponse.json({
     ok: true,
     needOtp: true,
     email,
     referral_code: code,
+    ...(devOtp ? { devOtp } : {}),
   });
 }

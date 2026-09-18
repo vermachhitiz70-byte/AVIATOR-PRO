@@ -72,13 +72,9 @@ function RegisterForm() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <div className="cine-bg relative flex flex-1 flex-col overflow-x-clip px-4 py-10">
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-[36rem] max-w-full -translate-x-1/2 rounded-full bg-red-600/15 blur-[110px]" />
-        <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-yellow-300/10 blur-[100px]" />
-        <div className="ring-art pointer-events-none absolute -left-24 top-1/4 hidden h-96 w-96 opacity-60 md:block" />
-
-        <div className="relative z-10 m-auto flex w-full max-w-sm flex-col items-center">
-          <div className="glass-red flex w-full flex-col items-center p-8 shadow-2xl backdrop-blur-md">
+      <div className="relative flex flex-1 flex-col overflow-x-clip bg-[#060b16] px-4 py-8">
+        <div className="m-auto flex w-full max-w-sm flex-col items-center">
+          <div className="flex w-full flex-col items-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-transparent p-8 shadow-2xl backdrop-blur-md">
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-300 text-xl font-black text-black shadow-lg">
               A
             </div>
