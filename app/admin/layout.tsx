@@ -39,7 +39,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <NotificationProvider>
-      <div className="flex min-h-screen overflow-x-clip bg-[#faf6ec] text-gray-900">
+      {/* Fixed cream canvas: admin is single-color (#faf6ec) end-to-end.
+          Global body is dark for the member panel; without this layer any gap
+          below the content container flashes dark (the two-tone bug). */}
+      <div aria-hidden className="fixed inset-0 z-0 bg-[#faf6ec]" />
+      <div className="relative z-10 flex min-h-screen overflow-x-clip bg-[#faf6ec] text-gray-900">
         <AdminSidebar admin={admin} />
         <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
           <AdminTopBar admin={admin} />
