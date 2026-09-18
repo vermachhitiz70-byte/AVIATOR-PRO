@@ -29,6 +29,8 @@ function RegisterForm() {
     e.preventDefault();
     setMsg("");
     setOkMsg("");
+    if (!form.referral.trim()) { setMsg("Referral ID compulsory hai — bina referral ke signup nahi hoga."); return; }
+    if (refName === "Invalid referral ID") { setMsg("Invalid Referral ID — sahi code dalo."); return; }
     setBusy(true);
     try {
       const r = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
@@ -90,7 +92,7 @@ function RegisterForm() {
                   <p className="mt-1 text-xs text-slate-500">A mandatory OTP will be sent to this email.</p>
                 </div>
                 <div>
-                  <input placeholder="Referral ID" value={form.referral} className={input} onChange={(e) => { setForm({ ...form, referral: e.target.value }); lookup(e.target.value); }} />
+                  <input placeholder="Referral ID (compulsory)" value={form.referral} className={input} onChange={(e) => { setForm({ ...form, referral: e.target.value }); lookup(e.target.value); }} required />
                   <p className="mt-1 text-xs text-emerald-300">Referral: {refName}</p>
                 </div>
                 <input placeholder="Country" value={form.country} className={input} onChange={(e) => setForm({ ...form, country: e.target.value })} />

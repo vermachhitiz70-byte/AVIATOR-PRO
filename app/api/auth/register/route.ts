@@ -15,13 +15,12 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const dup = await db.execute({ sql: "SELECT id FROM users WHERE email=? OR mobile=?", args: [email, mobile] });
   if (dup.rows.length) return NextResponse.json({ ok: false, error: "Email or mobile number is already registered." }, { status: 400 });
-  // No referral => admin sponsors directly (AV100001). No orphan IDs ever.
-  let sponsor: string | null = "AV100001";
-  if (referral) {
-    const s = await db.execute({ sql: "SELECT referral_code FROM users WHERE referral_code=?", args: [referral] });
-    if (s.rows.length === 0) return NextResponse.json({ ok: false, error: "Invalid Referral ID" }, { status: 400 });
-    sponsor = referral;
-  }
+  // Referral is compulsory — no signup without a valid sponsor code.
+  // (Old NULL rows were backfilled to admin by migration; new rows always carry a sponsor.)
+  if (!referral || !String(referral).trim()) return NextResponse.json({ ok: false, error: "Referral ID is compulsory" }, { status: 400 });
+  const s = await db.execute({ sql: "SELECT referral_code FROM users WHERE referral_code=?", args: [String(referral).trim()] });
+  if (s.rows.length === 0) return NextResponse.json({ ok: false, error: "Invalid Referral ID" }, { status: 400 });
+  const sponsor: string = String(referral).trim();
   const id = uid("U");
   const code = nextReferralCode();
   // Password is system-generated and emailed after OTP verification; use a placeholder until then.
