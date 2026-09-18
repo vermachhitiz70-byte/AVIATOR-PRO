@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const dup = await db.execute({ sql: "SELECT id FROM users WHERE email=? OR mobile=?", args: [email, mobile] });
   if (dup.rows.length) return NextResponse.json({ ok: false, error: "Email or mobile number is already registered." }, { status: 400 });
-  let sponsor: string | null = null;
+  // No referral => admin sponsors directly (AV100001). No orphan IDs ever.
+  let sponsor: string | null = "AV100001";
   if (referral) {
     const s = await db.execute({ sql: "SELECT referral_code FROM users WHERE referral_code=?", args: [referral] });
     if (s.rows.length === 0) return NextResponse.json({ ok: false, error: "Invalid Referral ID" }, { status: 400 });

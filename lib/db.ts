@@ -202,6 +202,8 @@ async function migrateAll(): Promise<void> {
     db.execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('maxWithdrawal','25000')"),
     // Deposit address was seeded as placeholder once — heal it (only placeholder/empty, never admin custom).
     db.execute("UPDATE settings SET value='0xf41A2fEEC860e0164416cB5D5B0c580881628507' WHERE key='depositAddress' AND (value='' OR value LIKE '%YOUR%')"),
+    // Orphan rule: every non-admin user with NULL/empty referred_by becomes admin's direct (AV100001 sponsors).
+    db.execute("UPDATE users SET referred_by='AV100001' WHERE (referred_by IS NULL OR referred_by='') AND referral_code!='AV100001'"),
   ]);
   // Seeds (run once ever — guarded by existence checks)
   const camp = await db.execute({ sql: "SELECT id FROM campaigns WHERE name='Vietnam Ticket Achievers'", args: [] });
