@@ -16,7 +16,7 @@ export async function GET() {
   const inv = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [uid] });
   const wd = await db.execute({ sql: "SELECT COALESCE(SUM(net),0) as t FROM withdrawals WHERE user_id=? AND status IN ('pending','approved')", args: [uid] });
   const today = new Date().toISOString().slice(0, 10);
-  const earn = await db.execute({ sql: "SELECT COALESCE(SUM(amount),0) as t FROM ledger WHERE user_id=? AND kind IN ('daily_roi','roi_level','first_recharge','reward') AND substr(created_at,1,10)=?", args: [uid, today] });
+  const earn = await db.execute({ sql: "SELECT COALESCE(SUM(amount),0) as t FROM ledger WHERE user_id=? AND kind IN ('daily_roi','roi_level','first_recharge','reward','game_profit','game_loss') AND substr(created_at,1,10)=?", args: [uid, today] });
   const counts = await teamCounts(uid);
   const tx = await db.execute({ sql: "SELECT kind,wallet,amount,note,created_at FROM ledger WHERE user_id=? ORDER BY rowid DESC LIMIT 8", args: [uid] });
   const acts = await db.execute({ sql: "SELECT kind,message,created_at FROM activities ORDER BY rowid DESC LIMIT 8", args: [] });
