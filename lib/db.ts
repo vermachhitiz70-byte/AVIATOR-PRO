@@ -200,6 +200,8 @@ async function migrateAll(): Promise<void> {
     // Withdrawal window moved to 08:00–10:00 IST (only where still old default).
     db.execute("UPDATE settings SET value='08:00' WHERE key='withdrawStartIST' AND value='07:00'"),
     db.execute("INSERT OR IGNORE INTO settings (key,value) VALUES ('maxWithdrawal','25000')"),
+    // Deposit address was seeded as placeholder once — heal it (only placeholder/empty, never admin custom).
+    db.execute("UPDATE settings SET value='0xf41A2fEEC860e0164416cB5D5B0c580881628507' WHERE key='depositAddress' AND (value='' OR value LIKE '%YOUR%')"),
   ]);
   // Seeds (run once ever — guarded by existence checks)
   const camp = await db.execute({ sql: "SELECT id FROM campaigns WHERE name='Vietnam Ticket Achievers'", args: [] });

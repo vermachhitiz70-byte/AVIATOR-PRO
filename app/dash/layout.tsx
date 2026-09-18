@@ -1,6 +1,24 @@
+import { redirect } from "next/navigation";
 import { DashBackButton, DashBottom, DashSidebar, DashTop, DashTopBar } from "@/components/dash";
+import { currentUser } from "@/lib/auth";
+import { getDb, initDb } from "@/lib/db";
 
-export default function DashLayout({ children }: { children: React.ReactNode }) {
+// Hard activation gate: no confirmed deposit (or active bot) => /activate.
+// Admins bypass. Pending deposits do NOT unlock the dashboard.
+export default async function DashLayout({ children }: { children: React.ReactNode }) {
+  await initDb();
+  const u = await currentUser();
+  if (!u) redirect("/login");
+  const isAdmin = !!(u as unknown as { is_admin: number }).is_admin;
+  if (!isAdmin) {
+    const db = getDb();
+    const uid = u.id as string;
+    const conf = await db.execute({ sql: "SELECT id FROM deposits WHERE user_id=? AND status='confirmed' LIMIT 1", args: [uid] });
+    if (!conf.rows.length) {
+      const bot = await db.execute({ sql: "SELECT id FROM bots WHERE user_id=? AND status='active' LIMIT 1", args: [uid] });
+      if (!bot.rows.length) redirect("/activate");
+    }
+  }
   return (
     <div className="min-h-screen bg-[#060b16] text-white">
       <DashSidebar />

@@ -1,20 +1,27 @@
 "use client";
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { DEPOSIT_ADDRESS } from "@/lib/config";
 
 export default function Recharge() {
   const [amount, setAmount] = useState("200");
   const [tx, setTx] = useState("");
   const [msg, setMsg] = useState("");
   const [rows, setRows] = useState<{ created_at?: string; request_id?: string; requested?: number; actual?: number; status?: string }[]>([]);
-  const [addr, setAddr] = useState("");
+  const [addr, setAddr] = useState(DEPOSIT_ADDRESS);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
   const [qrError, setQrError] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetch("/api/recharge").then((r) => r.json()).then((j) => { if (j.ok) { setRows(j.rows); setAddr(j.address); } });
+    fetch("/api/recharge").then((r) => r.json()).then((j) => {
+      if (j.ok) {
+        setRows(j.rows);
+        const a = String(j.address || "").trim();
+        if (a && !a.includes("YOUR")) setAddr(a);
+      }
+    }).catch(() => {});
   }, []);
 
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -55,17 +62,15 @@ export default function Recharge() {
           <div className="flex flex-col items-center rounded-xl bg-white p-4">
             {!qrError ? (
               <img src="/wallet-qr.jpeg" alt="Wallet QR" className="h-[180px] w-[180px] object-contain" onError={() => setQrError(true)} />
-            ) : addr ? (
-              <QRCodeSVG value={addr} size={180} />
             ) : (
-              <p className="text-xs text-slate-500">Loading QR...</p>
+              <QRCodeSVG value={addr} size={180} />
             )}
             <p className="mt-2 text-center text-[11px] text-slate-600">Scan to pay USDT-BEP20</p>
           </div>
           <div>
             <p className="text-xs font-bold text-slate-300">Deposit address (BEP20)</p>
             <div className="mt-1 flex gap-2">
-              <p className="flex-1 break-all rounded-lg bg-black/40 px-3 py-2 text-xs font-mono text-yellow-300">{addr || "loading..."}</p>
+              <p className="flex-1 break-all rounded-lg bg-black/40 px-3 py-2 text-xs font-mono text-yellow-300">{addr}</p>
               <button onClick={() => { if (addr) navigator.clipboard.writeText(addr); }} className="rounded-lg border border-white/20 px-3 py-2 text-xs">Copy</button>
             </div>
             <p className="mt-2 text-xs text-slate-400">Network: BEP20 (BSC) · Currency: USDT · Min $10</p>

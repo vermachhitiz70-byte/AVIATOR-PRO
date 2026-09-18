@@ -50,8 +50,8 @@ function RegisterForm() {
       const r = await fetch("/api/auth/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: form.email, otp }) });
       const j = await r.json();
       if (!j.ok) { setMsg(j.error || "Failed"); return; }
-      setOkMsg("Verified! Taking you to your dashboard...");
-      setTimeout(() => router.push("/dash"), 800);
+      setOkMsg("Verified! Taking you to plan activation...");
+      setTimeout(() => router.push("/activate"), 800);
     } finally {
       setBusy(false);
     }

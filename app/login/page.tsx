@@ -20,7 +20,12 @@ export default function Login() {
       body: JSON.stringify({ email, password }),
       signal,
     });
-    return (await r.json()) as { ok: boolean; error?: string; is_admin?: boolean };
+    return (await r.json()) as { ok: boolean; error?: string; is_admin?: boolean; needsActivation?: boolean };
+  }
+
+  function goNext(j: { is_admin?: boolean; needsActivation?: boolean }) {
+    if (j.is_admin) { router.push("/admin"); return; }
+    router.push(j.needsActivation ? "/activate" : "/dash");
   }
 
   async function handleSignIn() {
@@ -41,7 +46,7 @@ export default function Login() {
           setError(j.error || "Login failed. Please try again.");
           return;
         }
-        router.push(j.is_admin ? "/admin" : "/dash");
+        goNext(j);
         return;
       } catch (e) {
         clearTimeout(t1);
@@ -59,7 +64,7 @@ export default function Login() {
           setError(j.error || "Login failed. Please try again.");
           return;
         }
-        router.push(j.is_admin ? "/admin" : "/dash");
+        goNext(j);
       } catch {
         clearTimeout(t2);
         setError("Network is too slow right now. Please check your connection and try again.");

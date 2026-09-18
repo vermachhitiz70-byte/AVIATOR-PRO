@@ -29,5 +29,5 @@ export async function POST(req: NextRequest) {
     await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "registration", `Credentials email skipped (SMTP not configured) for ${email}`] });
   }
   await createSession(u.id);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, needsActivation: true });
 }

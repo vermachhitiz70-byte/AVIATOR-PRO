@@ -36,6 +36,9 @@ export const BUSINESS_RULES = {
   aiHelpDesk: "Enabled",
 };
 
+// Single hardcoded BEP20 deposit address — never show "loading" / placeholder to users.
+export const DEPOSIT_ADDRESS = "0xf41A2fEEC860e0164416cB5D5B0c580881628507";
+
 // Admin-editable settings (DB table `settings`, seeded from here)
 export const DEFAULT_SETTINGS: Record<string, string> = {
   minDeposit: "10",
@@ -45,7 +48,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   withdrawStartIST: "08:00",
   withdrawEndIST: "10:00",
   maintenanceMode: "off",
-  depositAddress: process.env.BEP20_DEPOSIT_ADDRESS || "0xYOURBEP20ADDRESSHERE",
+  depositAddress: process.env.BEP20_DEPOSIT_ADDRESS || DEPOSIT_ADDRESS,
   smtpHost: "",
   smtpPort: "465",
   smtpUser: "",

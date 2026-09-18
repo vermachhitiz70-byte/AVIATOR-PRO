@@ -18,5 +18,14 @@ export async function POST(req: NextRequest) {
   if (settings.maintenanceMode === "on" && !u.is_admin) return NextResponse.json({ ok: false, error: "Platform under maintenance. Try later." }, { status: 503 });
   if (!(await verifyPassword(password, u.password_hash))) return NextResponse.json({ ok: false, error: "Wrong password" }, { status: 401 });
   await createSession(u.id);
-  return NextResponse.json({ ok: true, is_admin: !!u.is_admin, userId: u.id });
+  // Activation gate: dashboard unlocks only after admin confirms first deposit (or active bot).
+  let needsActivation = false;
+  if (!u.is_admin) {
+    const conf = await db.execute({ sql: "SELECT id FROM deposits WHERE user_id=? AND status='confirmed' LIMIT 1", args: [u.id] });
+    if (!conf.rows.length) {
+      const bot = await db.execute({ sql: "SELECT id FROM bots WHERE user_id=? AND status='active' LIMIT 1", args: [u.id] });
+      needsActivation = bot.rows.length === 0;
+    }
+  }
+  return NextResponse.json({ ok: true, is_admin: !!u.is_admin, userId: u.id, needsActivation });
 }

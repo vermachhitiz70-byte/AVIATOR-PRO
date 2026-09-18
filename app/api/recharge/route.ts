@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, getSettings, initDb, uid } from "@/lib/db";
 import { currentUser } from "@/lib/auth";
 import { logLedger } from "@/lib/mlm";
+import { DEPOSIT_ADDRESS } from "@/lib/config";
+
+function cleanAddress(v: unknown) {
+  const s = String(v || "").trim();
+  if (!s || s.includes("YOUR")) return DEPOSIT_ADDRESS;
+  return s;
+}
 
 // PRD 3.3: manual/semi-auto BEP20. User submits TX hash -> PENDING.
 // Balance is credited ONLY after admin approval (fixes auto-credit).
@@ -12,7 +19,7 @@ export async function GET() {
   const db = getDb();
   const settings = await getSettings();
   const r = await db.execute({ sql: "SELECT request_id,requested,actual,status,created_at FROM deposits WHERE user_id=? ORDER BY rowid DESC LIMIT 20", args: [u.id as string] });
-  return NextResponse.json({ ok: true, rows: r.rows, address: settings.depositAddress });
+  return NextResponse.json({ ok: true, rows: r.rows, address: cleanAddress(settings.depositAddress) });
 }
 
 export async function POST(req: NextRequest) {

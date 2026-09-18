@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site";
 import { ProFooter } from "@/components/marketing";
-import { BOT_PLANS } from "@/lib/config";
+import { BOT_PLANS, DEPOSIT_ADDRESS } from "@/lib/config";
 
 function ActivateForm() {
   const sp = useSearchParams();
@@ -14,7 +14,7 @@ function ActivateForm() {
   const plan = BOT_PLANS.find((p) => p.id === planId) || BOT_PLANS[0];
   const [amount, setAmount] = useState(String(plan.min));
   const [tx, setTx] = useState("");
-  const [addr, setAddr] = useState("");
+  const [addr, setAddr] = useState(DEPOSIT_ADDRESS);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [qrError, setQrError] = useState(false);
@@ -24,12 +24,19 @@ function ActivateForm() {
 
   useEffect(() => { setAmount(String(plan.min)); }, [plan.min]);
   useEffect(() => {
-    fetch("/api/recharge").then((r) => r.json()).then((j) => { if (j.ok) setAddr(j.address); });
-    // check if already has pending/confirmed
+    fetch("/api/recharge").then((r) => r.json()).then((j) => {
+      const a = String(j.address || "").trim();
+      if (j.ok && a && !a.includes("YOUR")) setAddr(a);
+    }).catch(() => {});
+    // Already activated (admin approved) => go to dashboard
+    fetch("/api/me").then((r) => r.json()).then((m) => {
+      if (m.ok && ((m.totalInvestment || 0) > 0 || m.activeBot)) router.replace("/dash");
+    }).catch(() => {});
+    // check if already has pending
     fetch("/api/recharge").then((r) => r.json()).then((j) => {
       if (j.ok && j.rows?.some((r: { status: string }) => r.status === "pending")) setPending(true);
     });
-  }, []);
+  }, [router]);
 
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] || null;
@@ -50,7 +57,7 @@ function ActivateForm() {
       const j = await res.json();
       if (!j.ok) { setMsg(j.error); return; }
       setMsg(`Submitted ${j.request_id} – pending admin approval. You will be notified when approved.`);
-      setTimeout(() => router.push("/dash"), 1500);
+      setPending(true);
     } catch { setMsg("Failed, try again"); } finally { setBusy(false); }
   }
 
@@ -63,8 +70,9 @@ function ActivateForm() {
             <p className="text-4xl">⏳</p>
             <h2 className="mt-2 text-xl font-black">Please wait, admin approval pending</h2>
             <p className="mt-2 text-sm text-slate-300">Your payment is under review. Once admin approves, your dashboard will unlock and earnings will begin.</p>
-            <p className="mt-1 text-xs text-slate-400">You can log in again after 2–3 hours or refresh. If approved, you’ll see your dashboard directly.</p>
-            <Link href="/dash" className="av-btn-yellow mt-4 inline-block px-6 py-2">Go to Dashboard</Link>
+            <p className="mt-1 text-xs text-slate-400">Dashboard abhi locked hai — approve hone tak yahin status dikhega. Approve ke baad login karne par dashboard khulega.</p>
+            <button onClick={() => fetch("/api/me").then((r) => r.json()).then((m) => { if (m.ok && ((m.totalInvestment || 0) > 0 || m.activeBot)) router.replace("/dash"); else setMsg("Abhi bhi pending hai — admin approval ke baad try karo."); })} className="av-btn-yellow mt-4 inline-block px-6 py-2">Check Approval Status</button>
+            {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
           </div>
         </div>
         <ProFooter />
@@ -93,13 +101,13 @@ function ActivateForm() {
           <h2 className="font-black">Pay via BEP20 — {plan.name}</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-[220px_1fr]">
             <div className="flex flex-col items-center rounded-xl bg-white p-4">
-              {!qrError ? <img src="/wallet-qr.jpeg" alt="Wallet QR" className="h-[180px] w-[180px] object-contain" onError={() => setQrError(true)} /> : addr ? <QRCodeSVG value={addr} size={180} /> : <p className="text-xs">Loading QR...</p>}
+              {!qrError ? <img src="/wallet-qr.jpeg" alt="Wallet QR" className="h-[180px] w-[180px] object-contain" onError={() => setQrError(true)} /> : <QRCodeSVG value={addr} size={180} />}
               <p className="mt-2 text-center text-[11px] text-slate-600">Scan to pay USDT-BEP20</p>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-300">Deposit address (BEP20)</p>
               <div className="mt-1 flex gap-2">
-                <p className="flex-1 break-all rounded-lg bg-black/40 px-3 py-2 text-xs font-mono text-yellow-300">{addr || "loading..."}</p>
+                <p className="flex-1 break-all rounded-lg bg-black/40 px-3 py-2 text-xs font-mono text-yellow-300">{addr}</p>
                 <button onClick={() => addr && navigator.clipboard.writeText(addr)} className="rounded-lg border border-white/20 px-3 py-2 text-xs">Copy</button>
               </div>
               <p className="mt-2 text-xs text-slate-400">Network: BEP20 (BSC) · Currency: USDT</p>
