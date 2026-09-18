@@ -198,39 +198,87 @@ function Stars() {
 const REVIEWS = [
   { name: "Rahul Sharma", meta: "Mumbai · 2 weeks ago", text: "Recharge took 10 minutes to reflect after admin approval. Daily profits land every morning like clockwork. Dashboard is super clear.", tag: "Verified member" },
   { name: "Priya Nair", meta: "Kochi · 1 month ago", text: "I compared the numbers with my upline daily — 10-level ROI commission matches the plan PDF exactly. Withdrawal charge shown upfront, no surprises.", tag: "Team leader" },
-  { name: "Amit Verma", meta: "Delhi · 3 weeks ago", text: "Bot activation was instant from my principal wallet. The 3X cap logic is transparent — you can see total earned vs cap right on the bot card.", tag: "Verified member" },
+  { name: "Amit Verma", meta: "Delhi · 3 weeks ago", text: "Bot activation was instant from my principal wallet. The tier cap tracker is transparent — you can see total earned vs cap right on the bot card.", tag: "Verified member" },
   { name: "Sneha Reddy", meta: "Hyderabad · 2 months ago", text: "Built a team of 40 using just the referral QR. Level-wise tree makes it easy to show new members where commissions come from.", tag: "Team leader" },
   { name: "Vikram Patel", meta: "Ahmedabad · 1 month ago", text: "Withdrew twice during the morning window. Net amount after 10% charge matched to the paisa. Support tickets get answered same day.", tag: "Verified member" },
   { name: "Ethan Brooks", meta: "Texas, US · 3 weeks ago", text: "Joined for the Vietnam Ticket campaign. KPI cards and leaderboard update daily — finally an MLM dashboard that doesn't hide the math.", tag: "Campaign achiever" },
 ];
 
 export function GoogleReviews() {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const go = useCallback((n: number) => setI((n + REVIEWS.length) % REVIEWS.length), []);
+  useEffect(() => {
+    if (paused) return;
+    const t = setInterval(() => setI((v) => (v + 1) % REVIEWS.length), 5000);
+    return () => clearInterval(t);
+  }, [paused]);
+  const visible = [REVIEWS[i % REVIEWS.length], REVIEWS[(i + 1) % REVIEWS.length], REVIEWS[(i + 2) % REVIEWS.length]];
   return (
-    <div>
+    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="flex items-center justify-center gap-3">
         <GLogo />
         <p className="text-lg font-bold">4.8 · 2,300+ Google reviews</p>
         <Stars />
       </div>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        {REVIEWS.map((r, idx) => (
-          <Reveal key={r.name} delay={(idx % 3) * 0.1}>
-            <div className="av-card flex h-full flex-col p-5">
-              <div className="flex items-center justify-between">
-                <Stars />
-                <GLogo />
-              </div>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-200">&ldquo;{r.text}&rdquo;</p>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 font-black">{r.name[0]}</div>
-                <div>
-                  <p className="text-sm font-bold">{r.name}</p>
-                  <p className="text-xs text-slate-400">{r.meta} · {r.tag}</p>
+      <div className="relative mt-6">
+        <AnimatePresence mode="wait">
+          <motion.div key={i} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.45 }} className="grid gap-4 md:grid-cols-3">
+            {visible.map((r) => (
+              <div key={r.name} className="glass-red flex h-full flex-col p-5">
+                <div className="flex items-center justify-between">
+                  <Stars />
+                  <GLogo />
+                </div>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-200">&ldquo;{r.text}&rdquo;</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 font-black">{r.name[0]}</div>
+                  <div>
+                    <p className="text-sm font-bold">{r.name}</p>
+                    <p className="text-xs text-slate-400">{r.meta} · {r.tag}</p>
+                  </div>
                 </div>
               </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+        <div className="mt-5 flex items-center justify-center gap-3">
+          <button onClick={() => go(i - 1)} aria-label="Previous reviews" className="rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-lg hover:border-yellow-300">‹</button>
+          <div className="flex gap-2">
+            {REVIEWS.map((r, n) => (
+              <button key={r.name} onClick={() => go(n)} aria-label={`Go to review ${n + 1}`} className={`h-2 rounded-full transition-all ${n === i ? "w-8 bg-yellow-300" : "w-2 bg-white/30"}`} />
+            ))}
+          </div>
+          <button onClick={() => go(i + 1)} aria-label="Next reviews" className="rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-lg hover:border-yellow-300">›</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Payout ticker (marquee scroller) ---------------- */
+const PAYOUTS: [string, string][] = [
+  ["Rahul S.", "$1,240"], ["Priya N.", "$860"], ["Amit V.", "$2,105"], ["Sneha R.", "$430"],
+  ["Vikram P.", "$3,300"], ["Ethan B.", "$5,000"], ["Kavya I.", "$275"], ["Rohit K.", "$980"],
+  ["Anjali M.", "$1,520"], ["Omar H.", "$4,150"], ["Divya N.", "$640"], ["Maya P.", "$2,780"],
+  ["Karan M.", "$390"], ["Fatima K.", "$1,075"], ["Arjun N.", "$2,460"], ["Meera J.", "$815"],
+];
+
+export function PayoutTicker() {
+  const items: [string, string][] = [...PAYOUTS, ...PAYOUTS];
+  return (
+    <div className="border-y border-white/10 bg-black/40 py-4">
+      <div className="marquee-mask">
+        <div className="marquee-track">
+          {items.map(([n, a], idx) => (
+            <div key={idx} className="glass-red flex items-center gap-3 whitespace-nowrap px-5 py-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-sm font-black">{n[0]}</span>
+              <span className="text-sm font-bold">{n}</span>
+              <span className="text-sm font-black text-emerald-300">+{a}</span>
+              <span className="text-[11px] uppercase tracking-wider text-slate-400">withdrawn</span>
             </div>
-          </Reveal>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -255,9 +303,36 @@ export function CtaBand() {
   );
 }
 
+/* ---------------- Shared deck-style page hero ---------------- */
+export function PageHero({ kicker, titleA, titleB, accent = "red", sub, cta1, cta2 }: {
+  kicker: string; titleA: string; titleB: string; accent?: "red" | "gold" | "green";
+  sub?: string; cta1?: { label: string; href: string }; cta2?: { label: string; href: string };
+}) {
+  const accentCls = accent === "red" ? "text-red-500 [text-shadow:0_0_30px_rgba(255,45,45,.6)]" : accent === "gold" ? "gold-text" : "text-emerald-400 [text-shadow:0_0_30px_rgba(34,229,132,.5)]";
+  return (
+    <div className="cine-bg relative overflow-hidden">
+      <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
+      <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16">
+        <Reveal>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-400">{kicker}</p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-6xl">
+            {titleA} <br /><span className={accentCls}>{titleB}</span>
+          </h1>
+          {sub && <p className="mt-4 max-w-2xl text-slate-300">{sub}</p>}
+          {(cta1 || cta2) && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              {cta1 && <Link href={cta1.href} className="rounded-xl bg-red-600 px-7 py-3 text-sm font-bold text-white shadow-[0_0_22px_rgba(255,45,45,.5)] hover:bg-red-500">{cta1.label}</Link>}
+              {cta2 && <Link href={cta2.href} className="rounded-xl border border-white/25 px-7 py-3 text-sm font-bold hover:border-yellow-300">{cta2.label}</Link>}
+            </div>
+          )}
+        </Reveal>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Professional footer ---------------- */
-export function ProFooter() {
-  const cols: { h: string; links: { label: string; href: string }[] }[] = [
+export function ProFooter() {  const cols: { h: string; links: { label: string; href: string }[] }[] = [
     { h: "Platform", links: [{ label: "About Us", href: "/about" }, { label: "How It Works", href: "/how-it-works" }, { label: "Bot Plans", href: "/plans" }, { label: "Rewards", href: "/rewards" }] },
     { h: "Members", links: [{ label: "Register", href: "/register" }, { label: "Login", href: "/login" }, { label: "Forgot Password", href: "/forgot" }] },
     { h: "Support", links: [{ label: "Terms & Conditions", href: "/terms" }, { label: "Withdraw Window", href: "/terms" }, { label: "Help / AI Support", href: "/dash/support" }, { label: "Admin", href: "/admin" }] },
@@ -266,7 +341,7 @@ export function ProFooter() {
     <footer className="border-t border-white/10 bg-[#04070f]">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div>
-          <p className="text-xl font-black text-yellow-400">AVIATOR SMART AI</p>
+          <p className="text-xl font-black text-white">AVIATOR <span className="text-red-500">SMART AI</span></p>
           <p className="mt-2 max-w-xs text-sm text-slate-400">Network Marketing Meets Gaming Innovation. BEP20 rails, 2X–5X tier bots, 20 team rewards.</p>
           <div className="mt-4 flex gap-2">
             {["X", "f", "in", "ig"].map((s) => (

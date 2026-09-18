@@ -2,19 +2,19 @@ import Link from "next/link";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#060b16]/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-red-500/25 bg-black/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-xl font-black tracking-wide text-yellow-400">AVIATOR SMART AI</Link>
+        <Link href="/" className="text-xl font-black tracking-wide text-white">AVIATOR <span className="text-red-500">SMART AI</span></Link>
         <nav className="hidden gap-5 text-sm text-slate-300 md:flex">
-          <Link href="/about">About</Link>
-          <Link href="/how-it-works">How It Works</Link>
-          <Link href="/plans">Plans</Link>
-          <Link href="/rewards">Rewards</Link>
-          <Link href="/terms">Terms</Link>
+          <Link href="/about" className="hover:text-red-400">About</Link>
+          <Link href="/how-it-works" className="hover:text-red-400">How It Works</Link>
+          <Link href="/plans" className="hover:text-red-400">Plans</Link>
+          <Link href="/rewards" className="hover:text-red-400">Rewards</Link>
+          <Link href="/terms" className="hover:text-red-400">Terms</Link>
         </nav>
         <div className="flex gap-2">
           <Link href="/login" className="rounded-lg border border-white/20 px-3 py-2 text-sm">Login</Link>
-          <Link href="/register" className="av-btn-yellow px-4 py-2 text-sm">Register</Link>
+          <Link href="/register" className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-[0_0_18px_rgba(255,45,45,.5)] hover:bg-red-500">Register</Link>
         </div>
       </div>
     </header>

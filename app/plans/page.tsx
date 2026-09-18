@@ -28,7 +28,7 @@ export default function Plans() {
         <div className="grid gap-5 md:grid-cols-3">
           {BOT_PLANS.map((p, idx) => (
             <Reveal key={p.id} delay={idx * 0.1}>
-              <div className={`relative flex h-full flex-col rounded-3xl p-8 ${idx === 1 ? "border border-yellow-300/60 bg-gradient-to-b from-yellow-300/10 to-transparent shadow-[0_0_40px_rgba(250,204,21,0.15)]" : "av-card"}`}>
+              <div className={`glass-red relative flex h-full flex-col p-8 ${idx < 2 ? "tier-glow-green" : idx < 4 ? "tier-glow-gold" : "tier-glow-red"}`}>
                 {idx === 1 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-yellow-300 px-4 py-1 text-xs font-black text-black">MOST POPULAR</span>}
                 <p className="text-xs font-black uppercase tracking-widest text-slate-400">{p.id}</p>
                 <h2 className="mt-1 text-2xl font-black">{p.name}</h2>
