@@ -8,10 +8,10 @@ import { ProFooter } from "@/components/marketing";
 function RegisterForm() {
   const sp = useSearchParams();
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", mobile: "", email: "", referral: sp.get("ref") || "AV100001", password: "", confirm: "", country: "" });
+  const [form, setForm] = useState({ name: "", mobile: "", email: "", referral: sp.get("ref") || "", password: "", confirm: "", country: "" });
   const [msg, setMsg] = useState("");
   const [okMsg, setOkMsg] = useState("");
-  const [refName, setRefName] = useState("Demo User · Root: ROOT0001");
+  const [refName, setRefName] = useState("Enter referral code above");
   const [step, setStep] = useState<"form" | "otp">("form");
   const [otp, setOtp] = useState("");
   const [devOtp, setDevOtp] = useState("");
