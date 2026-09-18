@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
   const userId = u.id as string;
+  if ((u as unknown as { is_blocked: number }).is_blocked)
+    return NextResponse.json({ ok: false, error: "Your ID is suspended. Contact admin to unsuspend." }, { status: 403 });
   const db = getDb();
   const b = await db.execute({ sql: "SELECT * FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC LIMIT 1", args: [userId] });
   if (!b.rows.length) return NextResponse.json({ ok: false, error: "Activate a trading bot first" }, { status: 400 });

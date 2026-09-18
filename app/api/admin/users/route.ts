@@ -21,7 +21,12 @@ export async function GET(req: NextRequest) {
   const countResult = await db.execute({ sql: `SELECT COUNT(*) as c FROM users u WHERE ${where}`, args });
   const total = Number((countResult.rows[0] as unknown as { c: number }).c);
   const rows = await db.execute({ sql: `SELECT u.*, COALESCE((SELECT SUM(actual) FROM deposits WHERE user_id=u.id AND status='confirmed'),0) as invested, (SELECT principal+roi+commission+reward FROM wallets WHERE user_id=u.id) as balance FROM users u WHERE ${where} ORDER BY u.rowid DESC LIMIT ? OFFSET ?`, args: [...args, limit, offset] });
-  return NextResponse.json({ ok: true, rows: (rows as unknown as { rows: Record<string, unknown>[] }).rows, total, page, limit });
+  // Never leak secrets to the admin UI
+  const safe = (rows as unknown as { rows: Record<string, unknown>[] }).rows.map((r) => {
+    const { password_hash, otp_code, otp_expiry, reset_code, reset_expiry, ...rest } = r;
+    return rest;
+  });
+  return NextResponse.json({ ok: true, rows: safe, total, page, limit });
 }
 
 export async function POST(req: NextRequest) {
@@ -30,8 +35,21 @@ export async function POST(req: NextRequest) {
   if (error) return error;
   const { userId, action, amount, wallet, status: kycStatus, sponsor, password, remark } = await req.json();
   const db = getDb();
+  const target = userId ? await db.execute({ sql: "SELECT id,is_admin FROM users WHERE id=?", args: [userId] }) : null;
+  const targetRow = target?.rows[0] as unknown as { id: string; is_admin: number } | undefined;
+  if ((action === "block" || action === "unblock" || action === "delete" || action === "password") && !targetRow)
+    return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+  if ((action === "block" || action === "delete") && targetRow?.is_admin)
+    return NextResponse.json({ ok: false, error: "Admin accounts cannot be blocked or removed" }, { status: 400 });
   if (action === "block") await db.execute({ sql: "UPDATE users SET is_blocked=1 WHERE id=?", args: [userId] });
   else if (action === "unblock") await db.execute({ sql: "UPDATE users SET is_blocked=0 WHERE id=?", args: [userId] });
+  else if (action === "delete") {
+    await db.execute({ sql: "DELETE FROM commissions WHERE from_user=? OR to_user=?", args: [userId, userId] });
+    for (const t of ["ledger", "deposits", "withdrawals", "bots", "support_tickets", "campaign_achievers", "wallets", "gameplay", "reward_claims"]) {
+      await db.execute({ sql: `DELETE FROM ${t} WHERE user_id=?`, args: [userId] });
+    }
+    await db.execute({ sql: "DELETE FROM users WHERE id=?", args: [userId] });
+  }
   else if (action === "kyc") {
     if (!["pending", "approved", "rejected"].includes(kycStatus)) return NextResponse.json({ ok: false, error: "Bad status" }, { status: 400 });
     await db.execute({ sql: "UPDATE users SET kyc_status=? WHERE id=?", args: [kycStatus, userId] });

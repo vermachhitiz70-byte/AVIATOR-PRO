@@ -9,6 +9,7 @@ export default async function DashLayout({ children }: { children: React.ReactNo
   await initDb();
   const u = await currentUser();
   if (!u) redirect("/login");
+  if ((u as unknown as { is_blocked: number }).is_blocked) redirect("/login");
   const isAdmin = !!(u as unknown as { is_admin: number }).is_admin;
   if (!isAdmin) {
     const db = getDb();

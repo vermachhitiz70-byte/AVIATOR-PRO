@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { DataTable, Modal, ConfirmDialog } from "@/components/admin";
-import { BTN_GHOST, BTN_PRIMARY, CARD, INPUT, LABEL, fmtUSD, pill } from "@/components/admin/ui";
-import { Search, MoreVertical, Shield, Ban, UserCheck, UserX, Wallet, KeyRound, UserPlus, ChevronDown } from "lucide-react";
+import { BTN_PRIMARY, CARD, INPUT, LABEL, fmtUSD, pill } from "@/components/admin/ui";
+import { Search, Eye, ChevronDown } from "lucide-react";
 
 type UserRow = Record<string, unknown>;
 
 const KYC_OPTIONS = ["", "pending", "approved", "rejected"];
+const str = (v: unknown) => String(v ?? "-");
 
 export default function AdminUsersPage() {
   const [rows, setRows] = useState<UserRow[]>([]);
@@ -17,13 +18,11 @@ export default function AdminUsersPage() {
   const [q, setQ] = useState("");
   const [kycFilter, setKycFilter] = useState("");
 
-  const [actionUserId, setActionUserId] = useState<string | null>(null);
-  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+  const [detail, setDetail] = useState<UserRow | null>(null);
 
   const [creditOpen, setCreditOpen] = useState(false);
   const [debitOpen, setDebitOpen] = useState(false);
   const [sponsorOpen, setSponsorOpen] = useState(false);
-  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const [creditWallet, setCreditWallet] = useState("principal");
   const [creditAmount, setCreditAmount] = useState("");
@@ -31,9 +30,11 @@ export default function AdminUsersPage() {
   const [debitAmount, setDebitAmount] = useState("");
   const [sponsorCode, setSponsorCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [pwMsg, setPwMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const [blockConfirm, setBlockConfirm] = useState<{ userId: string; action: string } | null>(null);
+  const [suspendConfirm, setSuspendConfirm] = useState<{ userId: string; suspend: boolean } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ userId: string; name: string } | null>(null);
   const [kycConfirm, setKycConfirm] = useState<{ userId: string; status: string } | null>(null);
 
   useEffect(() => {
@@ -52,58 +53,53 @@ export default function AdminUsersPage() {
     if (!r.ok || j.error) { setError(j.error || "Failed to load"); return; }
     setRows(j.rows || []);
     setTotal(j.total || 0);
+    // keep open detail modal in sync
+    setDetail((d) => (d ? (j.rows || []).find((x: UserRow) => String(x.id) === String(d.id)) || d : d));
   }, [page, limit, q, kycFilter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-  useEffect(() => { const handler = () => setActionMenuOpen(null); document.addEventListener("click", handler); return () => document.removeEventListener("click", handler); }, []);
 
   async function postAction(body: Record<string, unknown>) {
     setSubmitting(true);
     const r = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), credentials: "include" });
     const j = await r.json();
     setSubmitting(false);
-    if (!r.ok || j.error) { alert(j.error || "Action failed"); return; }
-    fetchData();
-  }
-
-  function openActionModal(userId: string, type: string) {
-    setActionUserId(userId);
-    if (type === "credit") { setCreditWallet("principal"); setCreditAmount(""); setCreditOpen(true); }
-    else if (type === "debit") { setDebitWallet("principal"); setDebitAmount(""); setDebitOpen(true); }
-    else if (type === "sponsor") { setSponsorCode(""); setSponsorOpen(true); }
-    else if (type === "password") { setNewPassword(""); setPasswordOpen(true); }
-    setActionMenuOpen(null);
+    if (!r.ok || j.error) { alert(j.error || "Action failed"); return false; }
+    await fetchData();
+    return true;
   }
 
   async function submitCredit() {
-    if (!creditAmount || Number(creditAmount) <= 0) return;
-    await postAction({ userId: actionUserId, action: "credit", amount: Number(creditAmount), wallet: creditWallet });
-    setCreditOpen(false);
+    if (!detail || !creditAmount || Number(creditAmount) <= 0) return;
+    if (await postAction({ userId: String(detail.id), action: "credit", amount: Number(creditAmount), wallet: creditWallet })) setCreditOpen(false);
   }
   async function submitDebit() {
-    if (!debitAmount || Number(debitAmount) <= 0) return;
-    await postAction({ userId: actionUserId, action: "debit", amount: Number(debitAmount), wallet: debitWallet });
-    setDebitOpen(false);
+    if (!detail || !debitAmount || Number(debitAmount) <= 0) return;
+    if (await postAction({ userId: String(detail.id), action: "debit", amount: Number(debitAmount), wallet: debitWallet })) setDebitOpen(false);
   }
   async function submitSponsor() {
-    if (!sponsorCode.trim()) return;
-    await postAction({ userId: actionUserId, action: "sponsor", sponsor: sponsorCode.trim() });
-    setSponsorOpen(false);
+    if (!detail || !sponsorCode.trim()) return;
+    if (await postAction({ userId: String(detail.id), action: "sponsor", sponsor: sponsorCode.trim() })) setSponsorOpen(false);
   }
   async function submitPassword() {
-    if (newPassword.length < 6) return;
-    await postAction({ userId: actionUserId, action: "password", password: newPassword });
-    setPasswordOpen(false);
+    if (!detail || newPassword.length < 6) return;
+    setPwMsg("");
+    if (await postAction({ userId: String(detail.id), action: "password", password: newPassword })) {
+      setPwMsg("Password reset successful. Share it with the user securely.");
+      setNewPassword("");
+    }
   }
-  function handleBlockUnblock(row: UserRow) {
-    const isBlocked = row.is_blocked === 1 || row.is_blocked === true;
-    setBlockConfirm({ userId: String(row.id), action: isBlocked ? "unblock" : "block" });
-    setActionMenuOpen(null);
+  async function confirmSuspend() {
+    if (!suspendConfirm) return;
+    const ok = await postAction({ userId: suspendConfirm.userId, action: suspendConfirm.suspend ? "block" : "unblock" });
+    setSuspendConfirm(null);
+    if (ok && suspendConfirm.suspend) setDetail(null);
   }
-  async function confirmBlock() {
-    if (!blockConfirm) return;
-    await postAction({ userId: blockConfirm.userId, action: blockConfirm.action });
-    setBlockConfirm(null);
+  async function confirmDelete() {
+    if (!deleteConfirm) return;
+    const ok = await postAction({ userId: deleteConfirm.userId, action: "delete" });
+    setDeleteConfirm(null);
+    if (ok) setDetail(null);
   }
   async function confirmKYC() {
     if (!kycConfirm) return;
@@ -111,31 +107,27 @@ export default function AdminUsersPage() {
     setKycConfirm(null);
   }
 
+  const isSuspended = (r: UserRow) => r.is_blocked === 1 || r.is_blocked === true;
+  const isAdmin = (r: UserRow) => r.is_admin === 1 || r.is_admin === true;
+
   const columns = [
-    { key: "name", label: "User", render: (r: UserRow) => (<span><span className="block font-semibold text-gray-900">{String(r.name ?? "-")}</span><span className="block text-xs text-gray-500">{String(r.email ?? "")}</span></span>) },
-    { key: "mobile", label: "Mobile", render: (r: UserRow) => <span className="text-gray-600">{String(r.mobile ?? "-")}</span> },
-    { key: "referral_code", label: "Referral Code", render: (r: UserRow) => <span className="font-mono text-xs font-semibold text-[#e8821e]">{String(r.referral_code ?? "-")}</span> },
-    { key: "kyc_status", label: "KYC", render: (r: UserRow) => pill(r.kyc_status ?? "pending") },
-    { key: "is_blocked", label: "Status", render: (r: UserRow) => { const b = r.is_blocked === 1 || r.is_blocked === true; return pill(b ? "cancelled" : "active"); } },
+    { key: "name", label: "User", render: (r: UserRow) => (<span><span className="block font-semibold text-gray-900">{str(r.name)}</span><span className="block text-xs text-gray-500">{str(r.email)}</span></span>) },
+    { key: "mobile", label: "Mobile", render: (r: UserRow) => <span className="text-gray-600">{str(r.mobile)}</span> },
+    { key: "referral_code", label: "Referral Code", render: (r: UserRow) => <span className="font-mono text-xs font-semibold text-[#e8821e]">{str(r.referral_code)}</span> },
+    { key: "kyc_status", label: "KYC", render: (r: UserRow) => pill(str(r.kyc_status || "pending")) },
+    { key: "is_blocked", label: "Status", render: (r: UserRow) => pill(isSuspended(r) ? "cancelled" : "active") },
     { key: "invested", label: "Invested", render: (r: UserRow) => <span className="font-semibold text-gray-900">{fmtUSD(r.invested)}</span> },
     { key: "balance", label: "Balance", render: (r: UserRow) => <span className="font-bold text-[#e8821e]">{fmtUSD(r.balance)}</span> },
     { key: "actions", label: "Actions", render: (r: UserRow) => (
-      <div className="relative inline-block">
-        <button onClick={(e) => { e.stopPropagation(); setActionMenuOpen(actionMenuOpen === String(r.id) ? null : String(r.id)); }} className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"><MoreVertical className="h-4 w-4" /></button>
-        {actionMenuOpen === String(r.id) && (
-          <div className="absolute right-0 top-8 z-20 w-48 overflow-hidden rounded-xl border border-[#f0e6d2] bg-white shadow-xl">
-            <button onClick={() => handleBlockUnblock(r)} className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-[#faf6ec]">{r.is_blocked ? <Ban className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}{r.is_blocked ? "Unblock" : "Block"}</button>
-            <button onClick={() => { setKycConfirm({ userId: String(r.id), status: "approved" }); setActionMenuOpen(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-green-700 hover:bg-green-50"><UserCheck className="h-3.5 w-3.5" />KYC Approve</button>
-            <button onClick={() => { setKycConfirm({ userId: String(r.id), status: "rejected" }); setActionMenuOpen(null); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"><UserX className="h-3.5 w-3.5" />KYC Reject</button>
-            <button onClick={() => openActionModal(String(r.id), "credit")} className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-green-700 hover:bg-green-50"><Wallet className="h-3.5 w-3.5" />Credit Wallet</button>
-            <button onClick={() => openActionModal(String(r.id), "debit")} className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"><Wallet className="h-3.5 w-3.5" />Debit Wallet</button>
-            <button onClick={() => openActionModal(String(r.id), "sponsor")} className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-50"><UserPlus className="h-3.5 w-3.5" />Change Sponsor</button>
-            <button onClick={() => openActionModal(String(r.id), "password")} className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-[#b45309] hover:bg-orange-50"><KeyRound className="h-3.5 w-3.5" />Reset Password</button>
-          </div>
-        )}
-      </div>
+      <button onClick={() => { setDetail(r); setPwMsg(""); setNewPassword(""); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#1c1917] px-3 py-1.5 text-xs font-semibold text-white hover:bg-black">
+        <Eye className="h-3.5 w-3.5" /> View Details
+      </button>
     ) },
   ];
+
+  const d = detail;
+  const dSuspended = d ? isSuspended(d) : false;
+  const dAdmin = d ? isAdmin(d) : false;
 
   return (
     <div className="space-y-5">
@@ -165,6 +157,62 @@ export default function AdminUsersPage() {
         <DataTable columns={columns} data={rows} page={page} limit={limit} total={total} onPageChange={setPage} onLimitChange={(l: number) => { setLimit(l); setPage(1); }} rowKey={(r: UserRow) => String(r.id)} />
       </div>
 
+      {/* Details modal */}
+      <Modal isOpen={!!d} onClose={() => setDetail(null)} title={d ? `User Details — ${str(d.name)}` : "User Details"}>
+        {d && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {[["Name", str(d.name)], ["Email", str(d.email)], ["Mobile", str(d.mobile)], ["Country", str(d.country || "-")],
+                ["Referral Code", str(d.referral_code)], ["Sponsored By", str(d.referred_by || "-")], ["Rank", str(d.rank || "Starter")],
+                ["KYC", str(d.kyc_status || "pending")], ["Status", dSuspended ? "Suspended" : "Active"],
+                ["Invested", fmtUSD(d.invested)], ["Balance", fmtUSD(d.balance)],
+                ["Joined", str(d.created_at).slice(0, 16).replace("T", " ")]].map(([k, v]) => (
+                <div key={k} className="rounded-xl bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{k}</p>
+                  <p className="mt-0.5 break-all font-semibold text-gray-900">{v}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Password: hashed, cannot be viewed — reset instead */}
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">
+              <p className="text-xs font-bold text-[#9a3412]">Password (encrypted — cannot be viewed)</p>
+              <div className="mt-2 flex gap-2">
+                <input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Set new password (min 6 chars)" className={INPUT} />
+                <button onClick={submitPassword} disabled={submitting || newPassword.length < 6} className={`${BTN_PRIMARY} whitespace-nowrap px-4 disabled:opacity-50`}>
+                  {submitting ? "..." : "Reset"}
+                </button>
+              </div>
+              {pwMsg && <p className="mt-1.5 text-xs font-semibold text-green-700">{pwMsg}</p>}
+            </div>
+
+            {/* Quick actions */}
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => { setKycConfirm({ userId: String(d.id), status: "approved" }); }} className="rounded-lg bg-green-100 px-3 py-2 text-xs font-bold text-green-800 hover:bg-green-200">KYC Approve</button>
+              <button onClick={() => { setKycConfirm({ userId: String(d.id), status: "rejected" }); }} className="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100">KYC Reject</button>
+              <button onClick={() => { setCreditAmount(""); setCreditOpen(true); }} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white hover:bg-green-700">Credit</button>
+              <button onClick={() => { setDebitAmount(""); setDebitOpen(true); }} className="rounded-lg bg-gray-200 px-3 py-2 text-xs font-bold text-gray-800 hover:bg-gray-300">Debit</button>
+              <button onClick={() => { setSponsorCode(""); setSponsorOpen(true); }} className="rounded-lg bg-blue-100 px-3 py-2 text-xs font-bold text-blue-800 hover:bg-blue-200">Sponsor</button>
+            </div>
+
+            {!dAdmin && (
+              <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-3">
+                <button
+                  onClick={() => setSuspendConfirm({ userId: String(d.id), suspend: !dSuspended })}
+                  className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold ${dSuspended ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-amber-500 text-white hover:bg-amber-600"}`}>
+                  {dSuspended ? "Unsuspend Account" : "Suspend Account"}
+                </button>
+                <button
+                  onClick={() => setDeleteConfirm({ userId: String(d.id), name: str(d.name) })}
+                  className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700">
+                  Remove Account
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
       <Modal isOpen={creditOpen} onClose={() => setCreditOpen(false)} title="Credit Wallet">
         <div className="space-y-4">
           <div><label className={LABEL}>Wallet</label>
@@ -193,18 +241,17 @@ export default function AdminUsersPage() {
         </div>
       </Modal>
 
-      <Modal isOpen={passwordOpen} onClose={() => setPasswordOpen(false)} title="Reset Password">
-        <div className="space-y-4">
-          <div><label className={LABEL}>New password (min 6 characters)</label>
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" className={INPUT} /></div>
-          <button onClick={submitPassword} disabled={submitting || newPassword.length < 6} className={`${BTN_PRIMARY} w-full py-2.5`}>{submitting ? "Processing..." : "Reset Password"}</button>
-        </div>
-      </Modal>
+      <ConfirmDialog isOpen={!!suspendConfirm} onClose={() => setSuspendConfirm(null)} onConfirm={confirmSuspend}
+        title={suspendConfirm?.suspend ? "Suspend Account" : "Unsuspend Account"}
+        message={suspendConfirm?.suspend
+          ? "This user will be locked out immediately and told to contact admin. Continue?"
+          : "This user will regain full access immediately. Continue?"}
+        confirmText={suspendConfirm?.suspend ? "Suspend" : "Unsuspend"} destructive={!!suspendConfirm?.suspend} />
 
-      <ConfirmDialog isOpen={!!blockConfirm} onClose={() => setBlockConfirm(null)} onConfirm={confirmBlock}
-        title={blockConfirm?.action === "block" ? "Block User" : "Unblock User"}
-        message={`Are you sure you want to ${blockConfirm?.action} this user?`}
-        confirmText={blockConfirm?.action === "block" ? "Block" : "Unblock"} destructive={blockConfirm?.action === "block"} />
+      <ConfirmDialog isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={confirmDelete}
+        title="Remove Account Permanently"
+        message={`"${deleteConfirm?.name}" and ALL related data (deposits, withdrawals, bots, trades, commissions, ledger) will be erased from the database forever. This cannot be undone. Continue?`}
+        confirmText="Delete Forever" destructive />
 
       <ConfirmDialog isOpen={!!kycConfirm} onClose={() => setKycConfirm(null)} onConfirm={confirmKYC}
         title={`KYC ${kycConfirm?.status}`}
