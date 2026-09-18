@@ -8,9 +8,8 @@ import { sendOtpEmail } from "@/lib/mail";
 // Dev mode (no SMTP configured): OTP is returned in response + server log.
 export async function POST(req: NextRequest) {
   await initDb();
-  const { name, mobile, email, referral, password, confirm, country } = await req.json();
-  if (!name || !mobile || !email || !password) return NextResponse.json({ ok: false, error: "All fields required" }, { status: 400 });
-  if (confirm !== undefined && confirm !== password) return NextResponse.json({ ok: false, error: "Passwords do not match" }, { status: 400 });
+  const { name, mobile, email, referral, country } = await req.json();
+  if (!name || !mobile || !email) return NextResponse.json({ ok: false, error: "Name, mobile and email are required" }, { status: 400 });
   const settings = await getSettings();
   if (settings.maintenanceMode === "on") return NextResponse.json({ ok: false, error: "Platform under maintenance. Try later." }, { status: 503 });
   const db = getDb();
@@ -24,7 +23,9 @@ export async function POST(req: NextRequest) {
   }
   const id = uid("U");
   const code = nextReferralCode();
-  const hash = await hashPassword(password);
+  // Password is system-generated and emailed after OTP verification; use a placeholder until then.
+  const placeholder = `Av${Math.floor(100000 + Math.random() * 900000)}!`;
+  const hash = await hashPassword(placeholder);
   const otp = otp6();
   const expiry = new Date(Date.now() + 10 * 60000).toISOString();
   await db.execute({

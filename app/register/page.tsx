@@ -8,7 +8,7 @@ import { ProFooter } from "@/components/marketing";
 function RegisterForm() {
   const sp = useSearchParams();
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", mobile: "", email: "", referral: sp.get("ref") || "", password: "", confirm: "", country: "" });
+  const [form, setForm] = useState({ name: "", mobile: "", email: "", referral: sp.get("ref") || "", country: "" });
   const [msg, setMsg] = useState("");
   const [okMsg, setOkMsg] = useState("");
   const [refName, setRefName] = useState("Enter referral code above");
@@ -16,7 +16,6 @@ function RegisterForm() {
   const [otp, setOtp] = useState("");
   const [devOtp, setDevOtp] = useState("");
   const [busy, setBusy] = useState(false);
-  const [show, setShow] = useState(false);
 
   async function lookup(ref: string) {
     if (!ref) return;
@@ -28,7 +27,6 @@ function RegisterForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (form.password !== form.confirm) { setMsg("Passwords do not match"); return; }
     setMsg("");
     setOkMsg("");
     setBusy(true);
@@ -38,7 +36,7 @@ function RegisterForm() {
       if (!j.ok) { setMsg(j.error || "Failed"); return; }
       setStep("otp");
       if (j.devOtp) setDevOtp(j.devOtp);
-      setOkMsg(`OTP sent to ${j.email}. Verify to activate (ID ${j.referral_code}).`);
+      setOkMsg(`OTP sent to ${j.email}. Verify to activate (ID ${j.referral_code}). Your login password will be emailed after verification.`);
     } finally {
       setBusy(false);
     }
@@ -96,13 +94,7 @@ function RegisterForm() {
                   <p className="mt-1 text-xs text-emerald-300">Referral: {refName}</p>
                 </div>
                 <input placeholder="Country" value={form.country} className={input} onChange={(e) => setForm({ ...form, country: e.target.value })} />
-                <div className="relative">
-                  <input placeholder="Password" type={show ? "text" : "password"} value={form.password} className={`${input} pr-16`} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-                  <button type="button" onClick={() => setShow(!show)} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-yellow-300">
-                    {show ? "HIDE" : "SHOW"}
-                  </button>
-                </div>
-                <input placeholder="Confirm Password" type="password" value={form.confirm} className={input} onChange={(e) => setForm({ ...form, confirm: e.target.value })} required />
+                <p className="text-xs text-slate-400">Password will be generated and sent to your email after OTP verification.</p>
                 {msg && <div className="text-left text-sm font-bold text-red-400">{msg}</div>}
                 {okMsg && <div className="rounded-xl bg-emerald-300/10 p-3 text-sm font-bold text-emerald-300">{okMsg}</div>}
                 <hr className="opacity-10" />
