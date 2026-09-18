@@ -68,8 +68,7 @@ export default function DashHome() {
   const name = data?.user?.name || "...";
   const uid = data?.user?.referral_code || "";
   const rank = data?.user?.rank || "Starter";
-  const wallet = data?.wallet || {};
-  const income = num(wallet.roi) + num(wallet.commission) + num(wallet.reward);
+
   const botPlan = data?.activeBot ? String(data.activeBot.plan || "") : "None";
   const toasts = (data?.feed || []).slice(0, 2).map((f) => ({
     kind: String(f.kind).toUpperCase(),
@@ -133,15 +132,9 @@ export default function DashHome() {
           </Link>
         ))}
       </div>
+      <EarningsStrip />
+      <WalletCards />
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="av-card p-3">
-          <p className="text-slate-400">Main (Principal)</p>
-          <p className="font-bold">${num(wallet.principal).toFixed(2)}</p>
-        </div>
-        <div className="av-card p-3">
-          <p className="text-slate-400">Income (ROI+Comm+Rew)</p>
-          <p className="font-bold">${income.toFixed(2)}</p>
-        </div>
         <div className="av-card p-3">
           <p className="text-slate-400">Total Investment</p>
           <p className="font-bold">${num(data?.totalInvestment).toFixed(2)}</p>
@@ -170,6 +163,46 @@ export default function DashHome() {
           {txs.length === 0 && <p className="text-xs text-slate-500">No transactions yet.</p>}
         </div>
       </div>
+    </div>
+  );
+}
+
+function EarningsStrip() {
+  const [r, setR] = useState<Record<string, { total: number }> | null>(null);
+  useEffect(() => {
+    fetch("/api/earnings").then((x) => x.json()).then((j) => { if (j.ok) setR(j.ranges); }).catch(() => {});
+  }, []);
+  const cells: [string, string][] = [["today", "Today"], ["week", "7 Days"], ["month", "30 Days"], ["all", "Total"]];
+  return (
+    <div className="av-card p-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Earnings — ROI + Level + Reward</p>
+      <div className="mt-2 grid grid-cols-4 gap-2 text-center">
+        {cells.map(([k, label]) => (
+          <div key={k} className="rounded-xl bg-black/40 px-1 py-2">
+            <p className="text-[10px] text-slate-400">{label}</p>
+            <p className="text-sm font-black text-emerald-300">+{num(r?.[k]?.total).toFixed(2)}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WalletCards() {
+  const [wlts, setWlts] = useState<{ key: string; label: string; desc: string; withdrawable: boolean; balance: number; lifetimeInflow: number }[]>([]);
+  useEffect(() => {
+    fetch("/api/wallets").then((x) => x.json()).then((j) => { if (j.ok) setWlts(j.wallets); }).catch(() => {});
+  }, []);
+  if (!wlts.length) return null;
+  return (
+    <div className="grid grid-cols-2 gap-2 text-sm">
+      {wlts.map((w) => (
+        <div key={w.key} className="av-card p-3">
+          <p className="text-slate-400">{w.label} {!w.withdrawable && <span title={w.desc}>🔒</span>}</p>
+          <p className="font-bold">${num(w.balance).toFixed(2)}</p>
+          <p className="text-[11px] text-slate-500">Lifetime +${num(w.lifetimeInflow).toFixed(2)}{!w.withdrawable && " · locked"}</p>
+        </div>
+      ))}
     </div>
   );
 }

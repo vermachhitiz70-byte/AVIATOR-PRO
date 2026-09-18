@@ -3,9 +3,23 @@ import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 type Level = { level: number; members: { id: string; name: string; referral_code: string; investment: number }[] };
+type TNode = { id: string; name: string; referral_code: string; investment: number; earned: number; children: TNode[] };
+
+function TreeNode({ n, depth }: { n: TNode; depth: number }) {
+  const [open, setOpen] = useState(depth < 2);
+  return (
+    <div className={depth > 0 ? "ml-4 border-l border-white/10 pl-2" : ""}>
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between rounded bg-black/30 px-2 py-1.5 text-left text-xs">
+        <span>{n.children.length ? (open ? "▾ " : "▸ ") : "• "}{n.name} · {n.referral_code}</span>
+        <span><span className="text-emerald-300">${n.investment.toFixed(0)}</span><span className="ml-2 text-yellow-300">+${n.earned.toFixed(0)}</span></span>
+      </button>
+      {open && n.children.map((c) => <TreeNode key={c.id} n={c} depth={depth + 1} />)}
+    </div>
+  );
+}
 
 export default function Team() {
-  const [d, setD] = useState<{ referralCode?: string; direct?: number; teamTotal?: number; self?: number; team?: number; levels?: Level[] } | null>(null);
+  const [d, setD] = useState<{ referralCode?: string; direct?: number; teamTotal?: number; self?: number; team?: number; levels?: Level[]; tree?: TNode[] } | null>(null);
   const [link, setLink] = useState("");
   useEffect(() => {
     fetch("/api/team").then((r) => r.json()).then((j) => {
@@ -29,6 +43,14 @@ export default function Team() {
           <div className="rounded-lg bg-black/40 p-2">Team biz: <b>${Number(d?.team || 0).toFixed(0)}</b></div>
         </div>
       </div>
+      {(d?.tree || []).length > 0 && (
+        <div className="av-card p-3">
+          <h3 className="text-sm font-bold">Referral Tree <span className="font-normal text-slate-400">$ invested · +$ earned</span></h3>
+          <div className="mt-2 space-y-1">
+            {(d?.tree || []).map((n) => <TreeNode key={n.id} n={n} depth={0} />)}
+          </div>
+        </div>
+      )}
       {(d?.levels || []).map((l) => (
         <div key={l.level} className="av-card p-3">
           <h3 className="text-sm font-bold">Level {l.level} ({l.members.length})</h3>

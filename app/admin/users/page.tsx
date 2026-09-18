@@ -5,9 +5,24 @@ import { BTN_PRIMARY, CARD, INPUT, LABEL, fmtUSD, pill } from "@/components/admi
 import { Search, Eye, ChevronDown } from "lucide-react";
 
 type UserRow = Record<string, unknown>;
+type EarnRange = { roi: number; level: number; reward: number; total: number };
+type TNode = { id: string; name: string; referral_code: string; investment: number; earned: number; children: TNode[] };
 
 const KYC_OPTIONS = ["", "pending", "approved", "rejected"];
 const str = (v: unknown) => String(v ?? "-");
+
+function AdminTreeNode({ n, depth }: { n: TNode; depth: number }) {
+  const [open, setOpen] = useState(depth < 2);
+  return (
+    <div className={depth > 0 ? "ml-3 border-l border-[#f0e6d2] pl-2" : ""}>
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between rounded-lg bg-gray-50 px-2 py-1.5 text-left text-xs hover:bg-gray-100">
+        <span className="font-semibold text-gray-800">{n.children.length ? (open ? "▾ " : "▸ ") : "• "}{n.name} · <span className="font-mono text-[#e8821e]">{n.referral_code}</span></span>
+        <span className="shrink-0"><span className="font-bold text-gray-900">${n.investment.toFixed(0)}</span><span className="ml-2 font-bold text-green-700">+${n.earned.toFixed(0)}</span></span>
+      </button>
+      {open && <div className="mt-1 space-y-1">{n.children.map((c) => <AdminTreeNode key={c.id} n={c} depth={depth + 1} />)}</div>}
+    </div>
+  );
+}
 
 export default function AdminUsersPage() {
   const [rows, setRows] = useState<UserRow[]>([]);
@@ -19,6 +34,15 @@ export default function AdminUsersPage() {
   const [kycFilter, setKycFilter] = useState("");
 
   const [detail, setDetail] = useState<UserRow | null>(null);
+  const [earn, setEarn] = useState<{ ranges: Record<string, EarnRange>; invested: number } | null>(null);
+  const [tree, setTree] = useState<TNode[]>([]);
+
+  useEffect(() => {
+    if (!detail) { setEarn(null); setTree([]); return; }
+    const id = String(detail.id);
+    fetch(`/api/earnings?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) setEarn({ ranges: j.ranges, invested: j.invested }); }).catch(() => {});
+    fetch(`/api/team?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) setTree(j.tree || []); }).catch(() => {});
+  }, [detail]);
 
   const [creditOpen, setCreditOpen] = useState(false);
   const [debitOpen, setDebitOpen] = useState(false);
@@ -173,6 +197,33 @@ export default function AdminUsersPage() {
                 </div>
               ))}
             </div>
+
+            {/* Earnings: today / 7d / 30d / total */}
+            {earn && (
+              <div className="rounded-xl border border-[#f0e6d2] p-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Earnings — ROI / Level / Reward (invested {fmtUSD(earn.invested)})</p>
+                <table className="mt-2 w-full text-xs">
+                  <thead><tr className="text-left text-gray-400"><th className="py-1">Range</th><th className="text-right">ROI</th><th className="text-right">Level</th><th className="text-right">Reward</th><th className="text-right">Total</th></tr></thead>
+                  <tbody>
+                    {[["today", "Today"], ["week", "7 days"], ["month", "30 days"], ["all", "All time"]].map(([k, label]) => {
+                      const r = earn.ranges[k];
+                      if (!r) return null;
+                      return (<tr key={k} className="border-t border-gray-100 font-semibold text-gray-800"><td className="py-1.5">{label}</td><td className="text-right">${r.roi.toFixed(2)}</td><td className="text-right">${r.level.toFixed(2)}</td><td className="text-right">${r.reward.toFixed(2)}</td><td className="text-right font-bold text-green-700">+${r.total.toFixed(2)}</td></tr>);
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Referral tree */}
+            {tree.length > 0 && (
+              <div className="rounded-xl border border-[#f0e6d2] p-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Referral tree <span className="font-normal normal-case">$ invested · +$ earned</span></p>
+                <div className="mt-2 max-h-64 space-y-1 overflow-y-auto">
+                  {tree.map((n) => <AdminTreeNode key={n.id} n={n} depth={0} />)}
+                </div>
+              </div>
+            )}
 
             {/* Password: hashed, cannot be viewed — reset instead */}
             <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">

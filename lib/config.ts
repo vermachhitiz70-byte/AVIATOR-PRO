@@ -98,3 +98,21 @@ export const FEED_NAMES = [
 export function planForAmount(amount: number) {
   return BOT_PLANS.find((p) => amount >= p.min && amount <= p.max) ?? null;
 }
+
+// ---- Locked 4-wallet system (single source of truth) ----
+// Deposit is SAFE/LOCKED: only bot activation moves it, never withdrawable.
+// The 3 earning wallets are withdrawable (min $2, 10% charge, 8–10 AM IST, 1/day each).
+export const WALLETS = [
+  { key: "principal", label: "Deposit Wallet", desc: "Your locked capital. Moves only into bots. Never withdrawable.", withdrawable: false, sources: ["deposit_confirm"] },
+  { key: "roi", label: "ROI Income", desc: "Daily bot % + live trade profit/loss.", withdrawable: true, sources: ["daily_roi", "game_profit", "game_loss"] },
+  { key: "commission", label: "Level / Direct Income", desc: "First-recharge direct + 10-level ROI income.", withdrawable: true, sources: ["first_recharge", "roi_level"] },
+  { key: "reward", label: "Reward Income", desc: "Milestone + campaign rewards.", withdrawable: true, sources: ["reward"] },
+] as const;
+
+// Ledger kinds that count as EARNINGS (for summaries; game_loss nets off game_profit)
+export const EARNING_KINDS = ["daily_roi", "game_profit", "game_loss", "first_recharge", "roi_level", "reward"];
+export const EARNING_GROUPS: Record<string, string[]> = {
+  roi: ["daily_roi", "game_profit", "game_loss"],
+  level: ["first_recharge", "roi_level"],
+  reward: ["reward"],
+};
