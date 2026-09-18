@@ -21,6 +21,7 @@ export default function Bot() {
       {BOT_PLANS.map((p) => (<div key={p.id} className="av-card p-4"><h3 className="font-black">{p.name}</h3><p>{p.min.toLocaleString()}–{p.max.toLocaleString()} USDT · {p.dailyPct}% daily auto-profits · {p.multiplier}X capping · 365 days</p></div>))}
       <div className="av-card p-4">
         <h3 className="font-bold">Activate Bot (from Principal wallet)</h3>
+        <p className="mt-1 text-xs text-slate-400">First bot auto-activates on admin approval. Use this only to start a new bot after expiry/cap.</p>
         <form onSubmit={activate} className="mt-2 flex gap-2"><input className="av-input" value={amount} onChange={(e) => setAmount(e.target.value)} /><button className="av-btn-yellow px-5">Activate</button></form>
         {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
         {active && <p className="mt-2 text-sm">Active: {String(active.plan)} · ${Number(active.amount).toFixed(2)} · Earned ${Number(active.total_earned || 0).toFixed(2)} · Exp {String(active.expiry_date || "-").slice(0, 10)} · {String(active.status)}</p>}

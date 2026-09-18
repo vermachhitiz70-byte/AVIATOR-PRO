@@ -17,6 +17,8 @@ export async function GET() {
   // Today's tier target (public plan info): what the day can earn in total.
   const b = await db.execute({ sql: "SELECT amount FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC LIMIT 1", args: [u.id as string] });
   const amt = b.rows.length ? Number((b.rows[0] as unknown as { amount: number }).amount) : 0;
+  // Trading deposit = locked bot amount; pre-activation (principal) as fallback.
+  const deposit = b.rows.length ? amt : Math.round(Number(w.principal) * 100) / 100;
   const tier = planForAmount(amt);
   const dailyTarget = tier ? Math.round(((amt * tier.dailyPct) / 100) * 100) / 100 : 0;
   return NextResponse.json({
@@ -27,6 +29,6 @@ export async function GET() {
     todayPnl: Math.round(Number((c.rows[0] as unknown as { pnl: number }).pnl ?? 0) * 100) / 100,
     dailyTarget,
     earningBalance: earning,
-    depositBalance: Math.round(Number(w.principal) * 100) / 100,
+    depositBalance: deposit,
   });
 }

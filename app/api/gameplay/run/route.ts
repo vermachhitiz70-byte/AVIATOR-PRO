@@ -30,6 +30,8 @@ export async function POST(req: NextRequest) {
   const b = await db.execute({ sql: "SELECT * FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC LIMIT 1", args: [userId] });
   if (!b.rows.length) return NextResponse.json({ ok: false, error: "Activate a trading bot first" }, { status: 400 });
   const bot = b.rows[0] as unknown as { id: string; amount: number; start_date: string };
+  // Trading deposit = the locked bot amount (principal moved into the bot at
+  // activation, so the wallet principal is 0 by design — never block on it).
   const today = new Date().toISOString().slice(0, 10);
 
   const s = await db.execute({ sql: "SELECT COALESCE(SUM(roi_amount),0) as pnl, COUNT(*) as c FROM gameplay WHERE user_id=? AND substr(created_at,1,10)=?", args: [userId, today] });
@@ -40,13 +42,12 @@ export async function POST(req: NextRequest) {
 
   const { bet = 0 } = await req.json().catch(() => ({ bet: 0 }));
   const stake = Number(bet) || 0;
-  const w = await walletOf(userId);
   // Stake is display-only (never leaves the wallet — only the settled P&L moves,
-  // into the ROI wallet). Cap it at the DEPOSIT (Principal) balance only —
+  // into the ROI wallet). Cap it at the active bot amount (the locked deposit) —
   // earning wallets (ROI/Commission/Reward) do not count; min $0.10.
-  const stakeCap = round2(Number(w.principal));
+  const stakeCap = round2(Number(bot.amount));
   if (stake < MIN_STAKE) return NextResponse.json({ ok: false, error: `Minimum trade is $${MIN_STAKE}` }, { status: 400 });
-  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds deposit balance ($${stakeCap.toFixed(2)})` }, { status: 400 });
+  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds deposit ($${stakeCap.toFixed(2)})` }, { status: 400 });
 
   // Daily target = this bot's tier % for today, minus anything already
   // credited (live game earnings so far + any cron ROI already paid today).
