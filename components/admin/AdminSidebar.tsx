@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { LayoutDashboard, Users, ArrowDownToLine, ArrowUpFromLine, Bot, Megaphone, Ticket, Activity, BarChart3, Settings, Menu, X, LogOut, Plane } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cachedGet } from "./cachedFetch";
 
 const nav = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
@@ -23,19 +24,17 @@ export function AdminSidebar({ admin }: { admin: { name: string; email: string; 
   const pathname = usePathname();
 
   useEffect(() => {
-    fetch("/api/admin/overview", { credentials: "include" })
-      .then((r) => r.json())
+    cachedGet<{ error?: string; pendingDeposits?: number; pendingWithdrawals?: number }>("/api/admin/overview")
       .then((j) => {
-        if (j.error) return;
+        if (!j || j.error) return;
         setBadges({
           pendingDeposits: j.pendingDeposits ?? 0,
           pendingWithdrawals: Array.isArray(j.pendingWithdrawals) ? j.pendingWithdrawals.length : (j.pendingWithdrawals ?? 0),
         });
       })
       .catch(() => {});
-    fetch("/api/admin/tickets?status=open&limit=1", { credentials: "include" })
-      .then((r) => r.json())
-      .then((j) => { if (j.ok) setBadges((p) => ({ ...p, openTickets: j.total ?? 0 })); })
+    cachedGet<{ ok?: boolean; total?: number }>("/api/admin/tickets?status=open&limit=1")
+      .then((j) => { if (j && j.ok) setBadges((p) => ({ ...p, openTickets: j.total ?? 0 })); })
       .catch(() => {});
   }, []);
 

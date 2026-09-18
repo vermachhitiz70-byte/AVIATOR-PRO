@@ -20,14 +20,30 @@ async function migrate(db: Client, sql: string) {
   }
 }
 
+// Schema version: bump when migrateAll() changes. The DB stores its version in
+// meta; matching versions skip ALL migrations (1 roundtrip). Without this gate
+// every serverless cold start replayed ~20 migration statements (~5s cross-region).
+const SCHEMA_VERSION = "4";
+
 // Cached per server instance: concurrent requests share one migration run,
-// warm instances skip it entirely. This keeps cold starts fast on Vercel,
-// where each roundtrip to Turso costs ~250ms.
+// warm instances skip it entirely.
 let ready: Promise<void> | null = null;
 
 export async function initDb(): Promise<void> {
-  if (!ready) ready = migrateAll().catch((e) => { ready = null; throw e; });
+  if (!ready) ready = ensure().catch((e) => { ready = null; throw e; });
   return ready;
+}
+
+async function ensure(): Promise<void> {
+  const db = getDb();
+  const meta = await db.batch([
+    { sql: "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)", args: [] },
+    { sql: "SELECT value FROM meta WHERE key='schema_version'", args: [] },
+  ]);
+  const v = (meta[1].rows[0] as unknown as { value: string } | undefined)?.value;
+  if (v === SCHEMA_VERSION) return;
+  await migrateAll();
+  await db.execute({ sql: "INSERT OR REPLACE INTO meta (key,value) VALUES ('schema_version',?)", args: [SCHEMA_VERSION] });
 }
 
 async function migrateAll(): Promise<void> {

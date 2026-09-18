@@ -5,6 +5,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { CARD, fmtDate, fmtUSD, pill } from "@/components/admin/ui";
 import { ArrowDownToLine, ArrowUpFromLine, Clock3, TriangleAlert, Users, Wallet } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { cachedGet } from "@/components/admin/cachedFetch";
 
 type Overview = {
   users: number;
@@ -39,11 +40,11 @@ export default function AdminDashboard() {
     async function load() {
       setLoading(true);
       const [ovRes, actRes] = await Promise.all([
-        fetch("/api/admin/overview", { credentials: "include" }).then((r) => r.json()),
-        fetch("/api/admin/activity?limit=6", { credentials: "include" }).then((r) => r.json()),
+        cachedGet<Overview & { error?: string }>("/api/admin/overview"),
+        cachedGet<{ rows?: ActivityRow[] }>("/api/admin/activity?limit=6"),
       ]);
-      if (!ovRes.error) setData(ovRes);
-      setRecent(actRes.rows || []);
+      if (ovRes && !ovRes.error) setData(ovRes);
+      setRecent(actRes?.rows || []);
       setLoading(false);
     }
     load();

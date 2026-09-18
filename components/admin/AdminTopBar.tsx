@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Bell, Search } from "lucide-react";
 import Link from "next/link";
+import { cachedGet } from "./cachedFetch";
 
 type Alert = { id: string; title: string; sub: string; href: string };
 
@@ -13,9 +14,10 @@ export function AdminTopBar({ admin }: { admin: { name: string; email: string; r
     async function load() {
       try {
         const [ov, act] = await Promise.all([
-          fetch("/api/admin/overview", { credentials: "include" }).then((r) => r.json()),
-          fetch("/api/admin/activity?limit=6", { credentials: "include" }).then((r) => r.json()),
+          cachedGet<{ pendingDeposits?: number; pendingWithdrawals?: number }>("/api/admin/overview"),
+          cachedGet<{ rows?: Record<string, unknown>[] }>("/api/admin/activity?limit=6"),
         ]);
+        if (!ov || !act) return;
         const list: Alert[] = [];
         const pd = ov.pendingDeposits ?? 0;
         const pw = Array.isArray(ov.pendingWithdrawals) ? ov.pendingWithdrawals.length : (ov.pendingWithdrawals ?? 0);
