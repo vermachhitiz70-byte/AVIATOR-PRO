@@ -1,6 +1,6 @@
 import { SiteHeader } from "@/components/site";
 import { BUSINESS_RULES } from "@/lib/config";
-import { CtaBand, ProFooter, Reveal, SectionHead } from "@/components/marketing";
+import { CtaBand, PayoutTicker, ProFooter, Reveal, SectionHead } from "@/components/marketing";
 
 const RULES = [
   ["Eligibility", "Members must be 18+. One account per person — multi-account farming leads to suspension and commission clawback."],
@@ -17,15 +17,17 @@ export default function Terms() {
   return (
     <div>
       <SiteHeader />
-      <div className="hero-plane">
-        <div className="mx-auto max-w-6xl px-4 pb-14 pt-16">
+      <div className="cine-bg relative overflow-hidden">
+        <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-16">
           <Reveal>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">Legal</p>
-            <h1 className="mt-3 text-4xl font-black md:text-6xl">Terms, in <span className="mint">plain English.</span></h1>
+            <h1 className="mt-3 text-4xl font-black md:text-6xl">Terms, in <span className="gold-text">plain English.</span></h1>
             <p className="mt-4 max-w-2xl text-slate-300">Please review the platform rules before investing or withdrawing. Last updated September 2026.</p>
           </Reveal>
         </div>
       </div>
+      <PayoutTicker />
 
       <section className="mx-auto max-w-4xl px-4 py-12">
         <div className="grid gap-4 md:grid-cols-2">

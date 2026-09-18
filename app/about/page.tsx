@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site";
-import { CtaBand, GoogleReviews, ProFooter, Reveal, SectionHead, Stat } from "@/components/marketing";
+import { CtaBand, GoogleReviews, PayoutTicker, ProFooter, Reveal, SectionHead, Stat } from "@/components/marketing";
 
 const VALUES = [
   ["Innovation", "Fresh mechanics, seasonal campaigns and a roadmap driven by member feedback.", "01"],
@@ -21,12 +21,17 @@ export default function About() {
     <div>
       <SiteHeader />
       {/* hero */}
-      <div className="hero-plane relative overflow-hidden">
-        <div className="mx-auto max-w-6xl px-4 pb-16 pt-16">
+      <div className="cine-bg relative overflow-hidden">
+        <div className="ring-art pointer-events-none absolute -right-32 top-0 hidden h-[26rem] w-[26rem] opacity-70 md:block" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-16">
           <Reveal>
             <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">About us</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-6xl">Gaming soul.<br /><span className="red">Network engine.</span></h1>
+            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight md:text-6xl">Gaming soul.<br /><span className="gold-text">Network engine.</span></h1>
             <p className="mt-4 max-w-2xl text-slate-300">AVIATOR SMART AI is a modern gaming platform delivering an engaging, exciting and smooth Aviator experience — innovative features, a user-friendly interface and an enjoyable digital environment, all on one platform.</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/register" className="av-btn-red btn-shine px-7 py-3 text-sm">Join the Network</Link>
+              <Link href="/plans" className="rounded-xl border border-white/25 px-7 py-3 text-sm font-bold">See Bot Plans</Link>
+            </div>
           </Reveal>
           <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
             <Stat value={25000} suffix="+" label="Members targeted" />
@@ -36,6 +41,7 @@ export default function About() {
           </div>
         </div>
       </div>
+      <PayoutTicker />
 
       {/* mission / vision */}
       <section className="mx-auto max-w-6xl px-4 py-14">
