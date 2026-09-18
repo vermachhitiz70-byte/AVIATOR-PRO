@@ -30,7 +30,7 @@ export default function Plans() {
                     <div key={a} className="flex justify-between border-b border-white/10 pb-2"><span className="text-slate-300">{a}</span><b>{b}</b></div>
                   ))}
                 </div>
-                <Link href="/register" className={`${idx === 1 ? "av-btn-yellow" : "av-btn-red"} mt-6 block py-3 text-center text-sm`}>Activate {p.name.split(" ")[0]}</Link>
+                <Link href={`/activate?plan=${p.id}`} className={`${idx === 1 ? "av-btn-yellow" : "av-btn-red"} mt-6 block py-3 text-center text-sm`}>Activate {p.name.split(" ")[0]}</Link>
               </div>
             </Reveal>
           ))}

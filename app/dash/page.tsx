@@ -40,6 +40,8 @@ const num = (v: unknown) => Number(v || 0);
 
 export default function DashHome() {
   const [data, setData] = useState<MeData | null>(null);
+  const [gate, setGate] = useState<null | "pending" | "none">(null);
+  const [fresh, setFresh] = useState<{ campaign_id?: string; name?: string }[]>([]);
 
   useEffect(() => {
     fetch("/api/me").then(async (r) => {
@@ -47,7 +49,16 @@ export default function DashHome() {
         window.location.href = "/login";
         return;
       }
-      setData(await r.json());
+      const j = await r.json();
+      setData(j);
+      // gating: if no confirmed investment but has pending deposit, block dashboard
+      if (!j.totalInvestment || j.totalInvestment === 0) {
+        fetch("/api/recharge").then((x) => x.json()).then((k) => {
+          if (k.ok && k.rows?.some((x: { status: string }) => x.status === "pending")) setGate("pending");
+          else if (k.ok && k.rows?.length === 0) setGate("none");
+          else setGate(null);
+        });
+      }
     });
     fetch("/api/campaigns").then((r) => r.json()).then((j) => {
       if (j.ok && j.fresh) setFresh(j.fresh);
@@ -66,10 +77,26 @@ export default function DashHome() {
     time: "Just now",
   }));
   const txs = data?.recentTx || [];
-  const [fresh, setFresh] = useState<{ campaign_id?: string; name?: string }[]>([]);
 
   return (
     <div className="space-y-3">
+      {gate === "pending" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-yellow-300/20 bg-[#0d1729] p-6 text-center shadow-2xl">
+            <p className="text-3xl">⏳</p>
+            <h3 className="mt-2 text-lg font-black text-white">Please wait, admin approval pending</h3>
+            <p className="mt-2 text-sm text-slate-300">Your payment is under review. Once admin approves your request, you can unlock your dashboard and start earning.</p>
+            <Link href="/activate" className="av-btn-yellow mt-4 inline-block px-6 py-2">View Status</Link>
+          </div>
+        </div>
+      )}
+      {gate === "none" && (
+        <div className="av-card p-4 text-center">
+          <h3 className="font-black">Choose your plan to start</h3>
+          <p className="mt-1 text-sm text-slate-400">Activate any bot plan to begin earning daily ROI.</p>
+          <Link href="/activate" className="av-btn-yellow mt-3 inline-block px-6 py-2">Choose Your Plan</Link>
+        </div>
+      )}
       <LiveToasts items={toasts} />
       <FakeNotifications />
       {fresh.map((f) => (
