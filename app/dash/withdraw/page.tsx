@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const WALLET_LABELS: Record<string, string> = { roi: "ROI Income", commission: "Level / Direct Income", reward: "Reward Income" };
+const WALLET_LABELS: Record<string, string> = { roi: "Daily ROI Income", commission: "Level / Direct Income", reward: "Reward Income" };
 
 export default function Withdraw() {
   const [amount, setAmount] = useState("10");

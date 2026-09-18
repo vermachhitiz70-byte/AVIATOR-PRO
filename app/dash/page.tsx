@@ -175,7 +175,7 @@ function EarningsStrip() {
   const cells: [string, string][] = [["today", "Today"], ["week", "7 Days"], ["month", "30 Days"], ["all", "Total"]];
   return (
     <div className="av-card p-3">
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Earnings — ROI + Level + Reward</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Earnings — Daily ROI + Level + Reward</p>
       <div className="mt-2 grid grid-cols-4 gap-2 text-center">
         {cells.map(([k, label]) => (
           <div key={k} className="rounded-xl bg-black/40 px-1 py-2">

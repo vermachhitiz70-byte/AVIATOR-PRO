@@ -201,7 +201,7 @@ export default function AdminUsersPage() {
             {/* Earnings: today / 7d / 30d / total */}
             {earn && (
               <div className="rounded-xl border border-[#f0e6d2] p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Earnings — ROI / Level / Reward (invested {fmtUSD(earn.invested)})</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Earnings — Daily ROI / Level / Reward (invested {fmtUSD(earn.invested)})</p>
                 <table className="mt-2 w-full text-xs">
                   <thead><tr className="text-left text-gray-400"><th className="py-1">Range</th><th className="text-right">ROI</th><th className="text-right">Level</th><th className="text-right">Reward</th><th className="text-right">Total</th></tr></thead>
                   <tbody>
