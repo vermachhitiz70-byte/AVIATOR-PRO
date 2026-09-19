@@ -66,7 +66,7 @@ function LevelRows({ nodes, depth, parentName, collapsed, onToggle, counts }: { 
 }
 
 export default function AdminTreePage() {
-  const [root, setRoot] = useState<{ user: LookupUser; tree: TNode[] } | null>(null);
+  const [root, setRoot] = useState<{ user: LookupUser; tree: TNode[]; directCount: number; teamTotal: number } | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [msg, setMsg] = useState("");
 
@@ -75,7 +75,7 @@ export default function AdminTreePage() {
     setMsg("");
     const j = await fetch(`/api/team?userId=${encodeURIComponent(u.id)}`, { credentials: "include" }).then((r) => r.json()).catch(() => null);
     if (!j?.ok) { setMsg("Tree load failed"); setRoot(null); return; }
-    setRoot({ user: u, tree: j.tree || [] });
+    setRoot({ user: u, tree: j.tree || [], directCount: Number(j.directCount ?? 0), teamTotal: Number(j.teamTotal ?? 0) });
     if ((j.tree || []).length === 0) setMsg("Iske neeche koi member nahi — koi direct nahi joda.");
   }
   function toggle(id: string) {
@@ -105,6 +105,20 @@ export default function AdminTreePage() {
             <div className="text-center">
               <p className="font-black text-gray-900">{root.user.name} <span className="font-mono text-sm text-[#e8821e]">{root.user.referral_code}</span></p>
               <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Sponsor · root of this tree</p>
+            </div>
+          </div>
+          <div className="mx-auto mb-4 grid max-w-2xl grid-cols-3 gap-3">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+              <p className="text-2xl font-black text-emerald-700">{root.directCount}</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-600">Directs (khud jode)</p>
+            </div>
+            <div className="rounded-2xl border border-[#f0e6d2] bg-[#faf6ec] p-3 text-center">
+              <p className="text-2xl font-black text-gray-900">{root.teamTotal}</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Team below (sab milakar)</p>
+            </div>
+            <div className="rounded-2xl border border-[#e9dfc9] bg-white p-3 text-center">
+              <p className="text-2xl font-black text-[#e8821e]">{root.teamTotal + 1}</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">Total (self + team)</p>
             </div>
           </div>
           <div className="mb-3 flex flex-wrap justify-center gap-2 text-[10px] font-bold">
