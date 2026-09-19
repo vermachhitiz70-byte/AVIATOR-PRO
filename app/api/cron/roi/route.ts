@@ -24,16 +24,16 @@ export async function POST(req: NextRequest) {
 type BotRow = { id: string; user_id: string; amount: number; total_earned: number; last_roi_date: string; expiry_date: string; start_date: string };
 type BotResult = { paid: boolean; credited: number; capped: boolean; expired: boolean; skipped: boolean; tier?: string };
 
-async function processBot(bot: BotRow, today: string): Promise<BotResult> {
+async function processBot(bot: BotRow, today: string, nowDay: string): Promise<BotResult> {
   const db = getDb();
-  if (bot.expiry_date && bot.expiry_date.slice(0, 10) < today) {
+  if (bot.expiry_date && bot.expiry_date.slice(0, 10) < nowDay) {
     await db.execute({ sql: "UPDATE bots SET status='expired' WHERE id=?", args: [bot.id] });
     return { paid: false, credited: 0, capped: false, expired: true, skipped: false };
   }
   // Atomic claim: only the worker that flips last_roi_date proceeds.
-  // Overlapping cron runs can never double-pay the same bot.
+  // Overlapping/delayed/manual runs can never double-pay the same ROI day.
   const claim = await db.execute({ sql: "UPDATE bots SET last_roi_date=? WHERE id=? AND status='active' AND (last_roi_date IS NULL OR last_roi_date!=?)", args: [today, bot.id, today] });
-  if ((claim.rowsAffected ?? 0) === 0) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // already paid/claimed today
+  if ((claim.rowsAffected ?? 0) === 0) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // already paid/claimed this ROI day
   const tier = planForAmount(Number(bot.amount));
   if (!tier) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // amount outside all tiers ($10–$100,000)
     const roiPct = tier.dailyPct;
@@ -89,9 +89,18 @@ async function run(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Bad secret. Set CRON_SECRET env and call /api/cron/roi?secret=..." }, { status: 401 });
   }
   const db = getDb();
-  const today = new Date().toISOString().slice(0, 10);
+  // ROI-day rule (supports "once daily at ~5 AM IST", never twice):
+  // close the business day that just ended = UTC date 12h ago. A run at any
+  // time of day maps to exactly one ROI day, so delayed/manual/overlapping
+  // runs (or back-to-back schedules across UTC midnight) all converge on the
+  // same day and the atomic claim skips duplicates. Game earnings and this
+  // top-up always read the SAME day bucket, so the day total is exact.
+  // NOTE: schedule must stay late-UTC ("30 23" = 5:00 AM IST). A run at/after
+  // 00:00 UTC would pre-empt that UTC date's game (game brake sees full pay).
+  const today = new Date(Date.now() - 12 * 3600 * 1000).toISOString().slice(0, 10);
+  const nowDay = new Date().toISOString().slice(0, 10);
   const bots = await db.execute({ sql: "SELECT * FROM bots WHERE status='active'", args: [] });
-  const results = await pool(bots.rows as unknown as BotRow[], 8, (b) => processBot(b, today));
+  const results = await pool(bots.rows as unknown as BotRow[], 8, (b) => processBot(b, today, nowDay));
   let paid = 0, credited = 0, capped = 0, expired = 0, skipped = 0;
   const byTier: Record<string, number> = {};
   for (const r of results) {

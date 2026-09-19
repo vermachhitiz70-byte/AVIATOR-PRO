@@ -36,13 +36,30 @@ export default function AdminUsersPage() {
   const [detail, setDetail] = useState<UserRow | null>(null);
   const [earn, setEarn] = useState<{ ranges: Record<string, EarnRange>; invested: number } | null>(null);
   const [tree, setTree] = useState<TNode[]>([]);
+  const [hist, setHist] = useState<{ kind: string; wallet: string; amount: number; note: string; created_at: string }[]>([]);
+  const [histAll, setHistAll] = useState(false);
 
   useEffect(() => {
-    if (!detail) { setEarn(null); setTree([]); return; }
+    if (!detail) { setEarn(null); setTree([]); setHist([]); setHistAll(false); return; }
     const id = String(detail.id);
     fetch(`/api/earnings?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) setEarn({ ranges: j.ranges, invested: j.invested }); }).catch(() => {});
     fetch(`/api/team?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) setTree(j.tree || []); }).catch(() => {});
+    fetch(`/api/ledger?userId=${encodeURIComponent(id)}&limit=200`, { credentials: "include" }).then((r) => r.json()).then((j) => {
+      if (j.ok) setHist((j.rows || []).filter((h: { kind: string }) => ["daily_roi", "game_profit", "game_loss", "first_recharge", "roi_level", "reward"].includes(h.kind)));
+    }).catch(() => {});
   }, [detail]);
+
+  const histLabel = (h: { kind: string; note: string }) => {
+    if (h.kind === "daily_roi") return "Daily ROI (tier %)";
+    if (h.kind === "game_profit") return "Self trade profit";
+    if (h.kind === "game_loss") return "Self trade loss";
+    if (h.kind === "reward") return `Reward — ${h.note}`;
+    const m = h.note.match(/L(\d+)\s+(first recharge|ROI)/i);
+    const lvl = m ? ` · L${m[1]}` : "";
+    if (h.kind === "first_recharge") return `Direct income${lvl}`;
+    if (h.kind === "roi_level") return `Level income${lvl} (downline ROI %)`;
+    return h.kind;
+  };
 
   const [creditOpen, setCreditOpen] = useState(false);
   const [debitOpen, setDebitOpen] = useState(false);
@@ -212,6 +229,32 @@ export default function AdminUsersPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Income history: every paisa with source + time */}
+            {hist.length > 0 && (
+              <div className="rounded-xl border border-[#f0e6d2] p-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Income history — what, from where, when</p>
+                <div className="mt-2 space-y-1">
+                  {(histAll ? hist : hist.slice(0, 6)).map((h, i) => {
+                    const neg = Number(h.amount) < 0;
+                    return (
+                      <div key={i} className="rounded-lg bg-gray-50 px-2.5 py-1.5 text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-gray-800">{histLabel(h)}</span>
+                          <b className={neg ? "text-red-600" : "text-green-700"}>{neg ? "−" : "+"}${Math.abs(Number(h.amount)).toFixed(2)}</b>
+                        </div>
+                        <p className="mt-0.5 break-all text-[11px] text-gray-500">{str(h.created_at).slice(0, 16).replace("T", " ")} · {str(h.note)} · {str(h.wallet)} wallet</p>
+                      </div>
+                    );
+                  })}
+                </div>
+                {hist.length > 6 && (
+                  <button onClick={() => setHistAll((v) => !v)} className="mt-2 w-full rounded-lg border border-[#e9dfc9] px-3 py-1.5 text-xs font-bold text-[#b45309] hover:bg-[#faf6ec]">
+                    {histAll ? "Show less" : `View all (${hist.length})`}
+                  </button>
+                )}
               </div>
             )}
 
