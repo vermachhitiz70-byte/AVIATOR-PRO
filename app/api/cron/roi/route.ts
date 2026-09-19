@@ -37,14 +37,11 @@ async function processBot(bot: BotRow, today: string, nowDay: string): Promise<B
   const tier = planForAmount(Number(bot.amount));
   if (!tier) return { paid: false, credited: 0, capped: false, expired: false, skipped: true }; // amount outside all tiers ($10–$100,000)
     const roiPct = tier.dailyPct;
-    // Daily target = full tier %. Game may already have paid part of it live
-    // during the day — the 5 AM cron credits ONLY the remainder (never below 0).
-    // No play at all? The full tier % lands automatically. This is the top-up.
+    // Daily target = full tier %, ALWAYS paid in full by the 5 AM cron.
+    // The Aviator game is 100% dummy (display only, zero wallet effect), so the
+    // cron never subtracts gameplay — every bot gets its full tier % daily.
     const dayTarget = (Number(bot.amount) * roiPct) / 100;
-    const gamed = await db.execute({ sql: "SELECT COALESCE(SUM(roi_amount),0) as t FROM gameplay WHERE user_id=? AND substr(created_at,1,10)=?", args: [bot.user_id, today] });
-    const gameEarned = Number((gamed.rows[0] as unknown as { t: number }).t ?? 0);
-    let roi = Math.round((dayTarget - gameEarned) * 100) / 100;
-    if (roi < 0) roi = 0;
+    let roi = Math.round(dayTarget * 100) / 100;
     const cap = Number(bot.amount) * tier.multiplier;
     // Client capping: direct ROI + Rewards + Game earnings ALL count toward the cap
     // (Direct + Level income stay outside). Rewards/game are per-user, counted

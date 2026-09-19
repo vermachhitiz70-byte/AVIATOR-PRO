@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
   if (body.action === "create") {
     const { userId, plan, amount, daily_pct, start_date, expiry_date } = body;
     if (!userId || !plan || !amount) return NextResponse.json({ ok: false, error: "Missing fields" }, { status: 400 });
+    if (Number(amount) < 10 || Number(amount) % 10 !== 0) return NextResponse.json({ ok: false, error: "Bot amount must be min $10 in multiples of $10" }, { status: 400 });
     const userCheck = await db.execute({ sql: "SELECT id FROM users WHERE id=? OR referral_code=?", args: [userId, userId] });
     if (!userCheck.rows.length) return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
     const resolvedUserId = (userCheck.rows[0] as unknown as { id: string }).id;

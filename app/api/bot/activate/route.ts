@@ -10,8 +10,12 @@ export async function POST(req: NextRequest) {
   if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
   const { amount } = await req.json();
   const amt = Number(amount);
+  // Client rule: manual start only, min $10, always in multiples of $10
+  // (10, 20, 30 … 100, 110 …). No auto-bot: deposit alone earns nothing.
+  if (!amt || amt < 10 || amt > 100000 || amt % 10 !== 0)
+    return NextResponse.json({ ok: false, error: "Bot amount must be $10–$100,000 in multiples of $10 (10, 20, 30 …)" }, { status: 400 });
   const plan = planForAmount(amt);
-  if (!plan) return NextResponse.json({ ok: false, error: "Amount must be 10–100,000 USDT" }, { status: 400 });
+  if (!plan) return NextResponse.json({ ok: false, error: "Amount outside all tiers" }, { status: 400 });
   const db = getDb();
   const w = await walletOf(u.id as string);
   if (Number(w.principal) < amt) return NextResponse.json({ ok: false, error: "Insufficient Principal wallet. Recharge first." }, { status: 400 });

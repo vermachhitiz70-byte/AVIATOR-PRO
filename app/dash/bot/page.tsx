@@ -20,9 +20,9 @@ export default function Bot() {
       <div className="av-card p-4"><h2 className="font-black">BOT PLANS</h2><p className="text-sm text-slate-300">Activate any Bot Plan. Automated <b>daily income</b> on total active investment (2X–5X cap per tier, 365 days). Plan tiers decide your bracket.</p></div>
       {BOT_PLANS.map((p) => (<div key={p.id} className="av-card p-4"><h3 className="font-black">{p.name}</h3><p>{p.min.toLocaleString()}–{p.max.toLocaleString()} USDT · {p.dailyPct}% daily auto-profits · {p.multiplier}X capping · 365 days</p></div>))}
       <div className="av-card p-4">
-        <h3 className="font-bold">Activate Bot (from Principal wallet)</h3>
-        <p className="mt-1 text-xs text-slate-400">First bot auto-activates on admin approval. Use this only to start a new bot after expiry/cap.</p>
-        <form onSubmit={activate} className="mt-2 flex gap-2"><input className="av-input" value={amount} onChange={(e) => setAmount(e.target.value)} /><button className="av-btn-yellow px-5">Activate</button></form>
+        <h3 className="font-bold">Start Bot (from Principal wallet)</h3>
+        <p className="mt-1 text-xs text-slate-400">Deposit alone earns nothing — press Start Bot. Min $10, multiples of $10 only (10, 20, 30 … 100, 110 …).</p>
+        <form onSubmit={activate} className="mt-2 flex gap-2"><input className="av-input" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="e.g. 10, 20, 100" /><button className="av-btn-yellow px-5">Start Bot</button></form>
         {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
         {active && <p className="mt-2 text-sm">Active: {String(active.plan)} · ${Number(active.amount).toFixed(2)} · Earned ${Number(active.total_earned || 0).toFixed(2)} · Exp {String(active.expiry_date || "-").slice(0, 10)} · {String(active.status)}</p>}
       </div>
