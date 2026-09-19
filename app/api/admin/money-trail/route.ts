@@ -5,7 +5,12 @@ import { requireAdmin } from "@/lib/admin";
 // GET /api/admin/money-trail?userId= — full chronological money story for ANY user:
 // deposits, bot activations, every income (with WHO it came from), withdrawals.
 // One list, newest first, exact timestamps. Admin only.
-type Ev = { ts: string; label: string; detail: string; amount: number | null };
+type Ev = {
+  ts: string; label: string; detail: string; amount: number | null;
+  date: string; time: string; wallet: string;
+  fromName: string; fromCode: string; pct: number | null; levelNum: number | null;
+};
+const splitTs = (ts: string) => ({ date: String(ts || "").slice(0, 10), time: String(ts || "").slice(11, 19) });
 
 export async function GET(req: NextRequest) {
   await initDb();
@@ -21,11 +26,13 @@ export async function GET(req: NextRequest) {
 
   const deps = await db.execute({ sql: "SELECT request_id,requested,actual,tx_hash,status,created_at FROM deposits WHERE user_id=? ORDER BY rowid", args: [userId] });
   for (const d of deps.rows as unknown as { request_id: string; requested: number; actual: number; tx_hash: string; status: string; created_at: string }[]) {
-    ev.push({ ts: d.created_at, label: d.status === "confirmed" ? "Deposit confirmed" : `Recharge ${d.status}`, detail: `${d.request_id} · TX ${String(d.tx_hash || "-").slice(0, 12)}… → Deposit wallet`, amount: d.status === "confirmed" ? Number(d.actual) : null });
+    const t = splitTs(d.created_at);
+    ev.push({ ts: d.created_at, label: d.status === "confirmed" ? "Deposit confirmed" : `Recharge ${d.status}`, detail: `${d.request_id} · TX ${String(d.tx_hash || "-").slice(0, 12)}… → Deposit wallet`, amount: d.status === "confirmed" ? Number(d.actual) : null, date: t.date, time: t.time, wallet: "principal", fromName: "—", fromCode: "—", pct: null, levelNum: null });
   }
   const bots = await db.execute({ sql: "SELECT plan,amount,daily_pct,start_date,expiry_date,total_earned,status FROM bots WHERE user_id=? ORDER BY rowid", args: [userId] });
   for (const b of bots.rows as unknown as { plan: string; amount: number; daily_pct: number; start_date: string; expiry_date: string; total_earned: number; status: string }[]) {
-    ev.push({ ts: b.start_date, label: "Bot activated", detail: `${b.plan} · $${Number(b.amount).toLocaleString()} @ ${b.daily_pct}% daily · earned $${Number(b.total_earned).toFixed(2)} · ${b.status}`, amount: null });
+    const t = splitTs(b.start_date);
+    ev.push({ ts: b.start_date, label: "Bot activated", detail: `${b.plan} · $${Number(b.amount).toLocaleString()} @ ${b.daily_pct}% daily · earned $${Number(b.total_earned).toFixed(2)} · ${b.status}`, amount: null, date: t.date, time: t.time, wallet: "principal", fromName: "—", fromCode: "—", pct: Number(b.daily_pct), levelNum: null });
   }
   const led = await db.execute({
     sql: "SELECT kind,wallet,amount,note,created_at FROM ledger WHERE user_id=? AND kind IN ('daily_roi','game_profit','game_loss','first_recharge','roi_level','reward') ORDER BY rowid",
@@ -36,16 +43,17 @@ export async function GET(req: NextRequest) {
     first_recharge: "Direct income", roi_level: "Level income (downline ROI %)", reward: "Reward income",
   };
   for (const h of led.rows as unknown as { kind: string; wallet: string; amount: number; note: string; created_at: string }[]) {
-    ev.push({ ts: h.created_at, label: kindLabel[h.kind] || h.kind, detail: `${h.note} · ${h.wallet} wallet`, amount: Number(h.amount) });
+    const t = splitTs(h.created_at);
+    ev.push({ ts: h.created_at, label: kindLabel[h.kind] || h.kind, detail: `${h.note} · ${h.wallet} wallet`, amount: Number(h.amount), date: t.date, time: t.time, wallet: h.wallet, fromName: h.kind === "daily_roi" || h.kind === "reward" ? "Self (own bot)" : "—", fromCode: "—", pct: null, levelNum: null });
   }
   // Who paid each commission? resolve earner names in one query.
   const comms = await db.execute({ sql: "SELECT type,level,pct,amount,created_at,from_user FROM commissions WHERE to_user=? ORDER BY rowid", args: [userId] });
   const fromIds = [...new Set((comms.rows as unknown as { from_user: string }[]).map((c) => c.from_user))];
-  const nameMap = new Map<string, string>();
+  const nameMap = new Map<string, { name: string; code: string }>();
   if (fromIds.length) {
     const ph = fromIds.map(() => "?").join(",");
     const nm = await db.execute({ sql: `SELECT id,name,referral_code FROM users WHERE id IN (${ph})`, args: fromIds });
-    for (const r of nm.rows as unknown as { id: string; name: string; referral_code: string }[]) nameMap.set(r.id, `${r.name} (${r.referral_code})`);
+    for (const r of nm.rows as unknown as { id: string; name: string; referral_code: string }[]) nameMap.set(r.id, { name: r.name, code: r.referral_code });
   }
   // Attach earner names: match commission rows to ledger rows by (ts, amount)
   const commList = comms.rows as unknown as { type: string; level: number; pct: number; amount: number; created_at: string; from_user: string }[];
@@ -54,15 +62,20 @@ export async function GET(req: NextRequest) {
       const idx = commList.findIndex((c) => c.created_at === e.ts && Number(c.amount) === Number(e.amount));
       if (idx >= 0) {
         const c = commList.splice(idx, 1)[0];
-        const who = nameMap.get(c.from_user) || c.from_user;
+        const who = nameMap.get(c.from_user) || { name: c.from_user, code: "—" };
         e.label = c.type === "first_recharge" ? `Direct income · L${c.level}` : `Level income · L${c.level}`;
-        e.detail = `${who} se — ${c.pct}% · ${e.detail}`;
+        e.detail = `${who.name} (${who.code}) se — ${c.pct}% · ${e.detail}`;
+        e.fromName = who.name;
+        e.fromCode = who.code;
+        e.pct = Number(c.pct);
+        e.levelNum = Number(c.level);
       }
     }
   }
   const wds = await db.execute({ sql: "SELECT usd,debit,charge,net,status,source_wallet,created_at FROM withdrawals WHERE user_id=? ORDER BY rowid", args: [userId] });
   for (const w of wds.rows as unknown as { usd: number; debit: number; charge: number; net: number; status: string; source_wallet: string; created_at: string }[]) {
-    ev.push({ ts: w.created_at, label: `Withdrawal ${w.status}`, detail: `${w.source_wallet} wallet se — debit $${Number(w.debit).toFixed(2)}, charge $${Number(w.charge).toFixed(2)}, net $${Number(w.net).toFixed(2)}`, amount: -Number(w.debit) });
+    const t = splitTs(w.created_at);
+    ev.push({ ts: w.created_at, label: `Withdrawal ${w.status}`, detail: `${w.source_wallet} wallet se — debit $${Number(w.debit).toFixed(2)}, charge $${Number(w.charge).toFixed(2)}, net $${Number(w.net).toFixed(2)}`, amount: -Number(w.debit), date: t.date, time: t.time, wallet: w.source_wallet, fromName: "—", fromCode: "—", pct: null, levelNum: null });
   }
   ev.sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0));
 

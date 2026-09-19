@@ -3,6 +3,8 @@ export { AdminTopBar } from "./AdminTopBar";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { DataTable } from "./DataTable";
 export { Modal } from "./Modal";
+export { MemberSearch } from "./MemberSearch";
+export type { LookupUser } from "./MemberSearch";
 export { StatCard } from "./StatCard";
 export { NotificationProvider, useNotif } from "./NotificationContext";
 export { BTN_GHOST, BTN_GREEN, BTN_PRIMARY, BTN_RED, CARD, INPUT, LABEL, fmtDate, fmtUSD, pill } from "./ui";

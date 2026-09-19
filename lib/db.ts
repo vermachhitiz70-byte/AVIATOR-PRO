@@ -23,7 +23,7 @@ async function migrate(db: Client, sql: string) {
 // Schema version: bump when migrateAll() changes. The DB stores its version in
 // meta; matching versions skip ALL migrations (1 roundtrip). Without this gate
 // every serverless cold start replayed ~20 migration statements (~5s cross-region).
-const SCHEMA_VERSION = "4";
+const SCHEMA_VERSION = "5";
 
 // Cached per server instance: concurrent requests share one migration run,
 // warm instances skip it entirely.
@@ -220,6 +220,14 @@ async function migrateAll(): Promise<void> {
     db.execute("UPDATE settings SET value='0xf41A2fEEC860e0164416cB5D5B0c580881628507' WHERE key='depositAddress' AND (value='' OR value LIKE '%YOUR%')"),
     // Orphan rule: every non-admin user with NULL/empty referred_by becomes admin's direct (AV100001 sponsors).
     db.execute("UPDATE users SET referred_by='AV100001' WHERE (referred_by IS NULL OR referred_by='') AND referral_code!='AV100001'"),
+    // Search/tree speed (re-runnable, IF NOT EXISTS).
+    db.execute("CREATE INDEX IF NOT EXISTS idx_users_referral ON users(referral_code)"),
+    db.execute("CREATE INDEX IF NOT EXISTS idx_users_referred ON users(referred_by)"),
+    db.execute("CREATE INDEX IF NOT EXISTS idx_users_mobile ON users(mobile)"),
+    db.execute("CREATE INDEX IF NOT EXISTS idx_ledger_user_created ON ledger(user_id,created_at)"),
+    db.execute("CREATE INDEX IF NOT EXISTS idx_deposits_user_status ON deposits(user_id,status)"),
+    db.execute("CREATE INDEX IF NOT EXISTS idx_comm_to ON commissions(to_user,type)"),
+    db.execute("CREATE INDEX IF NOT EXISTS idx_bots_user ON bots(user_id,status)"),
   ]);
   // Seeds (run once ever — guarded by existence checks)
   const camp = await db.execute({ sql: "SELECT id FROM campaigns WHERE name='Vietnam Ticket Achievers'", args: [] });
