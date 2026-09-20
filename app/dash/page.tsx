@@ -46,8 +46,23 @@ export default function DashHome() {
   const [fresh, setFresh] = useState<{ campaign_id?: string; name?: string }[]>([]);
 
   useEffect(() => {
-    fetch("/api/me").then(async (r) => {
+    let cancelled = false;
+    async function loadMe(retried = false): Promise<void> {
+      let r: Response;
+      try {
+        r = await fetch("/api/me");
+      } catch {
+        if (!retried && !cancelled) { setTimeout(() => loadMe(true), 1500); return; }
+        window.location.href = "/login";
+        return;
+      }
       if (r.status === 401) {
+        // One retry: a cold server can drop the first request right after login.
+        if (!retried && !cancelled) {
+          await new Promise((res) => setTimeout(res, 1200));
+          if (!cancelled) await loadMe(true);
+          return;
+        }
         window.location.href = "/login";
         return;
       }
@@ -59,10 +74,12 @@ export default function DashHome() {
         return;
       }
       setData(j);
-    });
+    }
+    loadMe();
     fetch("/api/campaigns").then((r) => r.json()).then((j) => {
       if (j.ok && j.fresh) setFresh(j.fresh);
     });
+    return () => { cancelled = true; };
   }, [router]);
 
   const name = data?.user?.name || "...";

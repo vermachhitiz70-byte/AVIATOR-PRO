@@ -16,13 +16,29 @@ export async function verifyPassword(pw: string, hash: string) {
   return bcrypt.compare(pw, hash);
 }
 
-export async function createSession(userId: string) {
+// Session cookie must survive apex<->www hops: on the custom domain we scope
+// it to `.aviatorsmartai.com` (shared by apex + www). Preview/local hosts
+// keep a host-only cookie (browsers reject foreign Domain values).
+function cookieOpts(host?: string | null) {
+  const h = (host || "").split(":")[0].toLowerCase();
+  const shared = h === "aviatorsmartai.com" || h.endsWith(".aviatorsmartai.com");
+  return {
+    httpOnly: true,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    ...(shared ? { domain: ".aviatorsmartai.com" } : {}),
+  };
+}
+
+export async function createSession(userId: string, host?: string | null) {
   const token = await new SignJWT({ uid: userId }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("30d").sign(secret());
-  (await cookies()).set(COOKIE, token, { httpOnly: true, path: "/", maxAge: 60 * 60 * 24 * 30, sameSite: "lax" });
+  (await cookies()).set(COOKIE, token, cookieOpts(host));
   return token;
 }
-export async function destroySession() {
-  (await cookies()).delete(COOKIE);
+export async function destroySession(host?: string | null) {
+  (await cookies()).set(COOKIE, "", { ...cookieOpts(host), maxAge: 0 });
 }
 export async function currentUser() {
   try {

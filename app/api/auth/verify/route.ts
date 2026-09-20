@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   if (!r.rows.length) return NextResponse.json({ ok: false, error: "Account not found" }, { status: 404 });
   const u = r.rows[0] as unknown as { id: string; name: string; otp_code: string; otp_expiry: string; is_active: number };
   if (u.is_active) {
-    await createSession(u.id);
+    await createSession(u.id, req.headers.get("host"));
     return NextResponse.json({ ok: true, already: true });
   }
   if (!u.otp_code || u.otp_code !== String(otp)) return NextResponse.json({ ok: false, error: "Invalid OTP" }, { status: 400 });
@@ -28,6 +28,6 @@ export async function POST(req: NextRequest) {
   } catch {
     await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "registration", `Credentials email skipped (SMTP not configured) for ${email}`] });
   }
-  await createSession(u.id);
+  await createSession(u.id, req.headers.get("host"));
   return NextResponse.json({ ok: true, needsActivation: true });
 }
