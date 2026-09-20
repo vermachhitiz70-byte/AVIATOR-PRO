@@ -27,5 +27,5 @@ export async function POST(req: NextRequest) {
       needsActivation = bot.rows.length === 0;
     }
   }
-  return NextResponse.json({ ok: true, is_admin: !!u.is_admin, userId: u.id, needsActivation });
+  return NextResponse.json({ ok: true, is_admin: !!u.is_admin, userId: u.id, needsActivation, sess: 2 });
 }

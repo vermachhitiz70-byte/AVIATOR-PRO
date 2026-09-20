@@ -3,7 +3,8 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
 import { getDb, initDb } from "./db";
 
-const COOKIE = "av_session";
+const COOKIE = "av_session2";
+const LEGACY_COOKIE = "av_session";
 
 function secret() {
   return new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me-please-long");
@@ -35,37 +36,42 @@ function cookieOpts(host?: string | null) {
 export async function createSession(userId: string, host?: string | null) {
   const token = await new SignJWT({ uid: userId }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("30d").sign(secret());
   const jar = await cookies();
-  // Kill any legacy host-only cookie first (a stale one would otherwise shadow
-  // the fresh domain cookie — browsers send oldest first and we must not read it).
-  jar.set(COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+  // Best-effort cleanup of every legacy cookie tuple (host-only + domain).
+  jar.set(LEGACY_COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+  jar.set(LEGACY_COOKIE, "", { ...cookieOpts(host), maxAge: 0 });
   jar.set(COOKIE, token, cookieOpts(host));
   return token;
 }
 export async function destroySession(host?: string | null) {
   const jar = await cookies();
-  // Clear BOTH variants (legacy host-only + domain-scoped), else one survives.
-  jar.set(COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
   jar.set(COOKIE, "", { ...cookieOpts(host), maxAge: 0 });
+  jar.set(LEGACY_COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+  jar.set(LEGACY_COOKIE, "", { ...cookieOpts(host), maxAge: 0 });
 }
 
-// Read EVERY av_session cookie the browser sent (there can be two: a stale
-// host-only one plus the fresh domain one). cookies().get() returns only the
-// first — which is the oldest, i.e. usually the stale one. We parse raw.
+// Read EVERY session cookie the browser sent. Name rotation (av_session ->
+// av_session2) already strands stale jars, but we ALSO parse raw: browsers can
+// send duplicate names (stale host-only + fresh domain), and cookies().get()
+// returns only the first (oldest = stalest). Fresh name first, legacy fallback.
 async function readTokens(): Promise<string[]> {
   const out: string[] = [];
-  try {
-    const raw = (await headers()).get("cookie") || "";
+  const pushName = (raw: string, name: string) => {
     for (const part of raw.split(";")) {
       const i = part.indexOf("=");
       if (i < 0) continue;
-      if (part.slice(0, i).trim() === COOKIE) {
+      if (part.slice(0, i).trim() === name) {
         try { out.push(decodeURIComponent(part.slice(i + 1).trim())); } catch { /* skip malformed */ }
       }
     }
+  };
+  try {
+    const raw = (await headers()).get("cookie") || "";
+    pushName(raw, COOKIE);
+    pushName(raw, LEGACY_COOKIE);
   } catch { /* ignore */ }
   if (!out.length) {
     try {
-      const v = (await cookies()).get(COOKIE)?.value;
+      const v = (await cookies()).get(COOKIE)?.value || (await cookies()).get(LEGACY_COOKIE)?.value;
       if (v) out.push(v);
     } catch { /* ignore */ }
   }
