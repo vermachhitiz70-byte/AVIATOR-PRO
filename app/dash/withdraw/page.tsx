@@ -35,8 +35,11 @@ export default function Withdraw() {
     const r = await fetch("/api/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount), wallet }) });
     const j = await r.json();
     if (!j.ok && String(j.error || "").includes("8:00")) { setShowClosed(true); setMsg(""); return; }
-    setMsg(j.ok ? `Submitted from ${WALLET_LABELS[wallet]}. Debit ${j.debit}, Charge ${j.charge}, Net $${j.net}` : j.error);
-    if (j.ok) load();
+    if (j.ok) {
+      await load();
+      const left = await fetch("/api/withdraw").then((x) => x.json()).then((k) => (k.ok ? Number(k.balances?.[wallet] ?? 0) : null)).catch(() => null);
+      setMsg(`Submitted from ${WALLET_LABELS[wallet]}. Debit ${j.debit}, Charge ${j.charge}, Net $${j.net}${left !== null ? ` · Remaining ${WALLET_LABELS[wallet]} balance: $${left.toFixed(2)}` : ""}`);
+    } else setMsg(j.error);
   }
   return (
     <div className="space-y-3">

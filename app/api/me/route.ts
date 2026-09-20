@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getDb, initDb } from "@/lib/db";
-import { teamCounts, walletOf } from "@/lib/mlm";
+import { cappedExtras, teamCounts, walletOf } from "@/lib/mlm";
+import { BOT_PLANS, planForAmount } from "@/lib/config";
 
 // PRD 3.2 dashboard: wallets, active bot, today's earnings, totals, team stats, recent tx
 export async function GET() {
@@ -12,7 +13,18 @@ export async function GET() {
   const w = await walletOf(uid);
   const db = getDb();
   const b = await db.execute({ sql: "SELECT * FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC LIMIT 1", args: [uid] });
-  const ball = await db.execute({ sql: "SELECT id,plan,amount,daily_pct,total_earned,expiry_date,status FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC", args: [uid] });
+  const ball = await db.execute({ sql: "SELECT id,plan,amount,daily_pct,total_earned,expiry_date,start_date,status FROM bots WHERE user_id=? AND status IN ('active','capped') ORDER BY rowid DESC", args: [uid] });
+  // Capping meter: cap = amount x tier multiplier; used = direct ROI + rewards
+  // (level/direct never count). Left = room before ALL incomes stop.
+  const capBots = [];
+  for (const r of ball.rows as unknown as { id: string; plan: string; amount: number; daily_pct: number; total_earned: number; expiry_date: string; start_date: string; status: string }[]) {
+    const amt = Number(r.amount);
+    const tier = BOT_PLANS.find((p) => p.name === r.plan) || planForAmount(amt);
+    const mult = tier ? tier.multiplier : 2;
+    const cap = amt * mult;
+    const used = Number(r.total_earned ?? 0) + (await cappedExtras(uid, (r.start_date || "").slice(0, 10) || "1970-01-01"));
+    capBots.push({ ...r, cap: Math.round(cap * 100) / 100, capUsed: Math.round(used * 100) / 100, capLeft: Math.max(0, Math.round((cap - used) * 100) / 100) });
+  }
   const bots = await db.execute({ sql: "SELECT COUNT(*) as c, COALESCE(SUM(amount),0) as t FROM bots WHERE user_id=? AND status='active'", args: [uid] });
   const inv = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [uid] });
   const wd = await db.execute({ sql: "SELECT COALESCE(SUM(net),0) as t FROM withdrawals WHERE user_id=? AND status IN ('pending','approved')", args: [uid] });
@@ -31,7 +43,7 @@ export async function GET() {
     wallet: w,
     available: total,
     activeBot: active,
-    bots: ball.rows,
+    bots: capBots,
     activeBots: Number(bAgg.c),
     activeInvestment: Number(bAgg.t),
     totalInvestment: Number((inv.rows[0] as unknown as { t: number }).t),

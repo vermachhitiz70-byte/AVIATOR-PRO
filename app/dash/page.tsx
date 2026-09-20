@@ -144,6 +144,7 @@ export default function DashHome() {
       </div>
       <EarningsStrip />
       <WalletCards />
+      <CappingMeter />
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div className="av-card p-3">
           <p className="text-slate-400">Total Investment</p>
@@ -189,6 +190,38 @@ function EarningsStrip() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function CappingMeter() {
+  const [bots, setBots] = useState<{ id?: string; plan?: string; amount?: number; cap?: number; capUsed?: number; capLeft?: number; status?: string }[]>([]);
+  useEffect(() => {
+    fetch("/api/me").then((x) => x.json()).then((j) => { if (j.ok) setBots(j.bots || (j.activeBot ? [j.activeBot] : [])); }).catch(() => {});
+  }, []);
+  if (!bots.length) return null;
+  return (
+    <div className="av-card space-y-2.5 p-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Capping — bot income + rewards count · full = all incomes stop</p>
+      {bots.map((b, i) => {
+        const cap = num(b.cap);
+        const used = num(b.capUsed);
+        const left = num(b.capLeft);
+        const pct = cap > 0 ? Math.min(100, (used / cap) * 100) : 0;
+        const full = b.status === "capped" || (cap > 0 && left <= 0);
+        return (
+          <div key={b.id || i} className="rounded-xl bg-black/40 p-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold">Bot #{i + 1} · {String(b.plan)} ${num(b.amount).toFixed(0)}</span>
+              {full ? <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-black text-red-300">FULL — incomes stopped</span>
+                : <span className="text-slate-300">Cap ${cap.toFixed(0)} · Earned ${used.toFixed(2)} · <b className="text-emerald-300">Left ${left.toFixed(2)}</b></span>}
+            </div>
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/10">
+              <div className={`h-full rounded-full transition-all ${full ? "bg-red-400" : "bg-gradient-to-r from-yellow-300 to-emerald-300"}`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

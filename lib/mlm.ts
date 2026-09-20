@@ -35,10 +35,23 @@ export async function uplineOf(userId: string, maxLevels: number) {
   return chain;
 }
 
+// Client rule: incomes flow ONLY to users holding an active (uncapped) bot.
+// Capped/expired/bot-less users earn nothing until they start a new bot.
+// Missed income is lost forever (no backpay) — fresh earnings only.
+export async function activeBotIds(userIds: string[]): Promise<Set<string>> {
+  if (!userIds.length) return new Set();
+  const db = getDb();
+  const ph = userIds.map(() => "?").join(",");
+  const r = await db.execute({ sql: `SELECT DISTINCT user_id FROM bots WHERE user_id IN (${ph}) AND status='active'`, args: userIds });
+  return new Set((r.rows as unknown as { user_id: string }[]).map((x) => x.user_id));
+}
+
 export async function creditFirstRecharge(newUserId: string, amount: number) {
   const db = getDb();
   const chain = await uplineOf(newUserId, 5);
+  const live = await activeBotIds(chain.map((c) => c.id));
   for (let i = 0; i < chain.length; i++) {
+    if (!live.has(chain[i].id)) continue;
     const pct = FIRST_RECHARGE_LEVELS[i];
     const amt = (amount * pct) / 100;
     if (amt <= 0) continue;
@@ -54,7 +67,9 @@ export async function creditFirstRecharge(newUserId: string, amount: number) {
 export async function creditRoiLevels(earnerId: string, roiAmount: number) {
   const db = getDb();
   const chain = await uplineOf(earnerId, 10);
+  const live = await activeBotIds(chain.map((c) => c.id));
   for (let i = 0; i < chain.length; i++) {
+    if (!live.has(chain[i].id)) continue;
     const pct = ROI_LEVELS[i];
     const amt = (roiAmount * pct) / 100;
     if (amt <= 0) continue;

@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
   const m = MILESTONES.find((x) => x.tier === Number(tier));
   if (!m) return NextResponse.json({ ok: false, error: "Bad tier" }, { status: 400 });
   const db = getDb();
+  const live = await db.execute({ sql: "SELECT id FROM bots WHERE user_id=? AND status='active' LIMIT 1", args: [u.id as string] });
+  if (!live.rows.length) return NextResponse.json({ ok: false, error: "Start an active bot first — rewards need one" }, { status: 400 });
   const done = await db.execute({ sql: "SELECT id FROM reward_claims WHERE user_id=? AND tier=?", args: [u.id as string, m.tier] });
   if (done.rows.length) return NextResponse.json({ ok: false, error: "Already claimed" }, { status: 400 });
   const { self, direct } = await directBusiness(u.id as string);
