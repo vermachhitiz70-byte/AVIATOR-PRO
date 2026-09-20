@@ -39,6 +39,8 @@ export async function GET() {
     S("SELECT d.id,d.user_id,d.request_id,d.actual,d.status,d.created_at,u.name,u.email FROM deposits d JOIN users u ON d.user_id=u.id ORDER BY d.rowid DESC LIMIT 6"),
     S("SELECT w.id,w.user_id,w.net,w.status,w.created_at,u.name,u.email FROM withdrawals w JOIN users u ON w.user_id=u.id ORDER BY w.rowid DESC LIMIT 6"),
     S("SELECT d.id,d.user_id,d.request_id,d.requested,d.actual,d.created_at,u.name,u.email FROM deposits d JOIN users u ON d.user_id=u.id WHERE d.status='pending' ORDER BY d.rowid DESC LIMIT 5"),
+    S("SELECT value FROM settings WHERE key='lastCronRun'"),
+    S("SELECT MAX(created_at) as lastSeen FROM ledger WHERE kind='daily_roi'"),
   ];
   const R = await db.batch(stmts);
   const daily = days.map((iso, i) => ({
@@ -67,5 +69,13 @@ export async function GET() {
     investmentTrendPct: pct(num(R[27], "t"), num(R[28], "t")),
     recentDeposits: R[29].rows,
     recentWithdrawals: R[30].rows,
+    cronHealth: (() => {
+      try {
+        const raw = (R[32].rows[0] as unknown as { value: string } | undefined)?.value;
+        if (raw) return { ...JSON.parse(raw), source: "reported" };
+      } catch { /* fall through to fallback */ }
+      const lastSeen = (R[33].rows[0] as unknown as { lastSeen: string } | undefined)?.lastSeen || null;
+      return lastSeen ? { at: lastSeen, date: String(lastSeen).slice(0, 10), paid: null, credited: null, skipped: null, capped: null, expired: null, source: "ledger-fallback" } : null;
+    })(),
   });
 }

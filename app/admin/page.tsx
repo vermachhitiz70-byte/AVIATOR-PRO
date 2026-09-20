@@ -25,6 +25,7 @@ type Overview = {
   investmentTrendPct: number;
   recentDeposits: Record<string, unknown>[];
   recentWithdrawals: Record<string, unknown>[];
+  cronHealth?: { at?: string; date?: string; paid?: number | null; credited?: number | null; skipped?: number | null; capped?: number | null; expired?: number | null; source?: string } | null;
 };
 
 type ActivityRow = { id: string; kind: string; message: string; created_at: string };
@@ -81,6 +82,8 @@ export default function AdminDashboard() {
         <StatCard title="Pending Deposits" value={pdCount} icon={ArrowDownToLine} tint="orange" trend={pdCount > 0 ? `${pdCount} to review` : "Clear"} />
         <StatCard title="Pending Withdrawals" value={pwCount} icon={ArrowUpFromLine} tint="purple" trend={pwCount > 0 ? `${pwCount} to review` : "Clear"} />
       </div>
+
+      <CronHealthCard health={data?.cronHealth ?? null} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className={`${CARD} p-5`}>
@@ -185,6 +188,35 @@ export default function AdminDashboard() {
           </table>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CronHealthCard({ health }: { health: { at?: string; date?: string; paid?: number | null; credited?: number | null; skipped?: number | null; capped?: number | null; expired?: number | null; source?: string } | null }) {
+  if (!health?.at) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <p className="text-sm font-bold text-gray-700">🌙 5 AM ROI Job — no record yet</p>
+        <p className="mt-1 text-xs text-gray-500">Next scheduled run credits daily ROI to all active bots. Status will appear here after the first run.</p>
+      </div>
+    );
+  }
+  const ageH = (Date.now() - new Date(health.at).getTime()) / 3600000;
+  const ok = ageH < 26;
+  const when = new Date(health.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  return (
+    <div className={`rounded-2xl border p-4 ${ok ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className={`text-sm font-black ${ok ? "text-green-800" : "text-red-700"}`}>
+          {ok ? "✅" : "🔴"} 5 AM ROI Job — {ok ? `ran ${when} IST` : `STALE since ${when} IST`}
+        </p>
+        {health.source === "ledger-fallback" && <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-bold text-gray-600">last seen in ledger</span>}
+      </div>
+      {health.paid !== null && health.paid !== undefined && (
+        <p className="mt-1 text-xs text-gray-600">
+          Day {health.date} · <b>{health.paid}</b> bots paid · <b>${Number(health.credited ?? 0).toFixed(2)}</b> credited · skipped {health.skipped ?? 0} · capped {health.capped ?? 0} · expired {health.expired ?? 0}
+        </p>
+      )}
     </div>
   );
 }

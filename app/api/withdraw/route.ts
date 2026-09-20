@@ -9,7 +9,7 @@ export async function GET() {
   if (!u) return NextResponse.json({ ok: false }, { status: 401 });
   const db = getDb();
   const settings = await getSettings();
-  const r = await db.execute({ sql: "SELECT usd,debit,charge,net,status,created_at FROM withdrawals WHERE user_id=? ORDER BY rowid DESC LIMIT 20", args: [u.id as string] });
+  const r = await db.execute({ sql: "SELECT usd,debit,charge,net,status,payout_tx,created_at FROM withdrawals WHERE user_id=? ORDER BY rowid DESC LIMIT 20", args: [u.id as string] });
   const w = await walletOf(u.id as string);
   // Withdrawable = earning wallets only (deposit/principal wallet is locked).
   const balances = { roi: Number(w.roi), commission: Number(w.commission), reward: Number(w.reward) };

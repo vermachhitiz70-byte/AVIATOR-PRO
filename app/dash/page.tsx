@@ -90,6 +90,7 @@ export default function DashHome() {
 
   return (
     <div className="space-y-3">
+      <AnnounceBanner />
       <LiveToasts items={toasts} />
       <FakeNotifications />
       {fresh.map((f) => (
@@ -201,6 +202,37 @@ function WalletCards() {
           <p className="text-slate-400">{w.label} {!w.withdrawable && <span title={w.desc}>🔒</span>}</p>
           <p className="font-bold">${num(w.balance).toFixed(2)}</p>
           <p className="text-[11px] text-slate-500">Lifetime +${num(w.lifetimeInflow).toFixed(2)}{!w.withdrawable && " · locked"}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AnnounceBanner() {
+  const [rows, setRows] = useState<{ id: string; title: string; message: string }[]>([]);
+  const [hidden, setHidden] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("av_hide_ann") || "[]"); } catch { return []; }
+  });
+  useEffect(() => {
+    fetch("/api/announcements").then((x) => x.json()).then((j) => { if (j.ok) setRows(j.rows || []); }).catch(() => {});
+  }, []);
+  function hide(id: string) {
+    const next = [...hidden, id];
+    setHidden(next);
+    try { localStorage.setItem("av_hide_ann", JSON.stringify(next)); } catch { /* ignore */ }
+  }
+  const vis = rows.filter((r) => !hidden.includes(String(r.id)));
+  if (!vis.length) return null;
+  return (
+    <div className="space-y-2">
+      {vis.map((a) => (
+        <div key={a.id} className="av-card flex items-start gap-2 border-yellow-300/40 p-3">
+          <span className="text-lg">📢</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black text-yellow-200">{a.title}</p>
+            <p className="text-xs text-slate-300">{a.message}</p>
+          </div>
+          <button onClick={() => hide(String(a.id))} aria-label="Dismiss" className="shrink-0 rounded-lg px-2 py-1 text-slate-400 hover:bg-white/10 hover:text-white">✕</button>
         </div>
       ))}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { DataTable, Modal, ConfirmDialog } from "@/components/admin";
+import { DataTable, Modal } from "@/components/admin";
 import { BTN_RED, CARD, INPUT, LABEL, fmtDate, fmtUSD, pill } from "@/components/admin/ui";
 import { Search, Check, X, Info } from "lucide-react";
 
@@ -26,7 +26,9 @@ export default function AdminWithdrawalsPage() {
   const [remark, setRemark] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [approveId, setApproveId] = useState<string | null>(null);
+  const [payoutTx, setPayoutTx] = useState("");
 
   const fetchData = useCallback(async () => {
     setError("");
@@ -62,6 +64,12 @@ export default function AdminWithdrawalsPage() {
   }
 
   function openReject(id: string) { setActiveId(id); setRemark(""); setRejectOpen(true); }
+  function openApprove(id: string) { setApproveId(id); setPayoutTx(""); setApproveOpen(true); }
+  async function submitApprove() {
+    if (!approveId) return;
+    await postAction({ id: approveId, action: "approve", payout_tx: payoutTx.trim() });
+    setApproveOpen(false);
+  }
   async function submitReject() {
     if (!activeId) return;
     await postAction({ id: activeId, action: "reject", remark });
@@ -78,13 +86,14 @@ export default function AdminWithdrawalsPage() {
     { key: "charge", label: "Charge", render: (r: WithdrawalRow) => <span className="text-red-500">{fmtUSD(r.charge)}</span> },
     { key: "net", label: "Net Payout", render: (r: WithdrawalRow) => <span className="font-bold text-green-700">{fmtUSD(r.net)}</span> },
     { key: "address", label: "Wallet Address", render: (r: WithdrawalRow) => <span className="font-mono text-xs text-gray-500">{String(r.address ?? "-").slice(0, 20) || "-"}</span> },
+    { key: "payout_tx", label: "Payout TX", render: (r: WithdrawalRow) => (r.payout_tx ? <span title={String(r.payout_tx)} className="font-mono text-xs text-green-700">{String(r.payout_tx).slice(0, 12)}…</span> : <span className="text-xs text-gray-300">—</span>) },
     { key: "status", label: "Status", render: (r: WithdrawalRow) => pill(r.status) },
     { key: "created_at", label: "Date", render: (r: WithdrawalRow) => <span className="text-xs text-gray-500">{fmtDate(r.created_at)}</span> },
     { key: "actions", label: "Actions", render: (r: WithdrawalRow) => {
       if (String(r.status) !== "pending") return <span className="text-xs text-gray-400">—</span>;
       return (
         <div className="flex gap-1.5">
-          <button onClick={() => setConfirmId(String(r.id))} title="Approve & mark paid" className="rounded-lg bg-green-100 p-1.5 text-green-700 hover:bg-green-200"><Check className="h-3.5 w-3.5" /></button>
+          <button onClick={() => openApprove(String(r.id))} title="Approve & mark paid" className="rounded-lg bg-green-100 p-1.5 text-green-700 hover:bg-green-200"><Check className="h-3.5 w-3.5" /></button>
           <button onClick={() => openReject(String(r.id))} title="Reject & refund" className="rounded-lg bg-red-100 p-1.5 text-red-600 hover:bg-red-200"><X className="h-3.5 w-3.5" /></button>
         </div>
       );
@@ -143,9 +152,15 @@ export default function AdminWithdrawalsPage() {
         </div>
       </Modal>
 
-      <ConfirmDialog isOpen={!!confirmId} onClose={() => setConfirmId(null)}
-        onConfirm={async () => { if (confirmId) { await postAction({ id: confirmId, action: "approve" }); setConfirmId(null); } }}
-        title="Mark as Paid" message="Confirm you have sent this payout to the user's wallet address." confirmText="Approve & Mark Paid" />
+      <Modal isOpen={approveOpen} onClose={() => setApproveOpen(false)} title="Approve & Mark Paid">
+        <div className="space-y-4">
+          <div className="rounded-xl bg-green-50 p-3 text-xs text-green-800">Pehle user ke wallet address par payout bhejo, phir uska TX hash neeche dalo — yehi proof rahega.</div>
+          <div><label className={LABEL}>Payout TX hash (proof)</label>
+            <input value={payoutTx} onChange={(e) => setPayoutTx(e.target.value)} placeholder="e.g. 0x…" className={INPUT} /></div>
+          <button onClick={submitApprove} disabled={submitting || !payoutTx.trim()} className="w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-50">{submitting ? "Processing…" : "Approve & Mark Paid"}</button>
+        </div>
+      </Modal>
+
     </div>
   );
 }

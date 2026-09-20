@@ -23,7 +23,7 @@ async function migrate(db: Client, sql: string) {
 // Schema version: bump when migrateAll() changes. The DB stores its version in
 // meta; matching versions skip ALL migrations (1 roundtrip). Without this gate
 // every serverless cold start replayed ~20 migration statements (~5s cross-region).
-const SCHEMA_VERSION = "6";
+const SCHEMA_VERSION = "7";
 
 // Cached per server instance: concurrent requests share one migration run,
 // warm instances skip it entirely.
@@ -233,6 +233,14 @@ async function migrateAll(): Promise<void> {
   ]);
   // Step 2 (sequential, AFTER dedupe): one row per user+tier, forever
   await migrate(db, "CREATE UNIQUE INDEX idx_claim_once ON reward_claims(user_id,tier)");
+  await db.execute(`CREATE TABLE IF NOT EXISTS announcements (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now'))
+  )`);
+  await migrate(db, "ALTER TABLE withdrawals ADD COLUMN payout_tx TEXT DEFAULT ''");
   // Seeds (run once ever — guarded by existence checks)
   const camp = await db.execute({ sql: "SELECT id FROM campaigns WHERE name='Vietnam Ticket Achievers'", args: [] });
   if (camp.rows.length === 0) {

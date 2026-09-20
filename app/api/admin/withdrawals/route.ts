@@ -34,10 +34,10 @@ export async function POST(req: NextRequest) {
   if (error) return error;
   const body = await req.json();
   const db = getDb();
-  const { id, action, remark } = body;
+  const { id, action, remark, payout_tx } = body;
 
   if (action === "approve") {
-    await db.execute("UPDATE withdrawals SET status='approved', admin_remark=? WHERE id=?", [remark || "", id]);
+    await db.execute("UPDATE withdrawals SET status='approved', admin_remark=?, payout_tx=? WHERE id=?", [remark || "", String(payout_tx || ""), id]);
     return NextResponse.json({ ok: true });
   }
   if (action === "reject") {

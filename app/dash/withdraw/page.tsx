@@ -8,7 +8,7 @@ export default function Withdraw() {
   const [address, setAddress] = useState("");
   const [wallet, setWallet] = useState("commission");
   const [msg, setMsg] = useState("");
-  const [rows, setRows] = useState<{ usd?: number; debit?: number; charge?: number; net?: number; status?: string; source_wallet?: string }[]>([]);
+  const [rows, setRows] = useState<{ usd?: number; debit?: number; charge?: number; net?: number; status?: string; source_wallet?: string; payout_tx?: string }[]>([]);
   const [balances, setBalances] = useState<Record<string, number>>({ roi: 0, commission: 0, reward: 0 });
   const [minW, setMinW] = useState(2);
   const [maxW, setMaxW] = useState(25000);
@@ -58,7 +58,7 @@ export default function Withdraw() {
         {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
       </div>
       <div className="av-card p-4">
-        <table className="av-table"><thead><tr><th>USD</th><th>Wallet</th><th>Wallet Debit</th><th>Charge</th><th>Net USDT</th><th>Status</th></tr></thead><tbody>{rows.map((r, i) => (<tr key={i}><td>${Number(r.usd).toFixed(2)}</td><td>{String(r.source_wallet || "-")}</td><td>{Number(r.debit).toFixed(2)}</td><td>{Number(r.charge).toFixed(2)}</td><td>${Number(r.net).toFixed(2)}</td><td>{r.status}</td></tr>))}</tbody></table>
+        <table className="av-table"><thead><tr><th>USD</th><th>Wallet</th><th>Wallet Debit</th><th>Charge</th><th>Net USDT</th><th>Status</th><th>Payout TX</th></tr></thead><tbody>{rows.map((r, i) => (<tr key={i}><td>${Number(r.usd).toFixed(2)}</td><td>{String(r.source_wallet || "-")}</td><td>{Number(r.debit).toFixed(2)}</td><td>{Number(r.charge).toFixed(2)}</td><td>${Number(r.net).toFixed(2)}</td><td>{r.status}</td><td className="font-mono text-[11px]">{r.payout_tx ? String(r.payout_tx).slice(0, 10) + "…" : "—"}</td></tr>))}</tbody></table>
       </div>
       {showClosed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowClosed(false)}>
