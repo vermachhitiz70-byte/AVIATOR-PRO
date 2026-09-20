@@ -79,7 +79,13 @@ async function readTokens(): Promise<string[]> {
 }
 export async function currentUser() {
   try {
-    await initDb();
+    try {
+      await initDb();
+    } catch {
+      // One retry: a cold-start Turso blip must NEVER log a user out.
+      await new Promise((r) => setTimeout(r, 800));
+      await initDb();
+    }
     const tokens = await readTokens();
     if (!tokens.length) return null;
     const db = getDb();

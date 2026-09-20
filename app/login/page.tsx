@@ -28,6 +28,20 @@ export default function Login() {
     router.push(j.needsActivation ? "/activate" : "/dash");
   }
 
+  // After a successful login, confirm the session cookie actually stuck
+  // before leaving the page. If the browser blocks cookies (incognito /
+  // privacy mode), pushing would just bounce back to /login looking broken.
+  async function confirmSession(): Promise<boolean> {
+    for (let i = 0; i < 2; i++) {
+      try {
+        const r = await fetch("/api/me");
+        if (r.ok) return true;
+      } catch { /* retry once */ }
+      await new Promise((res) => setTimeout(res, 1000));
+    }
+    return false;
+  }
+
   async function handleSignIn() {
     if (!email || !password) {
       setError("Please enter both email/mobile and password.");
@@ -46,6 +60,12 @@ export default function Login() {
           setError(j.error || "Login failed. Please try again.");
           return;
         }
+        setError("Login ok — confirming session, please wait...");
+        if (!(await confirmSession())) {
+          setError("Login succeeded but the session did not save in this browser. Please enable cookies (turn off incognito / private mode) and try again.");
+          return;
+        }
+        setError("");
         goNext(j);
         return;
       } catch (e) {
@@ -64,6 +84,12 @@ export default function Login() {
           setError(j.error || "Login failed. Please try again.");
           return;
         }
+        setError("Login ok — confirming session, please wait...");
+        if (!(await confirmSession())) {
+          setError("Login succeeded but the session did not save in this browser. Please enable cookies (turn off incognito / private mode) and try again.");
+          return;
+        }
+        setError("");
         goNext(j);
       } catch {
         clearTimeout(t2);

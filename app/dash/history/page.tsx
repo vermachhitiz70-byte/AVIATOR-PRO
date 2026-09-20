@@ -24,11 +24,26 @@ export default function History() {
   const [showAll, setShowAll] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  async function load() {
+  async function load(retried = false): Promise<void> {
     setFailed(false);
+    let r: Response;
     try {
-      const r = await fetch("/api/history");
-      if (r.status === 401) { window.location.href = "/login"; return; }
+      r = await fetch("/api/history");
+    } catch {
+      if (!retried) { setTimeout(() => load(true), 1500); return; }
+      setFailed(true);
+      return;
+    }
+    if (r.status === 401) {
+      if (!retried) {
+        await new Promise((res) => setTimeout(res, 1200));
+        await load(true);
+        return;
+      }
+      window.location.href = "/login";
+      return;
+    }
+    try {
       const j = await r.json();
       if (j.ok) { setEvents(j.events || []); setSummary(j.summary); }
       else setFailed(true);
