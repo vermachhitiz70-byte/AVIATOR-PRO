@@ -114,6 +114,18 @@ const SECTION_TITLES: Record<string, string> = {
 
 export function DashSidebar() {
   const pathname = usePathname();
+  const [refCode, setRefCode] = useState("");
+  const [copied, setCopied] = useState("");
+  useEffect(() => {
+    fetch("/api/me").then((r) => r.json()).then((j) => { if (j.ok) setRefCode(String(j.user?.referral_code || "")); }).catch(() => {});
+  }, []);
+  const refLink = typeof window !== "undefined" && refCode ? `${window.location.origin}/register?ref=${refCode}` : "";
+  async function copy(what: "code" | "link") {
+    const { copyText } = await import("@/lib/copy");
+    const ok = await copyText(what === "code" ? refCode : refLink);
+    setCopied(ok ? (what === "code" ? "Code copied ✓" : "Link copied ✓") : "Copy failed — long-press to copy");
+    setTimeout(() => setCopied(""), 2000);
+  }
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-white/10 bg-[#0b1426] lg:flex">
       <div className="px-5 pb-2 pt-5">
@@ -135,6 +147,17 @@ export function DashSidebar() {
           );
         })}
       </nav>
+      {refCode && (
+        <div className="mx-3 mb-2 rounded-2xl border border-yellow-300/25 bg-yellow-300/5 p-3 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">My Referral Code</p>
+          <p className="mt-0.5 font-mono text-xl font-black text-yellow-300">{refCode}</p>
+          <div className="mt-2 flex gap-1.5">
+            <button onClick={() => copy("code")} className="flex-1 rounded-lg bg-yellow-300 px-2 py-1.5 text-xs font-black text-black hover:brightness-110">Copy Code</button>
+            <button onClick={() => copy("link")} className="flex-1 rounded-lg border border-yellow-300/40 px-2 py-1.5 text-xs font-bold text-yellow-200 hover:bg-yellow-300/10">Copy Link</button>
+          </div>
+          {copied && <p className="mt-1.5 text-[11px] font-bold text-emerald-300">{copied}</p>}
+        </div>
+      )}
       <div className="border-t border-white/10 p-3">
         <Link href="/api/auth/logout" className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white">
           <LogOut className="h-[18px] w-[18px]" /> Logout

@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
   if ((u as unknown as { is_blocked: number }).is_blocked) return NextResponse.json({ ok: false, error: "Account blocked" }, { status: 403 });
-  const { amount, address, wallet: walletChoice } = await req.json();
+  const { amount, wallet: walletChoice } = await req.json();
+  // Payout always goes to the saved profile BEP20 — never typed per request.
+  const address = String((u as unknown as { bep20_address: string }).bep20_address || "");
   const settings = await getSettings();
   const minW = Number(settings.minWithdrawal || 2);
   const maxW = Number(settings.maxWithdrawal || 25000);

@@ -142,6 +142,7 @@ export default function DashHome() {
           </div>
         </div>
       </div>
+      <ReferralStrip code={uid} />
       <div className="grid grid-cols-3 gap-2">
         {TILES.map((t) => (
           <Link key={t.label} href={t.href} className="av-card flex flex-col items-center py-4 text-sm font-semibold">
@@ -252,6 +253,29 @@ function AnnounceBanner() {
           <button onClick={() => hide(String(a.id))} aria-label="Dismiss" className="shrink-0 rounded-lg px-2 py-1 text-slate-400 hover:bg-white/10 hover:text-white">✕</button>
         </div>
       ))}
+    </div>
+  );
+}
+
+function ReferralStrip({ code }: { code: string }) {
+  const [copied, setCopied] = useState("");
+  if (!code) return null;
+  const link = typeof window !== "undefined" ? `${window.location.origin}/register?ref=${code}` : "";
+  async function copy(what: "code" | "link") {
+    const { copyText } = await import("@/lib/copy");
+    const ok = await copyText(what === "code" ? code : link);
+    setCopied(ok ? "Copied ✓ — send it to anyone" : "Copy failed — long-press the code to copy");
+    setTimeout(() => setCopied(""), 2500);
+  }
+  return (
+    <div className="av-card flex flex-wrap items-center gap-3 p-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">My Referral Code</p>
+        <p className="truncate font-mono text-lg font-black text-yellow-300">{code}</p>
+      </div>
+      <button onClick={() => copy("code")} className="shrink-0 rounded-lg bg-yellow-300 px-3 py-2 text-xs font-black text-black">Copy Code</button>
+      <button onClick={() => copy("link")} className="shrink-0 rounded-lg border border-white/20 px-3 py-2 text-xs font-bold">Copy Link</button>
+      {copied && <p className="w-full text-xs font-bold text-emerald-300">{copied}</p>}
     </div>
   );
 }

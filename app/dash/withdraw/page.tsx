@@ -5,7 +5,7 @@ const WALLET_LABELS: Record<string, string> = { roi: "Daily ROI Income", commiss
 
 export default function Withdraw() {
   const [amount, setAmount] = useState("10");
-  const [address, setAddress] = useState("");
+  const [savedAddr, setSavedAddr] = useState("");
   const [wallet, setWallet] = useState("commission");
   const [msg, setMsg] = useState("");
   const [rows, setRows] = useState<{ usd?: number; debit?: number; charge?: number; net?: number; status?: string; source_wallet?: string; payout_tx?: string }[]>([]);
@@ -16,6 +16,7 @@ export default function Withdraw() {
   const [winNow, setWinNow] = useState("");
   const [showClosed, setShowClosed] = useState(false);
   async function load() {
+    fetch("/api/me").then((r) => r.json()).then((m) => { if (m.ok) setSavedAddr(String(m.user?.bep20_address || "")); }).catch(() => {});
     const j = await fetch("/api/withdraw").then((r) => r.json());
     if (j.ok) {
       setRows(j.rows); setBalances(j.balances || { roi: 0, commission: 0, reward: 0 });
@@ -29,8 +30,9 @@ export default function Withdraw() {
     e.preventDefault();
     // Client rule: outside the window nothing goes to admin — just a popup.
     if (!winOk) { setShowClosed(true); return; }
+    if (!savedAddr) { setMsg("Save your BEP20 payout address in Profile first."); return; }
     setMsg("Submitting...");
-    const r = await fetch("/api/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount), address, wallet }) });
+    const r = await fetch("/api/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount), wallet }) });
     const j = await r.json();
     if (!j.ok && String(j.error || "").includes("8:00")) { setShowClosed(true); setMsg(""); return; }
     setMsg(j.ok ? `Submitted from ${WALLET_LABELS[wallet]}. Debit ${j.debit}, Charge ${j.charge}, Net $${j.net}` : j.error);
@@ -53,7 +55,11 @@ export default function Withdraw() {
         <label className="mt-3 block text-sm">Amount USD / USDT</label>
         <input className="av-input mt-1" value={amount} onChange={(e) => setAmount(e.target.value)} />
         <p className="mt-1 text-xs text-slate-400">Selected balance: ${selBal.toFixed(2)} (min ${minW}, max ${maxW.toLocaleString()}, 10% deduction, window 8–10 AM IST, 1/day)</p>
-        <input className="av-input mt-2" placeholder="Your BEP20 address" value={address} onChange={(e) => setAddress(e.target.value)} required />
+        <div className="mt-2 rounded-xl bg-black/40 px-3 py-2.5 text-xs">
+          <p className="text-slate-400">Payout goes automatically to your saved BEP20:</p>
+          <p className="mt-0.5 break-all font-mono font-bold text-yellow-300">{savedAddr || "— not saved yet —"}</p>
+          <a href="/dash/profile" className="mt-1 inline-block font-bold text-sky-300 underline">Set / change in Profile →</a>
+        </div>
         <button onClick={submit} className="av-btn-yellow mt-3 w-full py-3">Submit Crypto Withdrawal</button>
         {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
       </div>

@@ -47,7 +47,7 @@ export async function currentUser() {
     if (!token) return null;
     const { payload } = await jwtVerify(token, secret());
     const db = getDb();
-    const r = await db.execute({ sql: "SELECT id,name,mobile,email,country,referral_code,referred_by,root_referral,rank,is_admin,is_active,is_blocked,kyc_status,kyc_doc,bep20_address FROM users WHERE id=?", args: [payload.uid as string] });
+    const r = await db.execute({ sql: "SELECT id,name,first_name,last_name,mobile,email,country,referral_code,referred_by,root_referral,rank,is_admin,is_active,is_blocked,kyc_status,kyc_doc,bep20_address,aadhaar,pan,address FROM users WHERE id=?", args: [payload.uid as string] });
     if (r.rows.length === 0) return null;
     return r.rows[0] as unknown as Record<string, unknown>;
   } catch {

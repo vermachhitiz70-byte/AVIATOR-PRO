@@ -23,7 +23,7 @@ async function migrate(db: Client, sql: string) {
 // Schema version: bump when migrateAll() changes. The DB stores its version in
 // meta; matching versions skip ALL migrations (1 roundtrip). Without this gate
 // every serverless cold start replayed ~20 migration statements (~5s cross-region).
-const SCHEMA_VERSION = "7";
+const SCHEMA_VERSION = "8";
 
 // Cached per server instance: concurrent requests share one migration run,
 // warm instances skip it entirely.
@@ -241,6 +241,13 @@ async function migrateAll(): Promise<void> {
     created_at TEXT DEFAULT (datetime('now'))
   )`);
   await migrate(db, "ALTER TABLE withdrawals ADD COLUMN payout_tx TEXT DEFAULT ''");
+  // Full profile + KYC-data columns (text only, no images) + OTP-gated change drafts
+  await migrate(db, "ALTER TABLE users ADD COLUMN first_name TEXT DEFAULT ''");
+  await migrate(db, "ALTER TABLE users ADD COLUMN last_name TEXT DEFAULT ''");
+  await migrate(db, "ALTER TABLE users ADD COLUMN aadhaar TEXT DEFAULT ''");
+  await migrate(db, "ALTER TABLE users ADD COLUMN pan TEXT DEFAULT ''");
+  await migrate(db, "ALTER TABLE users ADD COLUMN address TEXT DEFAULT ''");
+  await migrate(db, "ALTER TABLE users ADD COLUMN profile_pending TEXT DEFAULT ''");
   // Seeds (run once ever — guarded by existence checks)
   const camp = await db.execute({ sql: "SELECT id FROM campaigns WHERE name='Vietnam Ticket Achievers'", args: [] });
   if (camp.rows.length === 0) {

@@ -21,6 +21,7 @@ function TreeNode({ n, depth }: { n: TNode; depth: number }) {
 export default function Team() {
   const [d, setD] = useState<{ referralCode?: string; direct?: number; teamTotal?: number; self?: number; team?: number; levels?: Level[]; tree?: TNode[] } | null>(null);
   const [link, setLink] = useState("");
+  const [copied, setCopied] = useState("");
   useEffect(() => {
     fetch("/api/team").then((r) => r.json()).then((j) => {
       if (j.ok) {
@@ -29,13 +30,24 @@ export default function Team() {
       }
     });
   }, []);
+  async function copy(what: "code" | "link") {
+    const { copyText } = await import("@/lib/copy");
+    const ok = await copyText(what === "code" ? String(d?.referralCode || "") : link);
+    setCopied(ok ? (what === "code" ? "Code copied ✓" : "Link copied ✓") : "Copy failed — long-press the text to copy");
+    setTimeout(() => setCopied(""), 2500);
+  }
   return (
     <div className="space-y-3">
       <div className="av-card p-4 text-center">
         <h2 className="font-black">My Network</h2>
+        {d?.referralCode && <p className="mt-1 font-mono text-2xl font-black text-yellow-300">{d.referralCode}</p>}
         <p className="mt-1 break-all text-xs text-yellow-300">{link}</p>
         <div className="mt-2 flex justify-center bg-white p-2 rounded-xl">{link && <QRCodeSVG value={link} size={140} />}</div>
-        <button onClick={() => { navigator.clipboard.writeText(link); }} className="mt-2 rounded-lg border border-white/20 px-4 py-2 text-sm">Copy referral link</button>
+        <div className="mt-2 flex justify-center gap-2">
+          <button onClick={() => copy("code")} className="rounded-lg bg-yellow-300 px-4 py-2 text-sm font-black text-black">Copy Code</button>
+          <button onClick={() => copy("link")} className="rounded-lg border border-white/20 px-4 py-2 text-sm">Copy referral link</button>
+        </div>
+        {copied && <p className="mt-1.5 text-xs font-bold text-emerald-300">{copied}</p>}
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-lg bg-black/40 p-2">Direct: <b>{d?.direct ?? "-"}</b></div>
           <div className="rounded-lg bg-black/40 p-2">Total team: <b>{d?.teamTotal ?? "-"}</b></div>

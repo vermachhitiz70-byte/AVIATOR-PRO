@@ -191,9 +191,10 @@ export default function AdminUsersPage() {
         {d && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              {[["Name", str(d.name)], ["Email", str(d.email)], ["Mobile", str(d.mobile)], ["Country", str(d.country || "-")],
+              {[["Name", `${str(d.first_name || "")} ${str(d.last_name || "")}`.trim() || str(d.name)], ["Email", str(d.email)], ["Mobile", str(d.mobile)], ["Country", str(d.country || "-")],
                 ["Referral Code", str(d.referral_code)], ["Sponsored By", str(d.referred_by || "-")], ["Rank", str(d.rank || "Starter")],
                 ["KYC", str(d.kyc_status || "pending")], ["Status", dSuspended ? "Suspended" : "Active"],
+                ["BEP20", str(d.bep20_address || "-")], ["Aadhaar", str(d.aadhaar || "-")], ["PAN", str(d.pan || "-")], ["Address", str(d.address || "-")],
                 ["Invested", fmtUSD(d.invested)], ["Balance", fmtUSD(d.balance)],
                 ["Joined", str(d.created_at).slice(0, 16).replace("T", " ")]].map(([k, v]) => (
                 <div key={k} className="rounded-xl bg-gray-50 px-3 py-2">
