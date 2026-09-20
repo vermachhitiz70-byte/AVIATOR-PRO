@@ -6,6 +6,25 @@ import { Search, Check, X, Info } from "lucide-react";
 
 type WithdrawalRow = Record<string, unknown>;
 
+function AddrCell({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  if (!value || value === "-") return <span className="text-xs text-gray-300">—</span>;
+  async function copy() {
+    const { copyText } = await import("@/lib/copy");
+    const ok = await copyText(value);
+    setCopied(ok);
+    setTimeout(() => setCopied(false), 1500);
+  }
+  return (
+    <span className="block max-w-[220px]">
+      <span className="block break-all font-mono text-xs text-gray-700">{value}</span>
+      <button onClick={copy} title="Copy full address" className="mt-1 rounded-lg border border-[#e9dfc9] px-2 py-1 text-[11px] font-bold text-[#b45309] hover:bg-[#faf6ec]">
+        {copied ? "Copied ✓" : "Copy"}
+      </button>
+    </span>
+  );
+}
+
 const TABS = ["pending", "approved", "rejected", "all"] as const;
 type Tab = typeof TABS[number];
 
@@ -85,7 +104,11 @@ export default function AdminWithdrawalsPage() {
     { key: "debit", label: "Debit", render: (r: WithdrawalRow) => <span className="font-semibold text-gray-900">{fmtUSD(r.debit)}</span> },
     { key: "charge", label: "Charge", render: (r: WithdrawalRow) => <span className="text-red-500">{fmtUSD(r.charge)}</span> },
     { key: "net", label: "Net Payout", render: (r: WithdrawalRow) => <span className="font-bold text-green-700">{fmtUSD(r.net)}</span> },
-    { key: "address", label: "Wallet Address", render: (r: WithdrawalRow) => <span className="font-mono text-xs text-gray-500">{String(r.address ?? "-").slice(0, 20) || "-"}</span> },
+    {
+      key: "address", label: "Wallet Address", render: (r: WithdrawalRow) => (
+        <AddrCell value={String(r.address ?? "-")} />
+      ),
+    },
     { key: "payout_tx", label: "Payout TX", render: (r: WithdrawalRow) => (r.payout_tx ? <span title={String(r.payout_tx)} className="font-mono text-xs text-green-700">{String(r.payout_tx).slice(0, 12)}…</span> : <span className="text-xs text-gray-300">—</span>) },
     { key: "status", label: "Status", render: (r: WithdrawalRow) => pill(r.status) },
     { key: "created_at", label: "Date", render: (r: WithdrawalRow) => <span className="text-xs text-gray-500">{fmtDate(r.created_at)}</span> },
