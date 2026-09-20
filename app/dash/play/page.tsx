@@ -196,7 +196,7 @@ export default function Play() {
           <button onClick={cashOut} className="av-btn-yellow mt-2 w-full py-3">Cash Out @ {Math.exp(RATE * s.elapsed).toFixed(2)}x</button>
         )}
         {result && <p className="mt-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold text-slate-200">{result}</p>}
-        <p className="mt-1 text-xs text-slate-400">10 rounds/day · demo game — winnings never credit to any wallet. Real earnings come from your bot daily.</p>
+        <p className="mt-1 text-xs text-slate-400">10 rounds/day · no bot needed, deposit is enough · demo game — winnings never credit to any wallet. Real earnings come from your bot daily.</p>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <div className="av-card p-3">

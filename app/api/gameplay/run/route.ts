@@ -24,11 +24,10 @@ export async function POST(req: NextRequest) {
   const userId = u.id as string;
   const db = getDb();
   const ball = await db.execute({ sql: "SELECT * FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC", args: [userId] });
-  if (!ball.rows.length) return NextResponse.json({ ok: false, error: "Start a bot first, then play" }, { status: 400 });
   const bots = ball.rows as unknown as { id: string; amount: number; daily_pct: number }[];
   const bot = bots[0];
-  // Combined base across ALL active bots (unlimited bots per ID):
-  // stake cap = total locked amount; tier target = sum of stored tier targets.
+  // Dummy game needs NO bot: stake cap = total bot amount if bots exist,
+  // else the deposit (principal) balance. Zero money moves either way.
   const today = new Date().toISOString().slice(0, 10);
 
   const s = await db.execute({ sql: "SELECT COUNT(*) as c, COALESCE(SUM(roi_amount),0) as pnl FROM gameplay WHERE user_id=? AND substr(created_at,1,10)=?", args: [userId, today] });
@@ -40,10 +39,15 @@ export async function POST(req: NextRequest) {
   const stake = Number(body.bet) || 0;
   const crashed = Number(body.crashed_at) || 0;
   const cashed = body.cashed_at === null || body.cashed_at === undefined ? null : Number(body.cashed_at);
-  const stakeCap = round2(bots.reduce((n, x) => n + Number(x.amount), 0));
+  const w0 = await walletOf(userId);
+  const hasBots = bots.length > 0;
+  const stakeCap = hasBots
+    ? round2(bots.reduce((n, x) => n + Number(x.amount), 0))
+    : round2(Number(w0.principal));
   const comboTarget = round2(bots.reduce((n, x) => n + (Number(x.amount) * Number(x.daily_pct)) / 100, 0));
+  if (!hasBots && stakeCap < MIN_STAKE) return NextResponse.json({ ok: false, error: "Recharge first, then play the demo game" }, { status: 400 });
   if (stake < MIN_STAKE) return NextResponse.json({ ok: false, error: `Minimum stake is $${MIN_STAKE}` }, { status: 400 });
-  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds total bot amount ($${stakeCap.toFixed(2)})` }, { status: 400 });
+  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds playable balance ($${stakeCap.toFixed(2)})` }, { status: 400 });
   if (!(crashed >= 1)) return NextResponse.json({ ok: false, error: "Bad round" }, { status: 400 });
   if (cashed !== null && (!(cashed >= 1) || cashed > crashed)) return NextResponse.json({ ok: false, error: "Bad cash-out" }, { status: 400 });
 
@@ -53,7 +57,7 @@ export async function POST(req: NextRequest) {
   const pct = stake > 0 ? round2((delta / stake) * 100) : 0;
   await db.execute({
     sql: "INSERT INTO gameplay (id,user_id,bot_id,round_no,pct,roi_amount,bet_amount) VALUES (?,?,?,?,?,?,?)",
-    args: [uid("G"), userId, bot.id, roundNo, pct, delta, stake],
+    args: [uid("G"), userId, hasBots ? bot.id : "", roundNo, pct, delta, stake],
   });
   const w = await walletOf(userId);
   return NextResponse.json({

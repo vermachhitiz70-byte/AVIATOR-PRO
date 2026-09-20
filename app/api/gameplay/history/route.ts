@@ -13,11 +13,11 @@ export async function GET() {
   const c = await db.execute({ sql: "SELECT COUNT(*) as c, COALESCE(SUM(roi_amount),0) as pnl FROM gameplay WHERE user_id=? AND substr(created_at,1,10)=?", args: [u.id as string, today] });
   const w = await walletOf(u.id as string);
   const earning = Math.round((Number(w.roi) + Number(w.commission) + Number(w.reward)) * 100) / 100;
-  // Combined across ALL active bots (display info for the dummy game).
+  // Playable balance: total bot amount if bots exist, else deposit (principal).
+  // No bot needed for the dummy game — deposit alone unlocks the 10 chances.
   const b = await db.execute({ sql: "SELECT amount,daily_pct FROM bots WHERE user_id=? AND status='active'", args: [u.id as string] });
   const bots = b.rows as unknown as { amount: number; daily_pct: number }[];
   const amt = bots.reduce((n, x) => n + Number(x.amount), 0);
-  // Trading deposit = total locked bot amount; pre-activation (principal) as fallback.
   const deposit = b.rows.length ? amt : Math.round(Number(w.principal) * 100) / 100;
   const dailyTarget = Math.round(bots.reduce((n, x) => n + (Number(x.amount) * Number(x.daily_pct)) / 100, 0) * 100) / 100;
   return NextResponse.json({
