@@ -12,6 +12,7 @@ export async function GET() {
   const w = await walletOf(uid);
   const db = getDb();
   const b = await db.execute({ sql: "SELECT * FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC LIMIT 1", args: [uid] });
+  const ball = await db.execute({ sql: "SELECT id,plan,amount,daily_pct,total_earned,expiry_date,status FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC", args: [uid] });
   const bots = await db.execute({ sql: "SELECT COUNT(*) as c, COALESCE(SUM(amount),0) as t FROM bots WHERE user_id=? AND status='active'", args: [uid] });
   const inv = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [uid] });
   const wd = await db.execute({ sql: "SELECT COALESCE(SUM(net),0) as t FROM withdrawals WHERE user_id=? AND status IN ('pending','approved')", args: [uid] });
@@ -29,6 +30,7 @@ export async function GET() {
     wallet: w,
     available: total,
     activeBot: active,
+    bots: ball.rows,
     activeBots: Number(bAgg.c),
     activeInvestment: Number(bAgg.t),
     totalInvestment: Number((inv.rows[0] as unknown as { t: number }).t),

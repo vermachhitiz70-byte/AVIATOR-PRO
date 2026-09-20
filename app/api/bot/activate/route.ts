@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const w = await walletOf(u.id as string);
   if (Number(w.principal) < amt) return NextResponse.json({ ok: false, error: "Insufficient Principal wallet. Recharge first." }, { status: 400 });
-  const existing = await db.execute({ sql: "SELECT id FROM bots WHERE user_id=? AND status='active'", args: [u.id as string] });
-  if (existing.rows.length) return NextResponse.json({ ok: false, error: "One active bot already. Wait for expiry/cap." }, { status: 400 });
+  // Unlimited bots per ID (client rule): every activation with sufficient
+  // principal creates one more bot. Each bot earns/caps/expires independently.
   await db.execute({ sql: "UPDATE wallets SET principal=principal-? WHERE user_id=?", args: [amt, u.id as string] });
   const id = uid("B");
   const expiry = new Date(Date.now() + BUSINESS_RULES.botValidityDays * 86400000).toISOString();
