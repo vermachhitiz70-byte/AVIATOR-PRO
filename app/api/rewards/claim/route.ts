@@ -19,7 +19,11 @@ export async function POST(req: NextRequest) {
   const { team } = await teamBusiness(u.id as string);
   if (self < m.self || direct < m.direct || team < m.team)
     return NextResponse.json({ ok: false, error: `Need self $${m.self.toLocaleString()} + direct $${m.direct.toLocaleString()} + team $${m.team.toLocaleString()}` }, { status: 400 });
-  await db.execute({ sql: "INSERT INTO reward_claims (id,user_id,tier) VALUES (?,?,?)", args: [uid("R"), u.id as string, m.tier] });
+  try {
+    await db.execute({ sql: "INSERT INTO reward_claims (id,user_id,tier) VALUES (?,?,?)", args: [uid("R"), u.id as string, m.tier] });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Already claimed" }, { status: 400 });
+  }
   await db.execute({ sql: "UPDATE wallets SET reward=reward+? WHERE user_id=?", args: [m.wallet, u.id as string] });
   await logLedger(u.id as string, "reward", "reward", m.wallet, m.name);
   return NextResponse.json({ ok: true, credited: m.wallet });

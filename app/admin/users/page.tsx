@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { DataTable, Modal, ConfirmDialog } from "@/components/admin";
 import { BTN_PRIMARY, CARD, INPUT, LABEL, fmtUSD, pill } from "@/components/admin/ui";
 import { Search, Eye, ChevronDown } from "lucide-react";
+import { MILESTONES } from "@/lib/config";
 
 type UserRow = Record<string, unknown>;
 type EarnRange = { roi: number; level: number; reward: number; total: number };
@@ -36,14 +37,15 @@ export default function AdminUsersPage() {
   const [detail, setDetail] = useState<UserRow | null>(null);
   const [earn, setEarn] = useState<{ ranges: Record<string, EarnRange>; invested: number } | null>(null);
   const [tree, setTree] = useState<TNode[]>([]);
+  const [mst, setMst] = useState<{ self: number; direct: number; team: number; claimed: number[] } | null>(null);
   const [trail, setTrail] = useState<{ summary: { invested: number; earned: number; balance: number }; events: { ts: string; label: string; detail: string; amount: number | null }[] } | null>(null);
   const [trailAll, setTrailAll] = useState(false);
 
   useEffect(() => {
-    if (!detail) { setEarn(null); setTree([]); setTrail(null); setTrailAll(false); return; }
+    if (!detail) { setEarn(null); setTree([]); setTrail(null); setTrailAll(false); setMst(null); return; }
     const id = String(detail.id);
     fetch(`/api/earnings?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) setEarn({ ranges: j.ranges, invested: j.invested }); }).catch(() => {});
-    fetch(`/api/team?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) setTree(j.tree || []); }).catch(() => {});
+    fetch(`/api/team?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) { setTree(j.tree || []); setMst({ self: Number(j.self || 0), direct: Number(j.direct || 0), team: Number(j.team || 0), claimed: j.claimed || [] }); } }).catch(() => {});
     fetch(`/api/admin/money-trail?userId=${encodeURIComponent(id)}`, { credentials: "include" }).then((r) => r.json()).then((j) => { if (j.ok) setTrail({ summary: j.summary, events: j.events }); }).catch(() => {});
   }, [detail]);
 
@@ -243,6 +245,27 @@ export default function AdminUsersPage() {
                     {trailAll ? "Show less" : `View all (${trail.events.length})`}
                   </button>
                 )}
+              </div>
+            )}
+
+            {/* Milestones: achieved / claimable / locked at a glance */}
+            {mst && (
+              <div className="rounded-xl border border-[#f0e6d2] p-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                  Milestones · Self ${mst.self.toFixed(0)} · Direct ${mst.direct.toFixed(0)} · Team ${mst.team.toFixed(0)}
+                </p>
+                <div className="mt-2 grid max-h-48 grid-cols-1 gap-1 overflow-y-auto">
+                  {MILESTONES.map((m) => {
+                    const done = mst.self >= m.self && mst.direct >= m.direct && mst.team >= m.team;
+                    const claimed = mst.claimed.includes(m.tier);
+                    return (
+                      <div key={m.tier} className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs ${claimed ? "bg-green-50" : done ? "bg-amber-50" : "bg-gray-50"}`}>
+                        <span className="font-semibold text-gray-800">{m.tier}. {m.name} <span className="font-normal text-gray-500">· S${m.self}/D${m.direct}/T${m.team >= 1000000 ? (m.team / 10000000) + "cr" : m.team >= 100000 ? (m.team / 100000) + "L" : m.team >= 1000 ? (m.team / 1000) + "K" : m.team} · ${m.wallet}</span></span>
+                        <b className={claimed ? "text-green-700" : done ? "text-amber-600" : "text-gray-400"}>{claimed ? "CLAIMED" : done ? "READY (user can claim)" : "locked"}</b>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
