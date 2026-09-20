@@ -28,7 +28,7 @@ export default async function DashLayout({ children }: { children: React.ReactNo
           <DashTop />
         </div>
         <DashTopBar />
-        <main className="mx-auto w-full max-w-md px-3 py-3 lg:max-w-6xl lg:px-8 lg:py-6">
+        <main className="mx-auto w-full max-w-md px-3 pb-28 pt-3 lg:max-w-6xl lg:px-8 lg:py-6">
           <DashBackButton />
           {children}
         </main>

@@ -65,8 +65,10 @@ body {
   gap: 6px;
 }
 .bottom-nav {
-  position: sticky;
+  position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 30;
   background: rgba(6, 11, 22, 0.96);
   border-top: 1px solid rgba(148,178,255,.15);
