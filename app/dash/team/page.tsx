@@ -19,7 +19,7 @@ function TreeNode({ n, depth }: { n: TNode; depth: number }) {
 }
 
 export default function Team() {
-  const [d, setD] = useState<{ referralCode?: string; direct?: number; teamTotal?: number; self?: number; team?: number; levels?: Level[]; tree?: TNode[] } | null>(null);
+  const [d, setD] = useState<{ referralCode?: string; direct?: number; directCount?: number; teamTotal?: number; self?: number; team?: number; levels?: Level[]; tree?: TNode[] } | null>(null);
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState("");
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function Team() {
         </div>
         {copied && <p className="mt-1.5 text-xs font-bold text-emerald-300">{copied}</p>}
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-lg bg-black/40 p-2">Direct: <b>{d?.direct ?? "-"}</b></div>
+          <div className="rounded-lg bg-black/40 p-2">Direct: <b>{d?.directCount ?? "-"}</b> <span className="text-slate-400">(${Number(d?.direct || 0).toFixed(0)} biz)</span></div>
           <div className="rounded-lg bg-black/40 p-2">Total team: <b>{d?.teamTotal ?? "-"}</b></div>
           <div className="rounded-lg bg-black/40 p-2">Self biz: <b>${Number(d?.self || 0).toFixed(0)}</b></div>
           <div className="rounded-lg bg-black/40 p-2">Team biz: <b>${Number(d?.team || 0).toFixed(0)}</b></div>
