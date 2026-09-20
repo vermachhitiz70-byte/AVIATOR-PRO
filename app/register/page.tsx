@@ -4,11 +4,24 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site";
 import { ProFooter } from "@/components/marketing";
+import { COUNTRIES, dialToCountry } from "@/lib/countries";
 
 function RegisterForm() {
   const sp = useSearchParams();
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", mobile: "", email: "", referral: sp.get("ref") || "", country: "" });
+  const [form, setForm] = useState({ name: "", mobile: "", email: "", referral: sp.get("ref") || "", country: "India" });
+  const [dial, setDial] = useState("+91");
+
+  function pickCountry(name: string) {
+    setForm((f) => ({ ...f, country: name }));
+    const c = COUNTRIES.find((x) => x[0] === name);
+    if (c) setDial(c[2]);
+  }
+  function pickDial(d: string) {
+    setDial(d);
+    const c = dialToCountry(d);
+    if (c) setForm((f) => ({ ...f, country: c[0] }));
+  }
   const [msg, setMsg] = useState("");
   const [okMsg, setOkMsg] = useState("");
   const [refName, setRefName] = useState("Enter referral code above");
@@ -29,11 +42,13 @@ function RegisterForm() {
     e.preventDefault();
     setMsg("");
     setOkMsg("");
+    const national = form.mobile.replace(/\D/g, "").replace(/^0+/, "");
+    if (!national || national.length < 6 || national.length > 12) { setMsg("Sahi mobile number dalo (country code ke bina)."); return; }
     if (!form.referral.trim()) { setMsg("Referral ID compulsory hai — bina referral ke signup nahi hoga."); return; }
     if (refName === "Invalid referral ID") { setMsg("Invalid Referral ID — sahi code dalo."); return; }
     setBusy(true);
     try {
-      const r = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const r = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, mobile: national, dial_code: dial }) });
       const j = await r.json();
       if (!j.ok) { setMsg(j.error || "Failed"); return; }
       setStep("otp");
@@ -86,7 +101,14 @@ function RegisterForm() {
             {step === "form" ? (
               <form onSubmit={submit} className="flex w-full flex-col gap-3">
                 <input placeholder="Full Name" value={form.name} className={input} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-                <input placeholder="Mobile Number" value={form.mobile} className={input} onChange={(e) => setForm({ ...form, mobile: e.target.value })} required />
+                <div className="flex gap-2">
+                  <select value={dial} onChange={(e) => pickDial(e.target.value)} className="w-28 shrink-0 rounded-xl bg-white/10 px-3 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-yellow-300/70" aria-label="Country code">
+                    {[...new Map(COUNTRIES.map((c) => [c[2], c])).values()].map((c) => (
+                      <option key={c[2]} value={c[2]} className="text-black">{c[2]} · {c[0]}</option>
+                    ))}
+                  </select>
+                  <input placeholder="Mobile Number" inputMode="tel" value={form.mobile} className={`${input} flex-1`} onChange={(e) => setForm({ ...form, mobile: e.target.value })} required />
+                </div>
                 <div>
                   <input placeholder="Email" type="email" value={form.email} className={input} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
                   <p className="mt-1 text-xs text-slate-500">A mandatory OTP will be sent to this email.</p>
@@ -95,7 +117,11 @@ function RegisterForm() {
                   <input placeholder="Referral ID (compulsory)" value={form.referral} className={input} onChange={(e) => { setForm({ ...form, referral: e.target.value }); lookup(e.target.value); }} required />
                   <p className="mt-1 text-xs text-emerald-300">Referral: {refName}</p>
                 </div>
-                <input placeholder="Country" value={form.country} className={input} onChange={(e) => setForm({ ...form, country: e.target.value })} />
+                <select value={form.country} onChange={(e) => pickCountry(e.target.value)} className={input} aria-label="Country">
+                  {COUNTRIES.map((c) => (
+                    <option key={c[1]} value={c[0]} className="text-black">{c[0]}</option>
+                  ))}
+                </select>
                 <p className="text-xs text-slate-400">Password will be generated and sent to your email after OTP verification.</p>
                 {msg && <div className="text-left text-sm font-bold text-red-400">{msg}</div>}
                 {okMsg && <div className="rounded-xl bg-emerald-300/10 p-3 text-sm font-bold text-emerald-300">{okMsg}</div>}
