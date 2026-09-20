@@ -10,6 +10,7 @@ import {
   BookOpen,
   Bot,
   ChevronLeft,
+  History,
   Home,
   LifeBuoy,
   LogOut,
@@ -94,6 +95,7 @@ const SIDE_NAV = [
   { href: "/dash/business-plan", label: "Business Plan", icon: BookOpen },
   { href: "/dash/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/dash/activity", label: "Activity", icon: Activity },
+  { href: "/dash/history", label: "History", icon: History },
   { href: "/dash/support", label: "Support", icon: LifeBuoy },
   { href: "/dash/profile", label: "Profile", icon: User },
 ];
@@ -108,6 +110,7 @@ const SECTION_TITLES: Record<string, string> = {
   "/dash/business-plan": "Business Plan",
   "/dash/campaigns": "Campaigns",
   "/dash/activity": "Activity",
+  "/dash/history": "History",
   "/dash/support": "Support",
   "/dash/profile": "Profile",
 };

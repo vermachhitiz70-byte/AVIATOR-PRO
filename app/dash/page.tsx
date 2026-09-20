@@ -17,12 +17,6 @@ const TILES = [
   { href: "/dash/campaigns", label: "Campaigns", icon: "T" },
 ];
 
-interface RecentTx {
-  kind?: string;
-  amount?: number;
-  note?: string;
-}
-
 interface MeData {
   user?: { name?: string; referral_code?: string; rank?: string };
   available?: number;
@@ -33,7 +27,6 @@ interface MeData {
   direct?: number;
   teamTotal?: number;
   wallet?: { principal?: number; roi?: number; commission?: number; reward?: number };
-  recentTx?: RecentTx[];
   feed?: { kind: string; message: string }[];
 }
 
@@ -92,8 +85,6 @@ export default function DashHome() {
     message: String(f.message),
     time: "Just now",
   }));
-  const txs = data?.recentTx || [];
-
   if (gate === "checking") {
     return (
       <div className="av-card p-8 text-center">
@@ -173,15 +164,10 @@ export default function DashHome() {
           <p className="font-bold">{botPlan}</p>
         </div>
       </div>
-      <div className="av-card p-3 text-sm">
-        <p className="text-slate-400">Recent Transactions</p>
-        <div className="mt-1 space-y-1">
-          {txs.map((t, i) => (
-            <TxRow key={i} tx={t} />
-          ))}
-          {txs.length === 0 && <p className="text-xs text-slate-500">No transactions yet.</p>}
-        </div>
-      </div>
+      <Link href="/dash/history" className="av-card flex items-center justify-between p-4 text-sm font-bold">
+        <span>Transaction History <span className="font-normal text-slate-400">— deposits, withdrawals, ROI, level</span></span>
+        <span className="text-yellow-300">View all →</span>
+      </Link>
     </div>
   );
 }
@@ -280,18 +266,4 @@ function ReferralStrip({ code }: { code: string }) {
   );
 }
 
-function TxRow({ tx }: { tx: RecentTx }) {
-  const amt = num(tx.amount);
-  const good = amt >= 0;
-  return (
-    <p className="flex justify-between rounded bg-black/30 px-2 py-1 text-xs">
-      <span>
-        {tx.kind} - {tx.note}
-      </span>
-      <b className={good ? "text-emerald-300" : "text-red-300"}>
-        {good ? "+" : ""}
-        {amt.toFixed(2)}
-      </b>
-    </p>
-  );
-}
+
