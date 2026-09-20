@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getDb, initDb } from "./db";
 
 const COOKIE = "av_session";
@@ -34,22 +34,58 @@ function cookieOpts(host?: string | null) {
 
 export async function createSession(userId: string, host?: string | null) {
   const token = await new SignJWT({ uid: userId }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("30d").sign(secret());
-  (await cookies()).set(COOKIE, token, cookieOpts(host));
+  const jar = await cookies();
+  // Kill any legacy host-only cookie first (a stale one would otherwise shadow
+  // the fresh domain cookie — browsers send oldest first and we must not read it).
+  jar.set(COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+  jar.set(COOKIE, token, cookieOpts(host));
   return token;
 }
 export async function destroySession(host?: string | null) {
-  (await cookies()).set(COOKIE, "", { ...cookieOpts(host), maxAge: 0 });
+  const jar = await cookies();
+  // Clear BOTH variants (legacy host-only + domain-scoped), else one survives.
+  jar.set(COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+  jar.set(COOKIE, "", { ...cookieOpts(host), maxAge: 0 });
+}
+
+// Read EVERY av_session cookie the browser sent (there can be two: a stale
+// host-only one plus the fresh domain one). cookies().get() returns only the
+// first — which is the oldest, i.e. usually the stale one. We parse raw.
+async function readTokens(): Promise<string[]> {
+  const out: string[] = [];
+  try {
+    const raw = (await headers()).get("cookie") || "";
+    for (const part of raw.split(";")) {
+      const i = part.indexOf("=");
+      if (i < 0) continue;
+      if (part.slice(0, i).trim() === COOKIE) {
+        try { out.push(decodeURIComponent(part.slice(i + 1).trim())); } catch { /* skip malformed */ }
+      }
+    }
+  } catch { /* ignore */ }
+  if (!out.length) {
+    try {
+      const v = (await cookies()).get(COOKIE)?.value;
+      if (v) out.push(v);
+    } catch { /* ignore */ }
+  }
+  return out;
 }
 export async function currentUser() {
   try {
     await initDb();
-    const token = (await cookies()).get(COOKIE)?.value;
-    if (!token) return null;
-    const { payload } = await jwtVerify(token, secret());
+    const tokens = await readTokens();
+    if (!tokens.length) return null;
     const db = getDb();
-    const r = await db.execute({ sql: "SELECT id,name,first_name,last_name,mobile,email,country,referral_code,referred_by,root_referral,rank,is_admin,is_active,is_blocked,kyc_status,kyc_doc,bep20_address,aadhaar,pan,address FROM users WHERE id=?", args: [payload.uid as string] });
-    if (r.rows.length === 0) return null;
-    return r.rows[0] as unknown as Record<string, unknown>;
+    // Try each cookie value until one verifies (stale/expired values skipped).
+    for (const token of tokens) {
+      try {
+        const { payload } = await jwtVerify(token, secret());
+        const r = await db.execute({ sql: "SELECT id,name,first_name,last_name,mobile,email,country,referral_code,referred_by,root_referral,rank,is_admin,is_active,is_blocked,kyc_status,kyc_doc,bep20_address,aadhaar,pan,address FROM users WHERE id=?", args: [payload.uid as string] });
+        if (r.rows.length > 0) return r.rows[0] as unknown as Record<string, unknown>;
+      } catch { /* try next cookie value */ }
+    }
+    return null;
   } catch {
     return null;
   }
