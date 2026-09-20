@@ -43,9 +43,9 @@ function RegisterForm() {
     setMsg("");
     setOkMsg("");
     const national = form.mobile.replace(/\D/g, "").replace(/^0+/, "");
-    if (!national || national.length < 6 || national.length > 12) { setMsg("Sahi mobile number dalo (country code ke bina)."); return; }
-    if (!form.referral.trim()) { setMsg("Referral ID compulsory hai — bina referral ke signup nahi hoga."); return; }
-    if (refName === "Invalid referral ID") { setMsg("Invalid Referral ID — sahi code dalo."); return; }
+    if (!national || national.length < 6 || national.length > 12) { setMsg("Please enter a valid mobile number (without country code)."); return; }
+    if (!form.referral.trim()) { setMsg("Referral ID is compulsory — signup is not possible without a referral."); return; }
+    if (refName === "Invalid referral ID") { setMsg("Invalid Referral ID — please enter the correct code."); return; }
     setBusy(true);
     try {
       const r = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, mobile: national, dial_code: dial }) });

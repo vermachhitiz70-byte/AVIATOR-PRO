@@ -42,7 +42,7 @@ function PartnerCarousel() {
   return (
     <div className="av-card overflow-hidden p-3">
       <p className="text-center text-xs font-black uppercase tracking-widest text-yellow-300">Partner with Aviator Smart AI</p>
-      <p className="mt-0.5 text-center text-[11px] text-slate-400">Hamara paisa in games & companies me laga hai — earnings yahin se aati hai</p>
+      <p className="mt-0.5 text-center text-[11px] text-slate-400">Our capital works across these games & companies — earnings come from here</p>
       <div className="marquee-mask mt-2">
         <div className="marquee-track">
           {items.map(([ch, name, grad, inv], idx) => (
@@ -169,7 +169,7 @@ export default function Play() {
       </div>
       <div className="av-card p-4 text-center">
         <p className="text-sm font-bold text-slate-200">Sirf dekhne ke liye ✈ — rounds apne-aap chalte hain</p>
-        <p className="mt-1 text-xs text-slate-400">Demo game — koi paisa nahi lagta, koi earning nahi judti. Real earnings sirf tumhare bot se daily aati hai.</p>
+        <p className="mt-1 text-xs text-slate-400">Demo game — no money is staked and no earnings are credited. Real earnings come from your bot, daily.</p>
       </div>
       <div className="av-card p-3">
         <h3 className="text-sm font-bold">Live Rounds</h3>

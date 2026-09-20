@@ -298,7 +298,7 @@ function WithdrawBanner() {
     return (
       <div className="av-card border-amber-300/40 p-3 text-center">
         <p className="text-sm font-black text-amber-200">⏳ Withdrawal pending</p>
-        <p className="text-xs text-slate-300">Tumhara withdrawal lag gaya hai — approval me hai.</p>
+        <p className="text-xs text-slate-300">Your withdrawal request is awaiting approval.</p>
       </div>
     );
   }
@@ -306,14 +306,14 @@ function WithdrawBanner() {
     return (
       <div className="av-card border-emerald-300/40 p-3 text-center">
         <p className="text-sm font-black text-emerald-300">✓ Withdrawal paid — ${Number(row.net || 0).toFixed(2)}</p>
-        <p className="text-xs text-slate-300">Paisa tumhare BEP20 address par bhej diya gaya hai.</p>
+        <p className="text-xs text-slate-300">The amount has been sent to your BEP20 address.</p>
       </div>
     );
   }
   return (
     <div className="av-card border-red-300/40 p-3 text-center">
       <p className="text-sm font-black text-red-300">Withdrawal rejected</p>
-      <p className="text-xs text-slate-300">Paisa wapas wallet me hai — Support se baat karo.</p>
+      <p className="text-xs text-slate-300">The amount has been refunded to your wallet. Please contact Support.</p>
     </div>
   );
 }
