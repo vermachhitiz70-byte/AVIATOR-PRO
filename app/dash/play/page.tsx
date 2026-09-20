@@ -7,7 +7,6 @@ const FOREIGN = ["John Carter", "Emily Watson", "David Miller", "Sarah Lee", "Mi
 const GAME_FEED = [...FEED_NAMES.slice(0, 85), ...FOREIGN];
 
 type FeedItem = { name: string; bet: string; profit: string };
-type MyTrade = { round_no?: number; bet_amount?: number; roi_amount?: number; pct?: number };
 
 function randomFeed(): FeedItem {
   const name = GAME_FEED[Math.floor(Math.random() * GAME_FEED.length)];
@@ -22,7 +21,44 @@ function genCrash(): number {
   return Math.min(30, Math.floor((0.97 / (1 - r)) * 100) / 100);
 }
 
-const RATE = 0.15; // multiplier curve steepness
+// Where our money works — dummy showcase carousel (display only)
+const PARTNERS: [string, string, string, string][] = [
+  ["A", "Aviator", "from-red-500 to-orange-500", "Invested $5 Lakh"],
+  ["R", "Rummy", "from-violet-400 to-purple-600", "Invested $2 Lakh"],
+  ["C", "Casino Royale", "from-amber-300 to-yellow-600", "Invested $2 Lakh"],
+  ["L", "Ludo", "from-emerald-300 to-green-600", "Invested $1 Lakh"],
+  ["C", "Cricket", "from-sky-300 to-blue-600", "Invested $1 Lakh"],
+  ["B", "BetZone", "from-rose-300 to-red-600", "Invested $75K"],
+  ["F", "Football", "from-lime-300 to-emerald-600", "Invested $60K"],
+  ["B", "Basketball", "from-orange-300 to-red-500", "Invested $50K"],
+  ["P", "Poker", "from-slate-300 to-slate-600", "Invested $40K"],
+  ["T", "Teen Patti", "from-yellow-200 to-amber-500", "Invested $30K"],
+  ["H", "Hockey", "from-teal-300 to-cyan-600", "Invested $25K"],
+  ["S", "Slots", "from-fuchsia-300 to-purple-600", "Invested $20K"],
+];
+
+function PartnerCarousel() {
+  const items = [...PARTNERS, ...PARTNERS];
+  return (
+    <div className="av-card overflow-hidden p-3">
+      <p className="text-center text-xs font-black uppercase tracking-widest text-yellow-300">Partner with Aviator Smart AI</p>
+      <p className="mt-0.5 text-center text-[11px] text-slate-400">Hamara paisa in games & companies me laga hai — earnings yahin se aati hai</p>
+      <div className="marquee-mask mt-2">
+        <div className="marquee-track">
+          {items.map(([ch, name, grad, inv], idx) => (
+            <div key={idx} className="flex w-32 shrink-0 flex-col items-center gap-1 whitespace-nowrap px-2 py-2">
+              <span className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-xl font-black text-white shadow-lg ${grad}`}>{ch}</span>
+              <span className="text-xs font-bold">{name}</span>
+              <span className="text-[11px] font-bold text-emerald-300">{inv}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const RATE = 0.15;
 const COUNTDOWN = 5;
 const CRASH_PAUSE = 3;
 
@@ -31,66 +67,37 @@ type Phase = "countdown" | "flying" | "crashed";
 export default function Play() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [feed, setFeed] = useState<FeedItem[]>([randomFeed(), randomFeed(), randomFeed(), randomFeed()]);
-  const [stake, setStake] = useState("10");
-  const [used, setUsed] = useState(0);
-  const [limit] = useState(10);
-  const [deposit, setDeposit] = useState(0);
-  const [trades, setTrades] = useState<MyTrade[]>([]);
   const [history, setHistory] = useState<number[]>([]);
-  const [result, setResult] = useState<string>("");
 
-  // round engine (refs = truth, state = mirror for paint)
-  const R = useRef({ phase: "countdown" as Phase, t: COUNTDOWN, elapsed: 0, crash: genCrash(), cashed: null as number | null, bet: 0 as number | null, resolved: true, points: [] as { x: number; y: number }[] });
+  const R = useRef({ phase: "countdown" as Phase, t: COUNTDOWN, elapsed: 0, crash: genCrash(), points: [] as { x: number; y: number }[] });
   const [, setTick] = useState(0);
-  const usedRef = useRef(0);
-  usedRef.current = used;
-
-  async function refresh() {
-    const j = await fetch("/api/gameplay/history").then((r) => r.json()).catch(() => null);
-    if (j?.ok) { setTrades(j.today); setUsed(j.used); setDeposit(j.depositBalance || 0); }
-  }
-  useEffect(() => { refresh(); }, []);
 
   useEffect(() => {
     const t = setInterval(() => setFeed((f) => [randomFeed(), ...f].slice(0, 12)), 3000);
     return () => clearInterval(t);
   }, []);
 
-  // resolve a finished round (cash-out or crash) — display only, zero money
-  async function resolve(crashedAt: number, cashedAt: number | null, bet: number) {
-    const r = await fetch("/api/gameplay/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ bet, crashed_at: crashedAt, cashed_at: cashedAt }) });
-    const j = await r.json().catch(() => ({ ok: false }));
-    if (j.ok) {
-      setUsed(limit - j.chancesLeft);
-      setResult(cashedAt !== null ? `Cashed @ ${cashedAt.toFixed(2)}x → +$${j.delta.toFixed(2)} (demo)` : `Crashed @ ${crashedAt.toFixed(2)}x → −$${Math.abs(j.delta).toFixed(2)} (demo)`);
-      refresh();
-    } else setResult(j.error || "Round over");
-  }
-
-  // main loop
+  // auto-play loop (view only — no bets, no money)
   useEffect(() => {
     const iv = setInterval(() => {
       const s = R.current;
       if (s.phase === "countdown") {
         s.t -= 0.1;
-        if (s.t <= 0) { s.phase = "flying"; s.elapsed = 0; s.crash = genCrash(); s.cashed = null; s.resolved = s.bet === null; s.points = []; }
+        if (s.t <= 0) { s.phase = "flying"; s.elapsed = 0; s.crash = genCrash(); s.points = []; }
       } else if (s.phase === "flying") {
         s.elapsed += 0.1;
         const crashT = Math.log(s.crash) / RATE;
         if (s.elapsed >= crashT) {
           s.phase = "crashed"; s.t = CRASH_PAUSE;
           setHistory((h) => [s.crash, ...h].slice(0, 12));
-          if (s.bet !== null && !s.resolved) { s.resolved = true; const b = s.bet; s.bet = null; resolve(s.crash, s.cashed, b); }
-          else { s.bet = null; setResult(`Crashed @ ${s.crash.toFixed(2)}x — no bet placed`); }
         }
       } else {
         s.t -= 0.1;
-        if (s.t <= 0) { s.phase = "countdown"; s.t = COUNTDOWN; s.bet = null; s.cashed = null; s.resolved = true; setResult(""); }
+        if (s.t <= 0) { s.phase = "countdown"; s.t = COUNTDOWN; s.points = []; }
       }
       setTick((x) => x + 1);
     }, 100);
     return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // paint
@@ -113,7 +120,7 @@ export default function Play() {
       ctx.fillText(`Starting in ${Math.max(1, Math.ceil(s.t))}…`, W / 2, H / 2 - 6);
       ctx.fillStyle = "#94a3b8";
       ctx.font = "12px sans-serif";
-      ctx.fillText(s.bet !== null ? `Bet $${s.bet} locked — good luck!` : "Place your bet below", W / 2, H / 2 + 18);
+      ctx.fillText("Next plane taking off…", W / 2, H / 2 + 18);
     } else {
       const maxM = Math.max(s.crash, mult, 2);
       const crashT = Math.log(s.crash) / RATE;
@@ -138,39 +145,18 @@ export default function Play() {
         ctx.font = "bold 16px sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(`💥 CRASHED @ ${s.crash.toFixed(2)}x`, W / 2, H - 30);
-      } else if (s.cashed !== null) {
-        ctx.fillStyle = "#16a34a";
-        ctx.font = "bold 13px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(`Cashed @ ${s.cashed.toFixed(2)}x — waiting for crash…`, W / 2, H - 30);
       }
     }
     ctx.textAlign = "left";
   });
 
-  function placeBet(e: React.FormEvent) {
-    e.preventDefault();
-    const s = R.current;
-    if (s.phase !== "countdown" || s.bet !== null || usedRef.current >= limit) return;
-    const st = Number(stake);
-    if (!st || st < 0.1 || st > Math.max(deposit, 0.1)) { setResult(`Stake must be $0.10–$${deposit.toFixed(2)}`); return; }
-    s.bet = st;
-    s.resolved = false;
-    setResult(`Bet $${st} placed — cash out before it crashes!`);
-  }
-  function cashOut() {
-    const s = R.current;
-    if (s.phase !== "flying" || s.bet === null || s.cashed !== null) return;
-    s.cashed = Math.exp(RATE * s.elapsed);
-  }
-
-  const s = R.current;
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-black">✈ Aviator <span className="text-xs font-bold text-slate-400">DEMO · winnings are virtual</span></h2>
+        <h2 className="font-black">✈ Aviator <span className="text-xs font-bold text-slate-400">DEMO · display only</span></h2>
         <Link href="/dash" className="text-xs text-slate-300">← Back</Link>
       </div>
+      <PartnerCarousel />
       <div className="av-card overflow-hidden p-2">
         <canvas ref={canvasRef} className="h-[200px] w-full" />
         {history.length > 0 && (
@@ -181,45 +167,16 @@ export default function Play() {
           </div>
         )}
       </div>
-      <div className="av-card p-4">
-        <div className="flex items-center justify-between text-sm">
-          <p className="text-slate-300">Deposit: <b className="text-white">${deposit.toFixed(2)}</b></p>
-          <p className="text-slate-300">Rounds: <b className="text-white">{used}/{limit}</b></p>
-        </div>
-        <form onSubmit={placeBet} className="mt-2 flex gap-2">
-          <input className="av-input" value={stake} onChange={(e) => setStake(e.target.value)} placeholder={`Stake (min $0.10, max $${deposit.toFixed(2)})`} inputMode="decimal" />
-          <button className="av-btn-red whitespace-nowrap px-5 disabled:opacity-50" disabled={s.phase !== "countdown" || s.bet !== null || used >= limit}>
-            {s.bet !== null ? "Bet placed" : "Place Bet"}
-          </button>
-        </form>
-        {s.phase === "flying" && s.bet !== null && s.cashed === null && (
-          <button onClick={cashOut} className="av-btn-yellow mt-2 w-full py-3">Cash Out @ {Math.exp(RATE * s.elapsed).toFixed(2)}x</button>
-        )}
-        {result && <p className="mt-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold text-slate-200">{result}</p>}
-        <p className="mt-1 text-xs text-slate-400">10 rounds/day · no bot needed, deposit is enough · demo game — winnings never credit to any wallet. Real earnings come from your bot daily.</p>
+      <div className="av-card p-4 text-center">
+        <p className="text-sm font-bold text-slate-200">Sirf dekhne ke liye ✈ — rounds apne-aap chalte hain</p>
+        <p className="mt-1 text-xs text-slate-400">Demo game — koi paisa nahi lagta, koi earning nahi judti. Real earnings sirf tumhare bot se daily aati hai.</p>
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="av-card p-3">
-          <h3 className="text-sm font-bold">Live Rounds</h3>
-          <div className="mt-2 max-h-64 space-y-1 overflow-hidden text-xs">
-            {feed.map((f, i) => (
-              <p key={i} className="rounded bg-black/30 px-2 py-1.5"><b>{f.name}</b> bet ${f.bet} → <span className="text-emerald-300">+${f.profit}</span></p>
-            ))}
-          </div>
-        </div>
-        <div className="av-card p-3">
-          <h3 className="text-sm font-bold">My rounds today ({used}/{limit})</h3>
-          <div className="mt-2 space-y-1 text-xs">
-            {trades.map((b, i) => (
-              <p key={i} className="rounded bg-black/30 px-2 py-1.5">
-                Round {b.round_no}: ${Number(b.bet_amount).toFixed(2)} →{" "}
-                <span className={Number(b.roi_amount) >= 0 ? "text-emerald-300" : "text-red-300"}>
-                  {Number(b.roi_amount) >= 0 ? "+" : "−"}${Math.abs(Number(b.roi_amount)).toFixed(2)}
-                </span>
-              </p>
-            ))}
-            {!trades.length && <p className="text-slate-400">No rounds yet today.</p>}
-          </div>
+      <div className="av-card p-3">
+        <h3 className="text-sm font-bold">Live Rounds</h3>
+        <div className="mt-2 max-h-64 space-y-1 overflow-hidden text-xs">
+          {feed.map((f, i) => (
+            <p key={i} className="rounded bg-black/30 px-2 py-1.5"><b>{f.name}</b> bet ${f.bet} → <span className="text-emerald-300">+${f.profit}</span></p>
+          ))}
         </div>
       </div>
     </div>

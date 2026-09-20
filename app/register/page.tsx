@@ -90,8 +90,8 @@ function RegisterForm() {
       <div className="relative flex flex-1 flex-col overflow-x-clip bg-[#060b16] px-4 py-8">
         <div className="m-auto flex w-full max-w-sm flex-col items-center">
           <div className="flex w-full flex-col items-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-transparent p-8 shadow-2xl backdrop-blur-md">
-            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-300 text-xl font-black text-black shadow-lg">
-              A
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 text-black shadow-lg">
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden="true"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" /></svg>
             </div>
             <h2 className="mb-1 text-center text-2xl font-black text-white">AVIATOR SMART AI</h2>
             <p className="mb-6 text-center text-sm text-slate-400">

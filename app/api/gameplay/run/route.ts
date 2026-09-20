@@ -1,76 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getDb, initDb, uid } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { initDb } from "@/lib/db";
 import { currentUser } from "@/lib/auth";
-import { BUSINESS_RULES } from "@/lib/config";
-import { walletOf } from "@/lib/mlm";
 
-// DUMMY Aviator crash game (client rule): pure showpiece.
-// - 10 rounds/day, stake min $0.10, max = active bot amount
-// - client plays the round locally (plane flies, random crash, optional cash-out)
-//   and reports {bet, crashed_at, cashed_at}; server validates ranges only
-// - display delta is SHOWN but NEVER credited: no wallet change, no ledger,
-//   no level payouts. Real earnings come only from the bot (cron, full tier %).
-const CHANCES = 10;
-const MIN_STAKE = 0.1;
-
-const round2 = (v: number) => Math.round(v * 100) / 100;
-
-export async function POST(req: NextRequest) {
+// DUMMY Aviator game is view-only: rounds auto-play on screen,
+// no bets accepted, zero money moves anywhere.
+export async function POST() {
   await initDb();
   const u = await currentUser();
   if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
   if ((u as unknown as { is_blocked: number }).is_blocked)
     return NextResponse.json({ ok: false, error: "Your ID is suspended. Contact admin to unsuspend." }, { status: 403 });
-  const userId = u.id as string;
-  const db = getDb();
-  const ball = await db.execute({ sql: "SELECT * FROM bots WHERE user_id=? AND status='active' ORDER BY rowid DESC", args: [userId] });
-  const bots = ball.rows as unknown as { id: string; amount: number; daily_pct: number }[];
-  const bot = bots[0];
-  // Dummy game needs NO bot: stake cap = total bot amount if bots exist,
-  // else the deposit (principal) balance. Zero money moves either way.
-  const today = new Date().toISOString().slice(0, 10);
-
-  const s = await db.execute({ sql: "SELECT COUNT(*) as c, COALESCE(SUM(roi_amount),0) as pnl FROM gameplay WHERE user_id=? AND substr(created_at,1,10)=?", args: [userId, today] });
-  const used = Number((s.rows[0] as unknown as { c: number }).c ?? 0);
-  if (used >= BUSINESS_RULES.dailyRunLimit)
-    return NextResponse.json({ ok: false, error: `Today's 10 rounds are over. Come back tomorrow.` }, { status: 400 });
-
-  const body = await req.json().catch(() => ({}));
-  const stake = Number(body.bet) || 0;
-  const crashed = Number(body.crashed_at) || 0;
-  const cashed = body.cashed_at === null || body.cashed_at === undefined ? null : Number(body.cashed_at);
-  const w0 = await walletOf(userId);
-  const hasBots = bots.length > 0;
-  const stakeCap = hasBots
-    ? round2(bots.reduce((n, x) => n + Number(x.amount), 0))
-    : round2(Number(w0.principal));
-  const comboTarget = round2(bots.reduce((n, x) => n + (Number(x.amount) * Number(x.daily_pct)) / 100, 0));
-  if (!hasBots && stakeCap < MIN_STAKE) return NextResponse.json({ ok: false, error: "Recharge first, then play the demo game" }, { status: 400 });
-  if (stake < MIN_STAKE) return NextResponse.json({ ok: false, error: `Minimum stake is $${MIN_STAKE}` }, { status: 400 });
-  if (stake > stakeCap) return NextResponse.json({ ok: false, error: `Stake exceeds playable balance ($${stakeCap.toFixed(2)})` }, { status: 400 });
-  if (!(crashed >= 1)) return NextResponse.json({ ok: false, error: "Bad round" }, { status: 400 });
-  if (cashed !== null && (!(cashed >= 1) || cashed > crashed)) return NextResponse.json({ ok: false, error: "Bad cash-out" }, { status: 400 });
-
-  // Display-only result. NOTHING moves: wallet, ledger and levels untouched.
-  const delta = cashed !== null ? round2(stake * (cashed - 1)) : round2(-stake);
-  const roundNo = used + 1;
-  const pct = stake > 0 ? round2((delta / stake) * 100) : 0;
-  await db.execute({
-    sql: "INSERT INTO gameplay (id,user_id,bot_id,round_no,pct,roi_amount,bet_amount) VALUES (?,?,?,?,?,?,?)",
-    args: [uid("G"), userId, hasBots ? bot.id : "", roundNo, pct, delta, stake],
-  });
-  const w = await walletOf(userId);
-  return NextResponse.json({
-    ok: true,
-    round: roundNo,
-    bet: stake,
-    delta,
-    outcome: delta > 0 ? "profit" : delta < 0 ? "loss" : "flat",
-    chancesLeft: CHANCES - roundNo,
-    todayPnl: round2(Number((s.rows[0] as unknown as { pnl: number }).pnl ?? 0) + delta),
-    dailyTarget: comboTarget,
-    earningBalance: round2(Number(w.roi) + Number(w.commission) + Number(w.reward)),
-    depositBalance: stakeCap,
-    demo: true,
-  });
+  return NextResponse.json({ ok: false, error: "Demo viewing only — rounds play automatically" }, { status: 400 });
 }

@@ -99,6 +99,7 @@ export default function DashHome() {
   return (
     <div className="space-y-3">
       <AnnounceBanner />
+      <WithdrawBanner />
       <LiveToasts items={toasts} />
       <FakeNotifications />
       {fresh.map((f) => (
@@ -106,7 +107,17 @@ export default function DashHome() {
           Ticket Achieved: {f.name} — tap to view
         </Link>
       ))}
-      <div className="hero-plane av-card overflow-hidden p-4">
+      <div className="hero-plane av-card relative overflow-hidden p-4">
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute -right-8 top-1/2 h-56 w-56 -translate-y-1/2 rotate-12 text-white opacity-[0.13]">
+          <defs>
+            <linearGradient id="heroPlane" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#facc15" />
+              <stop offset="100%" stopColor="#ef4444" />
+            </linearGradient>
+          </defs>
+          <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" fill="url(#heroPlane)" />
+        </svg>
+        <div className="relative z-10">
         <span className="live-pill">AVIATOR LIVE</span>
         <h1 className="mt-2 text-2xl font-black">
           Ready to trade, {name}
@@ -131,6 +142,7 @@ export default function DashHome() {
             <p className="text-xs text-slate-300">Today&apos;s Earnings</p>
             <p className="text-2xl font-black text-emerald-300">+{num(data?.todayEarnings).toFixed(2)}</p>
           </div>
+        </div>
         </div>
       </div>
       <ReferralStrip code={uid} />
@@ -272,6 +284,36 @@ function AnnounceBanner() {
           <button onClick={() => hide(String(a.id))} aria-label="Dismiss" className="shrink-0 rounded-lg px-2 py-1 text-slate-400 hover:bg-white/10 hover:text-white">✕</button>
         </div>
       ))}
+    </div>
+  );
+}
+
+function WithdrawBanner() {
+  const [row, setRow] = useState<{ status?: string; net?: number } | null>(null);
+  useEffect(() => {
+    fetch("/api/withdraw").then((x) => x.json()).then((j) => { if (j.ok && j.rows?.length) setRow(j.rows[0]); }).catch(() => {});
+  }, []);
+  if (!row) return null;
+  if (row.status === "pending") {
+    return (
+      <div className="av-card border-amber-300/40 p-3 text-center">
+        <p className="text-sm font-black text-amber-200">⏳ Withdrawal pending</p>
+        <p className="text-xs text-slate-300">Tumhara withdrawal lag gaya hai — approval me hai.</p>
+      </div>
+    );
+  }
+  if (row.status === "approved") {
+    return (
+      <div className="av-card border-emerald-300/40 p-3 text-center">
+        <p className="text-sm font-black text-emerald-300">✓ Withdrawal paid — ${Number(row.net || 0).toFixed(2)}</p>
+        <p className="text-xs text-slate-300">Paisa tumhare BEP20 address par bhej diya gaya hai.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="av-card border-red-300/40 p-3 text-center">
+      <p className="text-sm font-black text-red-300">Withdrawal rejected</p>
+      <p className="text-xs text-slate-300">Paisa wapas wallet me hai — Support se baat karo.</p>
     </div>
   );
 }
