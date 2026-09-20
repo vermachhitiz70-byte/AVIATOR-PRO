@@ -79,7 +79,7 @@ export function DashBottom() {
             <div className="mt-1">{n.label}</div>
           </Link>
         ))}
-        <Link href="/dash/support" className="absolute -top-7 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-300 to-yellow-300 text-lg font-black text-black shadow-lg" aria-label="AI">🤖</Link>
+        <Link href="/dash/support" className="absolute -top-12 right-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-300 to-yellow-300 text-lg font-black text-black shadow-lg" aria-label="AI">🤖</Link>
       </div>
     </div>
   );
