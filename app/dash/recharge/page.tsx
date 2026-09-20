@@ -44,7 +44,7 @@ export default function Recharge() {
       const screenshot_url = preview;
       const r = await fetch("/api/recharge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount), tx_hash: tx, screenshot_url }) });
       const j = await r.json();
-      setMsg(j.ok ? `Submitted ${j.request_id} – pending admin approval. Dashboard unlocks after approval.` : j.error);
+      setMsg(j.ok ? `Submitted ${j.request_id} – pending approval. Dashboard unlocks once approved.` : j.error);
       if (j.ok) { setTx(""); setFile(null); setPreview(""); const r2 = await fetch("/api/recharge").then((x) => x.json()); if (r2.ok) setRows(r2.rows); }
     } catch {
       setMsg("Upload failed, try again");

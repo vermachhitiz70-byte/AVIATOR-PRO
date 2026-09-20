@@ -56,7 +56,7 @@ function ActivateForm() {
       const res = await fetch("/api/recharge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: amt, tx_hash: tx, screenshot_url: preview }) });
       const j = await res.json();
       if (!j.ok) { setMsg(j.error); return; }
-      setMsg(`Submitted ${j.request_id} – pending admin approval. You will be notified when approved.`);
+      setMsg(`Submitted ${j.request_id} – pending approval. You will be notified once approved.`);
       setPending(true);
     } catch { setMsg("Failed, try again"); } finally { setBusy(false); }
   }
@@ -68,10 +68,9 @@ function ActivateForm() {
         <div className="m-auto max-w-md p-6 text-center">
           <div className="av-card p-8">
             <p className="text-4xl">⏳</p>
-            <h2 className="mt-2 text-xl font-black">Please wait, admin approval pending</h2>
-            <p className="mt-2 text-sm text-slate-300">Your payment is under review. Once admin approves, your dashboard will unlock and earnings will begin.</p>
-            <p className="mt-1 text-xs text-slate-400">Dashboard abhi locked hai — approve hone tak yahin status dikhega. Approve ke baad login karne par dashboard khulega.</p>
-            <button onClick={() => fetch("/api/me").then((r) => r.json()).then((m) => { if (m.ok && ((m.totalInvestment || 0) > 0 || m.activeBot)) router.replace("/dash"); else setMsg("Abhi bhi pending hai — admin approval ke baad try karo."); })} className="av-btn-yellow mt-4 inline-block px-6 py-2">Check Approval Status</button>
+            <h2 className="mt-2 text-xl font-black">Your account is going for approval.</h2>
+            <p className="mt-2 text-sm text-slate-300">Your payment is under review. Once it is approved, your dashboard will be unlocked, and your earning will begin.</p>
+            <button onClick={() => fetch("/api/me").then((r) => r.json()).then((m) => { if (m.ok && ((m.totalInvestment || 0) > 0 || m.activeBot)) router.replace("/dash"); else setMsg("Still pending — please try again later."); })} className="av-btn-yellow mt-4 inline-block px-6 py-2">Check Approval Status</button>
             {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
           </div>
         </div>
