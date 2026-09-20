@@ -99,7 +99,7 @@ export default function History() {
         {failed && (
           <div className="py-6 text-center">
             <p className="text-sm text-slate-400">Couldn't load history (network hiccup).</p>
-            <button onClick={load} className="mt-2 rounded-xl bg-yellow-300 px-5 py-2 text-sm font-black text-black">Retry</button>
+            <button onClick={() => load()} className="mt-2 rounded-xl bg-yellow-300 px-5 py-2 text-sm font-black text-black">Retry</button>
           </div>
         )}
       </div>
