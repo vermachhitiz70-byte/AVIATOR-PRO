@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const dup = await db.execute({ sql: "SELECT id FROM deposits WHERE tx_hash=?", args: [tx_hash] });
   if (dup.rows.length) return NextResponse.json({ ok: false, error: "This TX hash was already submitted" }, { status: 400 });
   const count = await db.execute({ sql: "SELECT COUNT(*) as c FROM deposits", args: [] });
-  const request_id = `AVP-CRYPTO-${String(Number((count.rows[0] as unknown as { c: number }).c) + 325).padStart(8, "0")}${Date.now().toString().slice(-6)}`;
+  const request_id = `AVP-${String(Number((count.rows[0] as unknown as { c: number }).c) + 325).padStart(8, "0")}${Date.now().toString().slice(-6)}`;
   const requested = amt * 0.99906513882;
   await db.execute({
     sql: "INSERT INTO deposits (id,user_id,request_id,requested,actual,tx_hash,screenshot_url,status) VALUES (?,?,?,?,?,?,?,?)",

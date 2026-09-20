@@ -107,7 +107,7 @@ export default function DashHome() {
         </Link>
       ))}
       <div className="hero-plane av-card overflow-hidden p-4">
-        <span className="live-pill">CRYPTO LIVE</span>
+        <span className="live-pill">AVIATOR LIVE</span>
         <h1 className="mt-2 text-2xl font-black">
           Ready to trade, {name}
         </h1>

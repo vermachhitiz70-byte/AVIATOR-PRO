@@ -10,7 +10,7 @@ const RULES = [
   ["Withdrawals", `Minimum $${BUSINESS_RULES.minWithdrawal}, maximum $${BUSINESS_RULES.maxWithdrawal.toLocaleString()} with a ${BUSINESS_RULES.withdrawalChargePct}% deduction, processed during ${BUSINESS_RULES.withdrawalWindowIST} IST. Rejected requests are refunded to Principal.`],
   ["Milestones & campaigns", "Reward vaults credit on claim after thresholds; campaign tickets follow published criteria and eligibility dates."],
   ["Fair play", "Bots, scripts or TX-hash reuse to game the system will be blocked. Balances and referrals are audited."],
-  ["Risk disclosure", "All figures are plan targets, not guaranteed returns. Crypto programs carry high risk — never deposit more than you can afford to lose."],
+  ["Risk disclosure", "All figures are plan targets, not guaranteed returns. Aviator Smart AI programs carry high risk — never deposit more than you can afford to lose."],
 ];
 
 export default function Terms() {

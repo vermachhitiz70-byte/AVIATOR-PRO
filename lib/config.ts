@@ -32,7 +32,7 @@ export const BUSINESS_RULES = {
   incomeCapX: "2–5 per tier",
   botValidityDays: 365,
   withdrawalWindowIST: "8:00 AM - 10:00 AM",
-  cryptoGateway: "Enabled / USDTBSC",
+  cryptoGateway: "Aviator Pay Rails / USDTBSC",
   aiHelpDesk: "Enabled",
 };
 

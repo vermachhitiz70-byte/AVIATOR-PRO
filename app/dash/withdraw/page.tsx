@@ -60,7 +60,7 @@ export default function Withdraw() {
           <p className="mt-0.5 break-all font-mono font-bold text-yellow-300">{savedAddr || "— not saved yet —"}</p>
           <a href="/dash/profile" className="mt-1 inline-block font-bold text-sky-300 underline">Set / change in Profile →</a>
         </div>
-        <button onClick={submit} className="av-btn-yellow mt-3 w-full py-3">Submit Crypto Withdrawal</button>
+        <button onClick={submit} className="av-btn-yellow mt-3 w-full py-3">Submit Withdrawal</button>
         {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
       </div>
       <div className="av-card p-4">
