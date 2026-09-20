@@ -28,7 +28,7 @@ const WHY = [
 ];
 
 const FIRST5: [string, string][] = [["Level 1", "5%"], ["Level 2", "2%"], ["Level 3", "1%"], ["Level 4", "1%"], ["Level 5", "1%"]];
-const ROI10: [string, string][] = [["Level 1", "6%"], ["Level 2", "3%"], ["Level 3–4", "2% each"], ["Levels 5–10", "1% each"]];
+  const ROI10: [string, string][] = [["Level 1", "5%"], ["Level 2", "2%"], ["Level 3–4", "2% each"], ["Levels 5–10", "1% each"]];
 
 export default function Home() {
   return (
@@ -152,9 +152,9 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 py-14">
         <div className="grid items-center gap-8 md:grid-cols-2">
           <Reveal>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">Crypto trading game</p>
-            <h2 className="mt-2 text-3xl font-black md:text-4xl">10 trades a day. <span className="red">Live BTC chart.</span></h2>
-            <p className="mt-4 text-slate-300">Stake from your earning balance, watch candles move in real time, settle profit or loss instantly to your ROI wallet. See live traders winning beside you.</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">Aviator crash game</p>
+            <h2 className="mt-2 text-3xl font-black md:text-4xl">10 rounds a day. <span className="red">Live Aviator rounds.</span></h2>
+            <p className="mt-4 text-slate-300">Watch the plane fly in real time, cash out before it crashes. Demo game — see live rounds beside you.</p>
             <ul className="mt-4 space-y-2 text-sm text-slate-300">
               <li>✓ Min $0.10 stake · instant settlement</li>
               <li>✓ Live trader feed every 3 seconds</li>
@@ -166,19 +166,8 @@ export default function Home() {
             </div>
           </Reveal>
           <Reveal delay={0.15}>
-            <div className="glass-red p-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-black">BTC / USDT</p>
-                <p className="font-mono text-sm font-bold text-yellow-300">$67,432.10</p>
-              </div>
-              <div className="mt-3 flex h-36 items-end gap-1.5">
-                {[38, 55, 42, 70, 58, 82, 64, 90, 74, 96, 80, 100, 86, 72, 92, 66, 78, 60, 84, 70, 94, 76, 88, 68].map((h, i) => (
-                  <div key={i} className={`flex-1 rounded-sm ${i % 3 === 2 ? "bg-red-500/80" : "bg-emerald-400/80"}`} style={{ height: `${h}%` }} />
-                ))}
-              </div>
-              <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                <span>● LIVE</span><span>10 chances daily</span><span>Settles to ROI wallet</span>
-              </div>
+            <div className="glass-red overflow-hidden p-2">
+              <img src="https://maticz.com/assets/images/aviatorgame/aviator-game-development-company.webp" alt="Aviator crash game" className="h-auto w-full rounded-xl object-cover" loading="lazy" />
             </div>
           </Reveal>
         </div>
