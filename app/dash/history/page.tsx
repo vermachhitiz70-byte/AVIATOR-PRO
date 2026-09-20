@@ -22,12 +22,21 @@ export default function History() {
   const [summary, setSummary] = useState<{ invested: number; earned: number; balance: number } | null>(null);
   const [filter, setFilter] = useState("All");
   const [showAll, setShowAll] = useState(false);
+  const [failed, setFailed] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/history").then((r) => r.json()).then((j) => {
+  async function load() {
+    setFailed(false);
+    try {
+      const r = await fetch("/api/history");
+      if (r.status === 401) { window.location.href = "/login"; return; }
+      const j = await r.json();
       if (j.ok) { setEvents(j.events || []); setSummary(j.summary); }
-    }).catch(() => {});
-  }, []);
+      else setFailed(true);
+    } catch {
+      setFailed(true);
+    }
+  }
+  useEffect(() => { load(); }, []);
 
   const keys = FILTERS.find(([k]) => k === filter)?.[1] || [];
   const list = keys.length ? events.filter((e) => keys.some((k) => e.label.startsWith(k))) : events;
@@ -71,7 +80,13 @@ export default function History() {
             <p className="mt-0.5 break-words text-[11px] text-slate-500">{h.detail}</p>
           </div>
         ))}
-        {!shown.length && <p className="py-6 text-center text-sm text-slate-400">No records yet.</p>}
+        {!shown.length && !failed && <p className="py-6 text-center text-sm text-slate-400">No records yet.</p>}
+        {failed && (
+          <div className="py-6 text-center">
+            <p className="text-sm text-slate-400">Couldn't load history (network hiccup).</p>
+            <button onClick={load} className="mt-2 rounded-xl bg-yellow-300 px-5 py-2 text-sm font-black text-black">Retry</button>
+          </div>
+        )}
       </div>
       {list.length > 20 && (
         <button onClick={() => setShowAll((v) => !v)} className="w-full rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold text-yellow-200">
