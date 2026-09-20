@@ -27,6 +27,8 @@ export async function POST(req: NextRequest) {
   if (!row.reset_code || row.reset_code !== String(otp)) return NextResponse.json({ ok: false, error: "Invalid OTP" }, { status: 400 });
   if (row.reset_expiry && new Date(row.reset_expiry).getTime() < Date.now()) return NextResponse.json({ ok: false, error: "OTP expired" }, { status: 400 });
   if (!password || password.length < 6) return NextResponse.json({ ok: false, error: "Password min 6 chars" }, { status: 400 });
-  await db.execute({ sql: "UPDATE users SET password_hash=?, reset_code='', reset_expiry='' WHERE id=?", args: [await hashPassword(password), u.id] });
+  // Email OTP ownership is proven here, so a still-unverified account becomes
+  // verified too — otherwise users loop forever on "Account not verified".
+  await db.execute({ sql: "UPDATE users SET password_hash=?, reset_code='', reset_expiry='', is_active=1, otp_code='', otp_expiry='' WHERE id=?", args: [await hashPassword(password), u.id] });
   return NextResponse.json({ ok: true, reset: true });
 }

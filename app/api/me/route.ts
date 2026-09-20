@@ -20,7 +20,8 @@ export async function GET() {
   const earn = await db.execute({ sql: "SELECT COALESCE(SUM(amount),0) as t FROM ledger WHERE user_id=? AND kind IN ('daily_roi','roi_level','first_recharge','reward','game_profit','game_loss') AND substr(created_at,1,10)=?", args: [uid, today] });
   const counts = await teamCounts(uid);
   const tx = await db.execute({ sql: "SELECT kind,wallet,amount,note,created_at FROM ledger WHERE user_id=? ORDER BY rowid DESC LIMIT 8", args: [uid] });
-  const acts = await db.execute({ sql: "SELECT kind,message,created_at FROM activities ORDER BY rowid DESC LIMIT 8", args: [] });
+  // Company-wide broadcasts (e.g. "Daily ROI distributed…") never show in user panels.
+  const acts = await db.execute({ sql: "SELECT kind,message,created_at FROM activities WHERE message NOT LIKE 'Daily ROI distributed%' ORDER BY rowid DESC LIMIT 8", args: [] });
   const active = (b.rows[0] ?? null) as unknown;
   const bAgg = bots.rows[0] as unknown as { c: number; t: number };
   const total = Number(w.principal) + Number(w.roi) + Number(w.commission) + Number(w.reward);

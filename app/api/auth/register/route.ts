@@ -13,8 +13,23 @@ export async function POST(req: NextRequest) {
   const settings = await getSettings();
   if (settings.maintenanceMode === "on") return NextResponse.json({ ok: false, error: "Platform under maintenance. Try later." }, { status: 503 });
   const db = getDb();
-  const dup = await db.execute({ sql: "SELECT id FROM users WHERE email=? OR mobile=?", args: [email, mobile] });
-  if (dup.rows.length) return NextResponse.json({ ok: false, error: "Email or mobile number is already registered." }, { status: 400 });
+  // Back-button case: email exists but never verified -> resend OTP, continue signup.
+  const existing = await db.execute({ sql: "SELECT id,is_active,referral_code FROM users WHERE email=?", args: [email] });
+  if (existing.rows.length) {
+    const ex = existing.rows[0] as unknown as { id: string; is_active: number; referral_code: string };
+    if (ex.is_active) return NextResponse.json({ ok: false, error: "Email is already registered. Please log in." }, { status: 400 });
+    const otp = otp6();
+    await db.execute({ sql: "UPDATE users SET otp_code=?,otp_expiry=? WHERE id=?", args: [otp, new Date(Date.now() + 10 * 60000).toISOString(), ex.id] });
+    let devOtp: string | undefined = undefined;
+    try {
+      await sendOtpEmail(email, otp, "verify");
+    } catch {
+      devOtp = otp;
+    }
+    return NextResponse.json({ ok: true, needOtp: true, email, referral_code: ex.referral_code, resumed: true, ...(devOtp ? { devOtp } : {}) });
+  }
+  const dupMob = await db.execute({ sql: "SELECT id FROM users WHERE mobile=?", args: [mobile] });
+  if (dupMob.rows.length) return NextResponse.json({ ok: false, error: "Mobile number is already registered." }, { status: 400 });
   // Referral is compulsory — no signup without a valid sponsor code.
   // (Old NULL rows were backfilled to admin by migration; new rows always carry a sponsor.)
   if (!referral || !String(referral).trim()) return NextResponse.json({ ok: false, error: "Referral ID is compulsory" }, { status: 400 });

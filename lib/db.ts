@@ -23,7 +23,7 @@ async function migrate(db: Client, sql: string) {
 // Schema version: bump when migrateAll() changes. The DB stores its version in
 // meta; matching versions skip ALL migrations (1 roundtrip). Without this gate
 // every serverless cold start replayed ~20 migration statements (~5s cross-region).
-const SCHEMA_VERSION = "9";
+const SCHEMA_VERSION = "10";
 
 // Cached per server instance: concurrent requests share one migration run,
 // warm instances skip it entirely.
@@ -248,6 +248,8 @@ async function migrateAll(): Promise<void> {
   await migrate(db, "ALTER TABLE users ADD COLUMN pan TEXT DEFAULT ''");
   await migrate(db, "ALTER TABLE users ADD COLUMN address TEXT DEFAULT ''");
   await migrate(db, "ALTER TABLE users ADD COLUMN profile_pending TEXT DEFAULT ''");
+  // Purge dead "0 bots" broadcast lines (user panels never show them again)
+  await db.execute("DELETE FROM activities WHERE message LIKE 'Daily ROI distributed to 0 bots%'");
   // Seeds (run once ever — guarded by existence checks)
   const camp = await db.execute({ sql: "SELECT id FROM campaigns WHERE name='Vietnam Ticket Achievers'", args: [] });
   if (camp.rows.length === 0) {

@@ -106,7 +106,10 @@ async function run(req: NextRequest) {
     if (r.expired) expired++;
     if (r.skipped) skipped++;
   }
-  await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "investment", `Daily ROI distributed to ${paid} bots (${credited.toFixed(2)} USDT)`] });
+  // Never broadcast empty runs: "0 bots" lines must not exist anywhere.
+  if (paid > 0) {
+    await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "investment", `Daily ROI distributed to ${paid} bots (${credited.toFixed(2)} USDT)`] });
+  }
   // Cron health: last run summary for the admin Overview card
   const health = JSON.stringify({ at: new Date().toISOString(), date: today, paid, credited: Math.round(credited * 100) / 100, skipped, capped, expired });
   await db.execute({ sql: "INSERT OR REPLACE INTO settings (key,value) VALUES ('lastCronRun',?)", args: [health] });
