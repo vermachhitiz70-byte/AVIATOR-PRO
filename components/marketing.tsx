@@ -240,10 +240,10 @@ export function GoogleReviews() {
 
 /* ---------------- Payout ticker (marquee scroller) ---------------- */
 const PAYOUTS: [string, string][] = [
-  ["Rahul S.", "$1,240"], ["Priya N.", "$860"], ["Amit V.", "$2,105"], ["Sneha R.", "$430"],
-  ["Vikram P.", "$3,300"], ["Ethan B.", "$5,000"], ["Kavya I.", "$275"], ["Rohit K.", "$980"],
-  ["Anjali M.", "$1,520"], ["Omar H.", "$4,150"], ["Divya N.", "$640"], ["Maya P.", "$2,780"],
-  ["Karan M.", "$390"], ["Fatima K.", "$1,075"], ["Arjun N.", "$2,460"], ["Meera J.", "$815"],
+  ["Rahul S.", "$42"], ["Priya N.", "$18"], ["Amit V.", "$35"], ["Sneha R.", "$27"],
+  ["Vikram P.", "$44"], ["Ethan B.", "$31"], ["Kavya I.", "$22"], ["Rohit K.", "$15"],
+  ["Anjali M.", "$38"], ["Omar H.", "$47"], ["Divya N.", "$12"], ["Maya P.", "$29"],
+  ["Karan M.", "$9"], ["Fatima K.", "$33"], ["Arjun N.", "$41"], ["Yuki T.", "$26"],
 ];
 
 export function PayoutTicker() {
