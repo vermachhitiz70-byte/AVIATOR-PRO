@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Users, ArrowDownToLine, ArrowUpFromLine, Bot, Megaphone, Ticket, Activity, BarChart3, Settings, Menu, X, LogOut, Plane, Wallet, ReceiptText, Network } from "lucide-react";
+import { LayoutDashboard, Users, ArrowDownToLine, ArrowUpFromLine, Bot, Megaphone, Ticket, Activity, BarChart3, Settings, Menu, X, LogOut, Plane, Wallet, ReceiptText, Network, Trophy } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cachedGet } from "./cachedFetch";
@@ -11,6 +11,7 @@ const nav = [
   { href: "/admin/earnings", label: "Earnings", icon: Wallet },
   { href: "/admin/trail", label: "Money Trail", icon: ReceiptText },
   { href: "/admin/tree", label: "Tree", icon: Network },
+  { href: "/admin/rewards", label: "Rewards", icon: Trophy },
   { href: "/admin/deposits", label: "Deposits", icon: ArrowDownToLine, badgeKey: "pendingDeposits" },
   { href: "/admin/withdrawals", label: "Withdrawals", icon: ArrowUpFromLine, badgeKey: "pendingWithdrawals" },
   { href: "/admin/bots", label: "Bots", icon: Bot },

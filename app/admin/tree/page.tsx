@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { MemberSearch, type LookupUser } from "@/components/admin";
 import { CARD } from "@/components/admin/ui";
 
@@ -65,7 +66,8 @@ function LevelRows({ nodes, depth, parentName, collapsed, onToggle, counts }: { 
   );
 }
 
-export default function AdminTreePage() {
+function AdminTreeInner() {
+  const sp = useSearchParams();
   const [root, setRoot] = useState<{ user: LookupUser; tree: TNode[]; directCount: number; teamTotal: number } | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [msg, setMsg] = useState("");
@@ -78,6 +80,17 @@ export default function AdminTreePage() {
     setRoot({ user: u, tree: j.tree || [], directCount: Number(j.directCount ?? 0), teamTotal: Number(j.teamTotal ?? 0) });
     if ((j.tree || []).length === 0) setMsg("Iske neeche koi member nahi — koi direct nahi joda.");
   }
+
+  // Deep-link from Rewards page: /admin/tree?pick=<code|mobile|name>
+  useEffect(() => {
+    const q = (sp.get("pick") || "").trim();
+    if (!q || root) return;
+    fetch(`/api/admin/lookup?q=${encodeURIComponent(q)}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((j) => { if (j.ok && j.rows?.length) pick(j.rows[0]); })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sp]);
   function toggle(id: string) {
     setCollapsed((p) => {
       const n = new Set(p);
@@ -95,6 +108,7 @@ export default function AdminTreePage() {
         <p className="mt-1 text-sm text-gray-500">Search karo → us bande se neeche ka poora ped. Green = Direct</p>
       </div>
       <MemberSearch onPick={pick} />
+      {root && <p className="-mb-2 text-xs text-gray-400">Showing tree for <b>{root.user.name}</b> — search upar se badal sakte ho.</p>}
       {msg && <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">{msg}</p>}
       {root && (
         <div className={`${CARD} overflow-x-auto p-5`}>
@@ -136,5 +150,13 @@ export default function AdminTreePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminTreePage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-gray-500">Loading tree…</div>}>
+      <AdminTreeInner />
+    </Suspense>
   );
 }

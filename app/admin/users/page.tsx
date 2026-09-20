@@ -347,16 +347,18 @@ export default function AdminUsersPage() {
       </Modal>
 
       <ConfirmDialog isOpen={!!suspendConfirm} onClose={() => setSuspendConfirm(null)} onConfirm={confirmSuspend}
-        title={suspendConfirm?.suspend ? "Suspend Account" : "Unsuspend Account"}
+        title={suspendConfirm?.suspend ? "Suspend this ID?" : "Unsuspend this ID?"}
         message={suspendConfirm?.suspend
-          ? "This user will be locked out immediately and told to contact admin. Continue?"
-          : "This user will regain full access immediately. Continue?"}
-        confirmText={suspendConfirm?.suspend ? "Suspend" : "Unsuspend"} destructive={!!suspendConfirm?.suspend} />
+          ? "Do you want to suspend this ID? Login, dashboard aur trading turant band ho jayenge. Upline/downline tables par koi farak nahi padega. Unsuspend karke wapas khola ja sakta hai."
+          : "Do you want to unsuspend this ID? User ko turant full access wapas mil jayega."}
+        confirmText={suspendConfirm?.suspend ? "Suspend" : "Unsuspend"} destructive={!!suspendConfirm?.suspend}
+        requireConsent={!!suspendConfirm?.suspend} consentText="I consent to suspend this ID and all consequences that follow." />
 
       <ConfirmDialog isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={confirmDelete}
-        title="Remove Account Permanently"
-        message={`"${deleteConfirm?.name}" and ALL related data (deposits, withdrawals, bots, trades, commissions, ledger) will be erased from the database forever. This cannot be undone. Continue?`}
-        confirmText="Delete Forever" destructive />
+        title="Terminate / Remove this ID?"
+        message={`Do you want to terminate "${deleteConfirm?.name}"? ID hamesha ke liye database se gayab ho jayegi (deposits, bots, trades, commissions, ledger — sab). Upline/downline tables par koi farak nahi padega. Ye UNDO nahi hoga.`}
+        confirmText="Remove Forever" destructive
+        requireConsent consentText="I consent to remove this ID permanently and all consequences that follow." />
 
       <ConfirmDialog isOpen={!!kycConfirm} onClose={() => setKycConfirm(null)} onConfirm={confirmKYC}
         title={`KYC ${kycConfirm?.status}`}
