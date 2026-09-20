@@ -49,6 +49,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   withdrawEndIST: "10:00",
   maintenanceMode: "off",
   depositAddress: process.env.BEP20_DEPOSIT_ADDRESS || DEPOSIT_ADDRESS,
+  depositQr: "",
   smtpHost: "",
   smtpPort: "465",
   smtpUser: "",

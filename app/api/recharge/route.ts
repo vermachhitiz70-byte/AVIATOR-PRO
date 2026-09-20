@@ -19,7 +19,7 @@ export async function GET() {
   const db = getDb();
   const settings = await getSettings();
   const r = await db.execute({ sql: "SELECT request_id,requested,actual,status,created_at FROM deposits WHERE user_id=? ORDER BY rowid DESC LIMIT 20", args: [u.id as string] });
-  return NextResponse.json({ ok: true, rows: r.rows, address: cleanAddress(settings.depositAddress) });
+  return NextResponse.json({ ok: true, rows: r.rows, address: cleanAddress(settings.depositAddress), qr: String(settings.depositQr || "").slice(0, 1000000) });
 }
 
 export async function POST(req: NextRequest) {

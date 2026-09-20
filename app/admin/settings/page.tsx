@@ -30,6 +30,61 @@ const SECURITY_KEYS = [
   { key: "cron_secret", label: "Cron Secret", type: "password" },
 ];
 
+function normalizeQrLink(raw: string) {
+  const s = raw.trim();
+  if (!s) return "";
+  const m = s.match(/drive\.google\.com\/file\/d\/([-\w]+)/) || s.match(/[?&]id=([-\w]{10,})/);
+  if (m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1000`;
+  return s;
+}
+
+function DepositQrCard({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [url, setUrl] = useState(value || "");
+  const [msg, setMsg] = useState("");
+  useEffect(() => { setUrl(value || ""); }, [value]);
+  const preview = normalizeQrLink(url);
+  function onFile(e: { target: HTMLInputElement }) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) { setMsg("Sirf image file (PNG/JPG)"); return; }
+    if (f.size > 700 * 1024) { setMsg("Image 700KB se chhoti rakho"); return; }
+    const rd = new FileReader();
+    rd.onload = () => { const d = String(rd.result || ""); setUrl(d); onChange(d); setMsg("Photo lag gayi — Save All dabana mat bhoolo"); };
+    rd.readAsDataURL(f);
+  }
+  function useLink() {
+    const n = normalizeQrLink(url);
+    if (!n) { setMsg("Pehle link paste karo"); return; }
+    setUrl(n);
+    onChange(n);
+    setMsg(n !== url.trim() ? "Drive link auto-convert ho gaya — Save All dabao" : "Link lag gaya — Save All dabao");
+  }
+  return (
+    <div className={`${CARD} p-5`}>
+      <h2 className="font-bold text-gray-900">Deposit QR Code</h2>
+      <p className="mt-1 text-xs text-gray-500">Khali rakho to address se auto QR banega. Photo upload karo ya Google Drive link paste karo — user dashboard par wahi dikhega.</p>
+      <div className="mt-3 flex flex-col gap-3 md:flex-row">
+        <div className="flex h-44 w-44 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e9dfc9] bg-white">
+          {preview ? <img src={preview} alt="Deposit QR preview" className="h-full w-full object-contain" /> : <span className="px-3 text-center text-xs text-gray-400">Auto QR (address se banega)</span>}
+        </div>
+        <div className="flex-1 space-y-2">
+          <div><label className={LABEL}>Photo upload (PNG/JPG, max 700KB)</label>
+            <input type="file" accept="image/*" onChange={onFile} className="w-full rounded-xl border border-[#e9dfc9] bg-white px-3 py-2 text-sm" /></div>
+          <div><label className={LABEL}>Ya link paste karo (Google Drive share link chalega)</label>
+            <div className="flex gap-2">
+              <input value={url.startsWith("data:") ? "" : url} onChange={(e) => setUrl(e.target.value)} placeholder="https://drive.google.com/file/d/… ya direct image link" className={INPUT} />
+              <button onClick={useLink} className="shrink-0 rounded-xl bg-[#1c1917] px-4 py-2 text-xs font-bold text-white hover:bg-black">Use Link</button>
+            </div></div>
+          <div className="flex gap-2">
+            <button onClick={() => { setUrl(""); onChange(""); setMsg("Hataya — Save All dabao"); }} className="rounded-xl border border-[#e9dfc9] px-4 py-2 text-xs font-bold text-gray-600 hover:bg-[#faf6ec]">Remove (auto QR)</button>
+          </div>
+          {msg && <p className="text-xs font-bold text-[#b45309]">{msg}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Settings>({});
   const [loading, setLoading] = useState(true);
@@ -144,6 +199,8 @@ export default function AdminSettingsPage() {
             <div className="mb-4 flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-100 text-[#e8821e]"><Server className="h-4 w-4" /></span><h2 className="font-bold text-gray-900">Platform Settings</h2></div>
             <div className="grid gap-3 md:grid-cols-2">{PLATFORM_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
           </div>
+
+          <DepositQrCard value={getValue("depositQr")} onChange={(v) => updateSetting("depositQr", v)} />
 
           <div className={`${CARD} p-5`}>
             <div className="mb-4 flex items-center justify-between">

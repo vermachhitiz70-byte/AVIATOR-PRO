@@ -17,7 +17,7 @@ function ActivateForm() {
   const [addr, setAddr] = useState(DEPOSIT_ADDRESS);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
-  const [qrError, setQrError] = useState(false);
+  const [qr, setQr] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [pending, setPending] = useState(false);
@@ -27,6 +27,7 @@ function ActivateForm() {
     fetch("/api/recharge").then((r) => r.json()).then((j) => {
       const a = String(j.address || "").trim();
       if (j.ok && a && !a.includes("YOUR")) setAddr(a);
+      if (j.ok && j.qr) setQr(String(j.qr));
     }).catch(() => {});
     // Already activated (admin approved) => go to dashboard
     fetch("/api/me").then((r) => r.json()).then((m) => {
@@ -100,7 +101,7 @@ function ActivateForm() {
           <h2 className="font-black">Pay via BEP20 — {plan.name}</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-[220px_1fr]">
             <div className="flex flex-col items-center rounded-xl bg-white p-4">
-              {!qrError ? <img src="/wallet-qr.jpeg" alt="Wallet QR" className="h-[180px] w-[180px] object-contain" onError={() => setQrError(true)} /> : <QRCodeSVG value={addr} size={180} />}
+              {qr ? <img src={qr} alt="Deposit QR" className="h-[180px] w-[180px] object-contain" /> : addr ? <QRCodeSVG value={addr} size={180} /> : <p className="text-xs text-slate-500">Loading QR...</p>}
               <p className="mt-2 text-center text-[11px] text-slate-600">Scan to pay USDT-BEP20</p>
             </div>
             <div>

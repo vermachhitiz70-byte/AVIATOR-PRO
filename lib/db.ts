@@ -23,7 +23,7 @@ async function migrate(db: Client, sql: string) {
 // Schema version: bump when migrateAll() changes. The DB stores its version in
 // meta; matching versions skip ALL migrations (1 roundtrip). Without this gate
 // every serverless cold start replayed ~20 migration statements (~5s cross-region).
-const SCHEMA_VERSION = "8";
+const SCHEMA_VERSION = "9";
 
 // Cached per server instance: concurrent requests share one migration run,
 // warm instances skip it entirely.
