@@ -5,16 +5,16 @@ import { useRouter } from "next/navigation";
 import { FakeNotifications, LiveToasts } from "@/components/dash";
 
 const TILES = [
-  { href: "/dash/recharge", label: "Recharge", icon: "+" },
-  { href: "/dash/play", label: "Trade", icon: ">" },
-  { href: "/dash/withdraw", label: "Withdraw", icon: "$" },
-  { href: "/dash/team", label: "Team", icon: "&" },
-  { href: "/dash/bot", label: "Trading Bot", icon: "B" },
-  { href: "/dash/business-plan", label: "Business Plan", icon: "P" },
-  { href: "/dash/run", label: "LUDO247", icon: "D" },
-  { href: "/dash/support", label: "AI Help", icon: "*" },
-  { href: "/dash/support", label: "Support", icon: "?" },
-  { href: "/dash/campaigns", label: "Campaigns", icon: "T" },
+  { href: "/dash/recharge", label: "Recharge", icon: "💰", g: "from-amber-300 to-orange-500" },
+  { href: "/dash/play", label: "Trade", icon: "📈", g: "from-emerald-300 to-green-600" },
+  { href: "/dash/withdraw", label: "Withdraw", icon: "💸", g: "from-sky-300 to-blue-600" },
+  { href: "/dash/team", label: "Team", icon: "👥", g: "from-violet-300 to-purple-600" },
+  { href: "/dash/bot", label: "Trading Bot", icon: "🤖", g: "from-slate-300 to-slate-600" },
+  { href: "/dash/business-plan", label: "Business Plan", icon: "📋", g: "from-yellow-200 to-amber-500" },
+  { href: "/dash/run", label: "LUDO247", icon: "🎲", g: "from-red-300 to-rose-600" },
+  { href: "/dash/support", label: "AI Help", icon: "✨", g: "from-cyan-200 to-teal-500" },
+  { href: "/dash/support", label: "Support", icon: "🎧", g: "from-indigo-300 to-indigo-600" },
+  { href: "/dash/campaigns", label: "Campaigns", icon: "🏆", g: "from-orange-300 to-yellow-600" },
 ];
 
 interface MeData {
@@ -136,9 +136,9 @@ export default function DashHome() {
       <ReferralStrip code={uid} />
       <div className="grid grid-cols-3 gap-2">
         {TILES.map((t) => (
-          <Link key={t.label} href={t.href} className="av-card flex flex-col items-center py-4 text-sm font-semibold">
-            <span className="text-xl">{t.icon}</span>
-            <span className="mt-1">{t.label}</span>
+          <Link key={t.label} href={t.href} className="av-card flex flex-col items-center py-4 text-sm font-semibold transition hover:-translate-y-0.5">
+            <span className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl shadow-lg ${t.g}`}>{t.icon}</span>
+            <span className="mt-2">{t.label}</span>
           </Link>
         ))}
       </div>
