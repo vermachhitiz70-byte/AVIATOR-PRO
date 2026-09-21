@@ -19,7 +19,7 @@ async function getAdminUser() {
     const r = await withTimeout(db.execute({
       sql: "SELECT id,name,email,referral_code,is_admin FROM users WHERE id=? AND is_admin=1",
       args: [payload.uid as string],
-    });
+    }));
     if (r.rows.length === 0) return null;
     const row = r.rows[0] as unknown as { id: unknown; name: unknown; email: unknown; referral_code: unknown; is_admin: unknown };
     return {
