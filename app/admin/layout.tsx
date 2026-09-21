@@ -13,10 +13,10 @@ async function getAdminUser() {
     const cookie = jar.get("av_session2")?.value || jar.get("av_session")?.value;
     if (!cookie) return null;
     const { payload } = await jwtVerify(cookie, JWT_SECRET);
-    const { getDb, initDb } = await import("@/lib/db");
-    await initDb();
+    const { getDb, initDb, withTimeout } = await import("@/lib/db");
+    await withTimeout(initDb());
     const db = getDb();
-    const r = await db.execute({
+    const r = await withTimeout(db.execute({
       sql: "SELECT id,name,email,referral_code,is_admin FROM users WHERE id=? AND is_admin=1",
       args: [payload.uid as string],
     });
