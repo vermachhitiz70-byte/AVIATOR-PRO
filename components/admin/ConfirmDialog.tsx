@@ -25,7 +25,7 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, conf
             <button
               onClick={() => { if (blocked) return; onConfirm(); onClose(); }}
               disabled={blocked}
-              title={blocked ? "Pehle checkbox tick karo" : undefined}
+              title={blocked ? "Tick the checkbox first" : undefined}
               className={`rounded-xl px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40 ${destructive ? "bg-red-500 hover:bg-red-600" : "bg-[#e8821e] hover:bg-[#d1710f]"}`}>
               Yes{confirmText === "Confirm" ? "" : `, ${confirmText}`}
             </button>

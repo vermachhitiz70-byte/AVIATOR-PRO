@@ -56,7 +56,7 @@ export async function buildTrail(userId: string, db: Client = getDb()) {
         const c = commList.splice(idx, 1)[0];
         const who = nameMap.get(c.from_user) || { name: c.from_user, code: "—" };
         e.label = c.type === "first_recharge" ? `Direct income · L${c.level}` : `Level income · L${c.level}`;
-        e.detail = `${who.name} (${who.code}) se — ${c.pct}% · ${e.detail}`;
+        e.detail = `${who.name} (${who.code}) — ${c.pct}% · ${e.detail}`;
         e.fromName = who.name;
         e.fromCode = who.code;
         e.pct = Number(c.pct);
@@ -67,7 +67,7 @@ export async function buildTrail(userId: string, db: Client = getDb()) {
   const wds = await db.execute({ sql: "SELECT usd,debit,charge,net,status,source_wallet,created_at FROM withdrawals WHERE user_id=? ORDER BY rowid", args: [userId] });
   for (const w of wds.rows as unknown as { usd: number; debit: number; charge: number; net: number; status: string; source_wallet: string; created_at: string }[]) {
     const t = splitTs(w.created_at);
-    ev.push({ ts: w.created_at, label: `Withdrawal ${w.status}`, detail: `${w.source_wallet} wallet se — debit $${Number(w.debit).toFixed(2)}, charge $${Number(w.charge).toFixed(2)}, net $${Number(w.net).toFixed(2)}`, amount: -Number(w.debit), date: t.date, time: t.time, wallet: w.source_wallet, fromName: "—", fromCode: "—", pct: null, levelNum: null });
+    ev.push({ ts: w.created_at, label: `Withdrawal ${w.status}`, detail: `${w.source_wallet} wallet — debit $${Number(w.debit).toFixed(2)}, charge $${Number(w.charge).toFixed(2)}, net $${Number(w.net).toFixed(2)}`, amount: -Number(w.debit), date: t.date, time: t.time, wallet: w.source_wallet, fromName: "—", fromCode: "—", pct: null, levelNum: null });
   }
   ev.sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0));
 

@@ -357,7 +357,7 @@ export default function AdminUsersPage() {
 
       <ConfirmDialog isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={confirmDelete}
         title="Terminate / Remove this ID?"
-        message={`Do you want to terminate "${deleteConfirm?.name}"? ID hamesha ke liye database se gayab ho jayegi (deposits, bots, trades, commissions, ledger — sab). Upline/downline tables par koi farak nahi padega. Ye UNDO nahi hoga.`}
+        message={`Do you want to terminate "${deleteConfirm?.name}"? The ID will be permanently removed from the database (deposits, bots, trades, commissions, ledger — all). Upline/downline tables are not affected. This CANNOT be undone.`}
         confirmText="Remove Forever" destructive
         requireConsent consentText="I consent to remove this ID permanently and all consequences that follow." />
 

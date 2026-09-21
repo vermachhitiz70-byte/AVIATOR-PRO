@@ -168,7 +168,7 @@ export default function Play() {
         )}
       </div>
       <div className="av-card p-4 text-center">
-        <p className="text-sm font-bold text-slate-200">Sirf dekhne ke liye ✈ — rounds apne-aap chalte hain</p>
+        <p className="text-sm font-bold text-slate-200">View only ✈ — rounds play automatically</p>
         <p className="mt-1 text-xs text-slate-400">Demo game — no money is staked and no earnings are credited. Real earnings come from your bot, daily.</p>
       </div>
       <div className="av-card p-3">

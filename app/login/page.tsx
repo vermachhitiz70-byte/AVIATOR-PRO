@@ -50,6 +50,9 @@ export default function Login() {
     return true;
   }
 
+  // Click → opens. All transient hiccups retry silently in the background
+  // (steady "Logging in...", no technical messages). Only a real failure
+  // (wrong password etc.) or 3 exhausted attempts shows any message.
   async function handleSignIn() {
     if (!email || !password) {
       setError("Please enter both email/mobile and password.");
@@ -58,21 +61,29 @@ export default function Login() {
     setError("");
     setBusy(true);
     try {
-      // Attempt 1 (may wake a cold server — can take 10–20s first time)
-      const ctrl1 = new AbortController();
-      const t1 = setTimeout(() => ctrl1.abort(), 45000);
-      try {
-        const j = await tryLogin(ctrl1.signal);
-        clearTimeout(t1);
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 30000);
+        let j: { ok: boolean; error?: string; transient?: boolean; is_admin?: boolean; needsActivation?: boolean };
+        try {
+          j = await tryLogin(ctrl.signal);
+        } catch (e) {
+          clearTimeout(t);
+          if ((e as Error).name !== "AbortError") throw e;
+          if (attempt < 3) continue;
+          setError("Taking longer than usual. Please tap Log in to try again.");
+          return;
+        }
+        clearTimeout(t);
         if (!j.ok && !j.transient) {
           setError(j.error || "Login failed. Please try again.");
           return;
         }
         if (!j.ok) {
-          // Transient hiccup (cold server) — fall through to attempt 2 automatically.
-          setError("Server hiccup. Retrying automatically...");
-        } else {
-        setError("Login ok — confirming session, please wait...");
+          if (attempt < 3) continue;
+          setError("Taking longer than usual. Please tap Log in to try again.");
+          return;
+        }
         if (!(await confirmSession())) {
           setError("Login succeeded but the session did not save in this browser. Please enable cookies (turn off incognito / private mode) and try again.");
           return;
@@ -80,33 +91,6 @@ export default function Login() {
         setError("");
         goNext(j);
         return;
-        }
-      } catch (e) {
-        clearTimeout(t1);
-        if ((e as Error).name !== "AbortError") throw e;
-        // Timed out — server was likely cold. One automatic retry on the now-warm server.
-        setError("Server taking too long — retrying automatically, please wait...");
-      }
-      // Attempt 2 (server should be warm now)
-      const ctrl2 = new AbortController();
-      const t2 = setTimeout(() => ctrl2.abort(), 45000);
-      try {
-        const j = await tryLogin(ctrl2.signal);
-        clearTimeout(t2);
-        if (!j.ok) {
-          setError(j.error || "Login failed. Please try again.");
-          return;
-        }
-        setError("Login ok — confirming session, please wait...");
-        if (!(await confirmSession())) {
-          setError("Login succeeded but the session did not save in this browser. Please enable cookies (turn off incognito / private mode) and try again.");
-          return;
-        }
-        setError("");
-        goNext(j);
-      } catch {
-        clearTimeout(t2);
-        setError("Network is too slow right now. Please check your connection and try again.");
       }
     } catch {
       setError("Something went wrong. Please check your connection and try again.");
