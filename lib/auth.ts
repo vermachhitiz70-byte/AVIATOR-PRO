@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
-import { getDb, initDb, resetDb } from "./db";
+import { getDb, initDb, resetDb, withTimeout } from "./db";
 
 const COOKIE = "av_session2";
 const LEGACY_COOKIE = "av_session";
@@ -78,15 +78,24 @@ async function readTokens(): Promise<string[]> {
   return out;
 }
 export async function currentUser() {
+  // Hard bound: a half-dead socket must resolve to 503 (retry), NEVER hang.
+  try {
+    return await withTimeout(_currentUserInner(), 15000);
+  } catch {
+    resetDb();
+    return null;
+  }
+}
+async function _currentUserInner() {
   try {
     try {
-      await initDb();
+      await withTimeout(initDb(), 12000);
     } catch {
       // One retry: a cold-start Turso blip must NEVER log a user out.
       // Drop a possibly sick cached client so the retry reconnects fresh.
       resetDb();
       await new Promise((r) => setTimeout(r, 800));
-      await initDb();
+      await withTimeout(initDb(), 12000);
     }
     const tokens = await readTokens();
     if (!tokens.length) return null;
@@ -127,8 +136,8 @@ export async function sessionStatus(): Promise<"valid" | "none" | "error"> {
   }
   if (!uid) return "none";
   try {
-    await initDb();
-    const r = await getDb().execute({ sql: "SELECT id FROM users WHERE id=?", args: [uid] });
+    await withTimeout(initDb(), 12000);
+    const r = await withTimeout(getDb().execute({ sql: "SELECT id FROM users WHERE id=?", args: [uid] }), 12000);
     return r.rows.length ? "valid" : "none";
   } catch {
     resetDb();

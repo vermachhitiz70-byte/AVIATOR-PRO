@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb, getSettings, initDb } from "@/lib/db";
+import { getDb, getSettings, initDb, withTimeout } from "@/lib/db";
 import { verifyPassword, createSession } from "@/lib/auth";
 
-// Cold starts talk to Turso across regions — allow extra time so logins never die mid-way.
+// Every DB call is time-bounded: a stuck socket answers 503 (retry) instead
+// of hanging to maxDuration, so login never sticks on "please wait".
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   // Always JSON (never an HTML 500): a hiccup must read as "retry", not "broken".
   try {
-    await initDb();
+    await withTimeout(initDb());
     let body: { email?: string; password?: string };
     try {
       body = await req.json();
@@ -18,9 +19,9 @@ export async function POST(req: NextRequest) {
     const { email, password } = body;
     if (!email || !password)
       return NextResponse.json({ ok: false, error: "Email and password required" }, { status: 400 });
-  const settings = await getSettings();
+  const settings = await withTimeout(getSettings());
   const db = getDb();
-  const r = await db.execute({ sql: "SELECT * FROM users WHERE email=? OR mobile=?", args: [email, email] });
+  const r = await withTimeout(db.execute({ sql: "SELECT * FROM users WHERE email=? OR mobile=?", args: [email, email] }));
   if (!r.rows.length) return NextResponse.json({ ok: false, error: "Account not found" }, { status: 404 });
   const u = r.rows[0] as unknown as { id: string; password_hash: string; is_active: number; is_blocked: number; is_admin: number };
   if (u.is_blocked) return NextResponse.json({ ok: false, error: "Your ID is suspended. Contact admin to unsuspend." }, { status: 403 });
@@ -31,9 +32,9 @@ export async function POST(req: NextRequest) {
   // Activation gate: dashboard unlocks only after admin confirms first deposit (or active bot).
   let needsActivation = false;
   if (!u.is_admin) {
-    const conf = await db.execute({ sql: "SELECT id FROM deposits WHERE user_id=? AND status='confirmed' LIMIT 1", args: [u.id] });
+    const conf = await withTimeout(db.execute({ sql: "SELECT id FROM deposits WHERE user_id=? AND status='confirmed' LIMIT 1", args: [u.id] }));
     if (!conf.rows.length) {
-      const bot = await db.execute({ sql: "SELECT id FROM bots WHERE user_id=? AND status='active' LIMIT 1", args: [u.id] });
+      const bot = await withTimeout(db.execute({ sql: "SELECT id FROM bots WHERE user_id=? AND status='active' LIMIT 1", args: [u.id] }));
       needsActivation = bot.rows.length === 0;
     }
   }

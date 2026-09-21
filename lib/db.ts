@@ -19,6 +19,25 @@ export function resetDb(): void {
   client = null;
 }
 
+// Race any DB promise against a timer. Remote sockets can go half-dead:
+// no error, just silence — without this the serverless function hangs to
+// maxDuration and the user sees "server taking too long". A timeout throws,
+// letting callers resetDb()+retry and answer 503 (fast) instead of hanging.
+export const DB_TIMEOUT_MS = 12000;
+export async function withTimeout<T>(p: Promise<T>, ms = DB_TIMEOUT_MS): Promise<T> {
+  let t: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      p,
+      new Promise<never>((_, rej) => {
+        t = setTimeout(() => rej(new Error("db-timeout")), ms);
+      }),
+    ]);
+  } finally {
+    if (t) clearTimeout(t);
+  }
+}
+
 async function migrate(db: Client, sql: string) {
   try {
     await db.execute(sql);
