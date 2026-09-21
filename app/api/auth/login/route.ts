@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb, getSettings, initDb, withTimeout } from "@/lib/db";
+import { getDb, getSettings, initDb, resetDb, withTimeout } from "@/lib/db";
 import { verifyPassword, createSession } from "@/lib/auth";
 
 // Every DB call is time-bounded: a stuck socket answers 503 (retry) instead
@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
   }
   return NextResponse.json({ ok: true, is_admin: !!u.is_admin, userId: u.id, needsActivation, sess: 2 });
   } catch {
+    // Self-heal: drop a possibly sick client so the next attempt reconnects fresh.
+    resetDb();
     return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });
   }
 }

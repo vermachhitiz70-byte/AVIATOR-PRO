@@ -35,10 +35,9 @@ export async function GET() {
   const earn = await db.execute({ sql: "SELECT COALESCE(SUM(amount),0) as t FROM ledger WHERE user_id=? AND kind IN ('daily_roi','roi_level','first_recharge','reward','game_profit','game_loss') AND substr(created_at,1,10)=?", args: [uid, today] });
   const counts = await teamCounts(uid);
   const tx = await db.execute({ sql: "SELECT kind,wallet,amount,note,created_at FROM ledger WHERE user_id=? ORDER BY rowid DESC LIMIT 8", args: [uid] });
-  // User panels never show money broadcasts: no deposit/ROI/withdrawal lines
-  // of other members (e.g. "Deposit confirmed…", "X requested withdrawal…",
-  // "Daily ROI distributed…"). Only joins/campaign notices pass through.
-  const acts = await db.execute({ sql: "SELECT kind,message,created_at FROM activities WHERE kind NOT IN ('investment','withdrawal') AND message NOT LIKE 'Daily ROI distributed%' ORDER BY rowid DESC LIMIT 8", args: [] });
+  // User panels NEVER show global broadcasts (other members' joins, deposits,
+  // withdrawals, admin actions). The activities table has no user_id, so the
+  // personal feed stays empty — admin sees everything in Activity Log instead.
   const active = (b.rows[0] ?? null) as unknown;
   const bAgg = bots.rows[0] as unknown as { c: number; t: number };
   const total = Number(w.principal) + Number(w.roi) + Number(w.commission) + Number(w.reward);
@@ -57,6 +56,6 @@ export async function GET() {
     direct: counts.direct,
     teamTotal: counts.total,
     recentTx: tx.rows,
-    feed: acts.rows,
+    feed: [],
   });
 }

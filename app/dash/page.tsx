@@ -36,30 +36,45 @@ export default function DashHome() {
   const router = useRouter();
   const [data, setData] = useState<MeData | null>(null);
   const [gate, setGate] = useState<null | "pending" | "checking">(null);
+  const [failed, setFailed] = useState(false);
   const [fresh, setFresh] = useState<{ campaign_id?: string; name?: string }[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    async function loadMe(retried = false): Promise<void> {
+    // 401 (after one retry) = truly logged out → /login. Anything else
+    // (network/503) = hiccup → stay + Retry, NEVER auto-logout.
+    async function loadMe(retried = false, down = 0): Promise<void> {
+      setFailed(false);
       let r: Response;
       try {
         r = await fetch("/api/me");
       } catch {
-        if (!retried && !cancelled) { setTimeout(() => loadMe(true), 1500); return; }
-        window.location.href = "/login";
+        if (down < 3 && !cancelled) { setTimeout(() => loadMe(true, down + 1), 1500); return; }
+        if (!cancelled) setFailed(true);
         return;
       }
       if (r.status === 401) {
         // One retry: a cold server can drop the first request right after login.
         if (!retried && !cancelled) {
           await new Promise((res) => setTimeout(res, 1200));
-          if (!cancelled) await loadMe(true);
+          if (!cancelled) await loadMe(true, down);
           return;
         }
         window.location.href = "/login";
         return;
       }
-      const j = await r.json();
+      if (r.status === 503) {
+        if (down < 3 && !cancelled) { setTimeout(() => loadMe(true, down + 1), 1500); return; }
+        if (!cancelled) setFailed(true);
+        return;
+      }
+      let j: MeData & { ok?: boolean; totalInvestment?: number; activeBot?: unknown };
+      try {
+        j = await r.json();
+      } catch {
+        if (!cancelled) setFailed(true);
+        return;
+      }
       // Hard gate fallback: no confirmed investment + no active bot => /activate (server layout is primary)
       if ((!j.totalInvestment || j.totalInvestment === 0) && !j.activeBot) {
         setGate("checking");
@@ -92,6 +107,17 @@ export default function DashHome() {
         <h3 className="mt-2 font-black">Checking activation...</h3>
         <p className="mt-1 text-sm text-slate-400">Taking you to plan activation.</p>
         <Link href="/activate" className="av-btn-yellow mt-4 inline-block px-6 py-2">Go to Activate</Link>
+      </div>
+    );
+  }
+
+  if (failed && !data) {
+    return (
+      <div className="av-card p-8 text-center">
+        <p className="text-3xl">📡</p>
+        <h3 className="mt-2 font-black">Couldn&apos;t load dashboard</h3>
+        <p className="mt-1 text-sm text-slate-400">Network hiccup — you are still logged in.</p>
+        <button onClick={() => { setFailed(false); window.location.reload(); }} className="av-btn-yellow mt-4 px-6 py-2">Retry</button>
       </div>
     );
   }
@@ -237,7 +263,7 @@ function CappingMeter() {
         const left = num(b.capLeft);
         const pct = cap > 0 ? Math.min(100, (used / cap) * 100) : 0;
         const full = b.status === "capped" || (cap > 0 && left <= 0);
-        return (
+  return (
           <div key={b.id || i} className="rounded-xl bg-black/40 p-2.5">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold">Bot #{i + 1} · {String(b.plan)} ${num(b.amount).toFixed(0)}</span>
