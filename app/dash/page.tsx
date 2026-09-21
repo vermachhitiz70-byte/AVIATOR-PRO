@@ -109,7 +109,7 @@ export default function DashHome() {
       ))}
       <div className="hero-plane av-card relative overflow-hidden p-4">
         <img
-          src="https://img.utdstc.com/screen/ae0/568/ae0568e2c572eb5365c8d0268db823ad511884c4dd1f179f1e403a4e7d98d752:600"
+          src="https://mb.cision.com/Public/21505/4215485/9f73e17c89d7f9d0_800x800ar.png"
           alt="" aria-hidden="true"
           className="pointer-events-none absolute -right-10 top-1/2 h-64 w-64 -translate-y-1/2 rounded-2xl object-cover opacity-40"
           loading="lazy"

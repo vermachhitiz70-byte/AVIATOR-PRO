@@ -28,7 +28,7 @@ const WHY = [
 ];
 
 const FIRST5: [string, string][] = [["Level 1", "5%"], ["Level 2", "2%"], ["Level 3", "1%"], ["Level 4", "1%"], ["Level 5", "1%"]];
-  const ROI10: [string, string][] = [["Level 1", "5%"], ["Level 2", "2%"], ["Level 3–4", "2% each"], ["Levels 5–10", "1% each"]];
+  const ROI10: [string, string][] = [["Level 1", "5%"], ["Level 2", "2%"], ["Level 3–5", "2% each"], ["Levels 6–10", "1% each"]];
 
 export default function Home() {
   return (

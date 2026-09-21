@@ -38,7 +38,7 @@ function StreaksUnused() { return null; }
 const SLIDES = [
   {
     id: "network",
-    eyebrow: "BEP20 · 3X CAP · 20 REWARDS",
+    eyebrow: "BEP20 · 5X CAP · 20 REWARDS",
     titleA: "GAMING",
     titleB: "NETWORK PLAN",
     accent: "red",
@@ -52,7 +52,7 @@ const SLIDES = [
     titleA: "BOT PLANS",
     titleB: "DAILY PROFITS",
     accent: "gold",
-    copy: "Three tiers for every budget. Earnings auto-credited daily with 3X capping and 365-day validity.",
+    copy: "Three tiers for every budget. Earnings auto-credited daily with 5X capping and 365-day validity.",
     cta1: { label: "View Plans", href: "/plans" },
     cta2: { label: "How It Works", href: "/how-it-works" },
   },

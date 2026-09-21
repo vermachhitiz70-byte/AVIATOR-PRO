@@ -26,7 +26,7 @@ export function SiteFooter() {
     <footer className="border-t border-white/10 py-8 text-center text-sm text-slate-400">
       <div className="mx-auto max-w-6xl px-4">
         <p className="font-bold text-slate-200">www.aviatorsmartai.com</p>
-        <p className="mt-2">Network Marketing Meets Gaming Innovation · BEP20 · 3X/6X Cap · 20 Rewards</p>
+        <p className="mt-2">Network Marketing Meets Gaming Innovation · BEP20 · 5X Cap · 20 Rewards</p>
         <p className="mt-2 text-xs">Demo rebuild for client review. High-return claims are high-risk; add your legal/risk disclaimer before production.</p>
       </div>
     </footer>
