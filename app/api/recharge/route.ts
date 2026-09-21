@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, getSettings, initDb, uid } from "@/lib/db";
-import { currentUser } from "@/lib/auth";
+import { currentUser, sessionStatus } from "@/lib/auth";
 import { logLedger } from "@/lib/mlm";
 import { DEPOSIT_ADDRESS } from "@/lib/config";
 
@@ -13,9 +13,12 @@ function cleanAddress(v: unknown) {
 // PRD 3.3: manual/semi-auto BEP20. User submits TX hash -> PENDING.
 // Balance is credited ONLY after admin approval (fixes auto-credit).
 export async function GET() {
-  await initDb();
+  await initDb().catch(() => {});
+  const st = await sessionStatus();
+  if (st === "none") return NextResponse.json({ ok: false }, { status: 401 });
+  if (st === "error") return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   const u = await currentUser();
-  if (!u) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!u) return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   const db = getDb();
   const settings = await getSettings();
   const r = await db.execute({ sql: "SELECT request_id,requested,actual,status,created_at FROM deposits WHERE user_id=? ORDER BY rowid DESC LIMIT 20", args: [u.id as string] });
@@ -23,9 +26,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  await initDb();
+  await initDb().catch(() => {});
+  const st = await sessionStatus();
+  if (st === "none") return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
+  if (st === "error") return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });
   const u = await currentUser();
-  if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
+  if (!u) return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });
   if ((u as unknown as { is_blocked: number }).is_blocked) return NextResponse.json({ ok: false, error: "Account blocked" }, { status: 403 });
   const { amount, tx_hash, screenshot_url } = await req.json();
   const settings = await getSettings();

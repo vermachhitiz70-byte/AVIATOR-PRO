@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, getSettings, initDb, uid } from "@/lib/db";
-import { currentUser } from "@/lib/auth";
+import { currentUser, sessionStatus } from "@/lib/auth";
 import { inWithdrawWindow, logLedger, walletOf, withdrawalQuote } from "@/lib/mlm";
 import { isKilled } from "@/lib/shutdown";
 
 export async function GET() {
-  await initDb();
+  await initDb().catch(() => {});
+  const st = await sessionStatus();
+  if (st === "none") return NextResponse.json({ ok: false }, { status: 401 });
+  if (st === "error") return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   const u = await currentUser();
-  if (!u) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!u) return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   const db = getDb();
   const settings = await getSettings();
   const r = await db.execute({ sql: "SELECT usd,debit,charge,net,status,payout_tx,created_at FROM withdrawals WHERE user_id=? ORDER BY rowid DESC LIMIT 20", args: [u.id as string] });
@@ -23,11 +26,15 @@ export async function GET() {
 // Withdrawals come ONLY from earning wallets: ROI + Commission + Reward.
 // 10% deduction, min $2, max $25K, ONLY 8–10 AM IST, admin approves manually.
 export async function POST(req: NextRequest) {
-  await initDb();
+  await initDb().catch(() => {});
+  const st = await sessionStatus();
+  if (st === "none") return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
+  if (st === "error") return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });
+  try {
   if (await isKilled("withdraw"))
     return NextResponse.json({ ok: false, error: "Withdrawals are paused for maintenance. Your balance is safe." }, { status: 503 });
   const u = await currentUser();
-  if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
+  if (!u) return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });
   if ((u as unknown as { is_blocked: number }).is_blocked) return NextResponse.json({ ok: false, error: "Account blocked" }, { status: 403 });
   const { amount, wallet: walletChoice } = await req.json();
   // Payout always goes to the saved profile BEP20 — never typed per request.
@@ -63,4 +70,7 @@ export async function POST(req: NextRequest) {
   await logLedger(u.id as string, "withdraw_request", src, -debit, `charge ${charge.toFixed(2)}, net ${net.toFixed(2)}`);
   await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "withdrawal", `${u.name} requested withdrawal of ${net.toFixed(2)} USDT`] });
   return NextResponse.json({ ok: true, debit, charge, net });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });
+  }
 }

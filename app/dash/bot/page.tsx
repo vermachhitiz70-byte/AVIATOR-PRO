@@ -31,12 +31,31 @@ export default function Bot() {
   }
   useEffect(() => { load(); }, []);
 
-  async function activate(e: React.FormEvent) {
+  async function activate(e: React.FormEvent, retried = false) {
     e.preventDefault();
     setMsg("Starting bot...");
-    const r = await fetch("/api/bot/activate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount) }) });
-    const j = await r.json();
-    setMsg(j.ok ? `🤖 Bot #${active.length + 1} started: ${j.plan} @ ${j.daily_pct}% daily` : j.error);
+    let r: Response;
+    try {
+      r = await fetch("/api/bot/activate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount) }) });
+    } catch {
+      if (!retried) { setMsg("Retrying..."); setTimeout(() => activate(e, true), 1500); return; }
+      setMsg("Network hiccup. Tap Start again.");
+      return;
+    }
+    if (r.status === 503 && !retried) { setMsg("Retrying..."); setTimeout(() => activate(e, true), 1500); return; }
+    let j: { ok?: boolean; error?: string; plan?: string; daily_pct?: number } | null = null;
+    try {
+      j = await r.json();
+    } catch { /* fall through */ }
+    if (!j) { setMsg("Network hiccup. Tap Start again."); return; }
+    if (r.status === 401) {
+      // Confirm the session is truly gone before saying "Login required".
+      try {
+        const m = await fetch("/api/me");
+        if (m.ok) { setMsg("Server hiccup. Tap Start again."); return; }
+      } catch { setMsg("Server hiccup. Tap Start again."); return; }
+    }
+    setMsg(j.ok ? `🤖 Bot #${active.length + 1} started: ${j.plan} @ ${j.daily_pct}% daily` : (j.error || "Tap Start again."));
     if (j.ok) load();
   }
 

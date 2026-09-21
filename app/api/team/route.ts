@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb } from "@/lib/db";
-import { currentUser } from "@/lib/auth";
+import { currentUser, sessionStatus } from "@/lib/auth";
 import { requireAdmin } from "@/lib/admin";
 import { downlineTree, directBusiness, teamBusiness, teamCounts } from "@/lib/mlm";
 import { EARNING_KINDS } from "@/lib/config";
@@ -9,9 +9,13 @@ type TreeNode = { id: string; name: string; referral_code: string; investment: n
 
 // Nested referral tree (who-under-whom), capped for safety. userId honored for admins.
 export async function GET(req: NextRequest) {
-  await initDb();
+  await initDb().catch(() => {});
+  const st = await sessionStatus();
+  if (st === "none") return NextResponse.json({ ok: false }, { status: 401 });
+  if (st === "error") return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   const u = await currentUser();
-  if (!u) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!u) return NextResponse.json({ ok: false, transient: true }, { status: 503 });
+  try {
   let uid = u.id as string;
   const q = new URL(req.url).searchParams.get("userId");
   if (q && q !== uid) {
@@ -69,4 +73,7 @@ export async function GET(req: NextRequest) {
     claimed: c.rows.map((r) => (r as unknown as { tier: number }).tier),
     referralCode: u.referral_code,
   });
+  } catch {
+    return NextResponse.json({ ok: false, transient: true }, { status: 503 });
+  }
 }

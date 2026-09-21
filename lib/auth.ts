@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
-import { getDb, initDb } from "./db";
+import { getDb, initDb, resetDb } from "./db";
 
 const COOKIE = "av_session2";
 const LEGACY_COOKIE = "av_session";
@@ -83,6 +83,8 @@ export async function currentUser() {
       await initDb();
     } catch {
       // One retry: a cold-start Turso blip must NEVER log a user out.
+      // Drop a possibly sick cached client so the retry reconnects fresh.
+      resetDb();
       await new Promise((r) => setTimeout(r, 800));
       await initDb();
     }
@@ -129,6 +131,7 @@ export async function sessionStatus(): Promise<"valid" | "none" | "error"> {
     const r = await getDb().execute({ sql: "SELECT id FROM users WHERE id=?", args: [uid] });
     return r.rows.length ? "valid" : "none";
   } catch {
+    resetDb();
     return "error";
   }
 }

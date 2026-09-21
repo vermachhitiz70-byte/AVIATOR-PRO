@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb, uid } from "@/lib/db";
-import { currentUser } from "@/lib/auth";
+import { currentUser, sessionStatus } from "@/lib/auth";
 import { BUSINESS_RULES, planForAmount } from "@/lib/config";
 import { walletOf } from "@/lib/mlm";
 import { isKilled } from "@/lib/shutdown";
 
 export async function POST(req: NextRequest) {
-  await initDb();
-  if (await isKilled("bot"))
-    return NextResponse.json({ ok: false, error: "New bot activation is paused for maintenance. Your active bots and earnings are safe." }, { status: 503 });
-  const u = await currentUser();
-  if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
-  const { amount } = await req.json();
-  const amt = Number(amount);
+  await initDb().catch(() => {});
+  const st = await sessionStatus();
+  if (st === "none") return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
+  if (st === "error") return NextResponse.json({ ok: false, error: "Server hiccup. Tap Start again.", transient: true }, { status: 503 });
+  try {
+    if (await isKilled("bot"))
+      return NextResponse.json({ ok: false, error: "New bot activation is paused for maintenance. Your active bots and earnings are safe." }, { status: 503 });
+    const u = await currentUser();
+    if (!u) return NextResponse.json({ ok: false, error: "Server hiccup. Tap Start again.", transient: true }, { status: 503 });
+    let body: { amount?: number };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
+    }
+    const amt = Number(body.amount);
   // Client rule: manual start only, min $10, always in multiples of $10
   // (10, 20, 30 … 100, 110 …). No auto-bot: deposit alone earns nothing.
   if (!amt || amt < 10 || amt > 100000 || amt % 10 !== 0)
@@ -32,4 +41,7 @@ export async function POST(req: NextRequest) {
     args: [id, u.id as string, plan.name, amt, plan.dailyPct, expiry, 0, "active"],
   });
   return NextResponse.json({ ok: true, plan: plan.name, daily_pct: plan.dailyPct, bot: { id, plan: plan.name, amount: amt } });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Server hiccup. Tap Start again.", transient: true }, { status: 503 });
+  }
 }

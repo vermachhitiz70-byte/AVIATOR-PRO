@@ -11,6 +11,14 @@ export function getDb(): Client {
   return client;
 }
 
+// Drop the cached client so the next getDb() reconnects fresh. A dead
+// Hrana socket stays dead forever if cached — that single sick instance
+// then fails EVERY auth check (false "logged out") until recycled.
+export function resetDb(): void {
+  try { void client?.close(); } catch { /* ignore */ }
+  client = null;
+}
+
 async function migrate(db: Client, sql: string) {
   try {
     await db.execute(sql);
