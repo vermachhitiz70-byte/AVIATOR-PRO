@@ -19,9 +19,11 @@ export async function POST(req: NextRequest) {
     const { email, password } = body;
     if (!email || !password)
       return NextResponse.json({ ok: false, error: "Email and password required" }, { status: 400 });
-  const settings = await withTimeout(getSettings());
   const db = getDb();
-  const r = await withTimeout(db.execute({ sql: "SELECT * FROM users WHERE email=? OR mobile=?", args: [email, email] }));
+  const [settings, r] = await Promise.all([
+    withTimeout(getSettings()),
+    withTimeout(db.execute({ sql: "SELECT * FROM users WHERE email=? OR mobile=?", args: [email, email] })),
+  ]);
   if (!r.rows.length) return NextResponse.json({ ok: false, error: "Account not found" }, { status: 404 });
   const u = r.rows[0] as unknown as { id: string; password_hash: string; is_active: number; is_blocked: number; is_admin: number };
   if (u.is_blocked) return NextResponse.json({ ok: false, error: "Your ID is suspended. Contact admin to unsuspend." }, { status: 403 });

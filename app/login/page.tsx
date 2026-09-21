@@ -20,7 +20,7 @@ export default function Login() {
       body: JSON.stringify({ email, password }),
       signal,
     });
-    return (await r.json()) as { ok: boolean; error?: string; is_admin?: boolean; needsActivation?: boolean };
+    return (await r.json()) as { ok: boolean; error?: string; transient?: boolean; is_admin?: boolean; needsActivation?: boolean };
   }
 
   function goNext(j: { is_admin?: boolean; needsActivation?: boolean }) {
@@ -64,10 +64,14 @@ export default function Login() {
       try {
         const j = await tryLogin(ctrl1.signal);
         clearTimeout(t1);
-        if (!j.ok) {
+        if (!j.ok && !j.transient) {
           setError(j.error || "Login failed. Please try again.");
           return;
         }
+        if (!j.ok) {
+          // Transient hiccup (cold server) — fall through to attempt 2 automatically.
+          setError("Server hiccup. Retrying automatically...");
+        } else {
         setError("Login ok — confirming session, please wait...");
         if (!(await confirmSession())) {
           setError("Login succeeded but the session did not save in this browser. Please enable cookies (turn off incognito / private mode) and try again.");
@@ -76,6 +80,7 @@ export default function Login() {
         setError("");
         goNext(j);
         return;
+        }
       } catch (e) {
         clearTimeout(t1);
         if ((e as Error).name !== "AbortError") throw e;
