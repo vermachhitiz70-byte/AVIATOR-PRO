@@ -100,6 +100,13 @@ export function HeroSlider() {
         touchX.current = null;
       }}
     >
+      <img
+        src="/hero-banners.png"
+        alt="" aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25"
+        loading="lazy"
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
+      />
       <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 md:pb-24 md:pt-20">
         <div className="min-h-[300px] max-w-3xl md:min-h-[340px]">
           <AnimatePresence mode="wait">
