@@ -108,15 +108,13 @@ export default function DashHome() {
         </Link>
       ))}
       <div className="hero-plane av-card relative overflow-hidden p-4">
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute -right-8 top-1/2 h-56 w-56 -translate-y-1/2 rotate-12 text-white opacity-[0.13]">
-          <defs>
-            <linearGradient id="heroPlane" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#facc15" />
-              <stop offset="100%" stopColor="#ef4444" />
-            </linearGradient>
-          </defs>
-          <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" fill="url(#heroPlane)" />
-        </svg>
+        <img
+          src="https://img.utdstc.com/screen/ae0/568/ae0568e2c572eb5365c8d0268db823ad511884c4dd1f179f1e403a4e7d98d752:600"
+          alt="" aria-hidden="true"
+          className="pointer-events-none absolute -right-10 top-1/2 h-64 w-64 -translate-y-1/2 rounded-2xl object-cover opacity-40"
+          loading="lazy"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
         <div className="relative z-10">
         <span className="live-pill">AVIATOR LIVE</span>
         <h1 className="mt-2 text-2xl font-black">
@@ -187,10 +185,14 @@ export default function DashHome() {
 
 function EarningsStrip() {
   const [r, setR] = useState<Record<string, { total: number }> | null>(null);
+  const [invested, setInvested] = useState(0);
+  const [teamBiz, setTeamBiz] = useState(0);
   useEffect(() => {
-    fetch("/api/earnings").then((x) => x.json()).then((j) => { if (j.ok) setR(j.ranges); }).catch(() => {});
+    fetch("/api/earnings").then((x) => x.json()).then((j) => { if (j.ok) { setR(j.ranges); setInvested(Number(j.invested || 0)); } }).catch(() => {});
+    fetch("/api/team").then((x) => x.json()).then((j) => { if (j.ok) setTeamBiz(Number(j.team || 0)); }).catch(() => {});
   }, []);
   const cells: [string, string][] = [["today", "Today"], ["week", "7 Days"], ["month", "30 Days"], ["all", "Total"]];
+  const totalEarned = num(r?.all?.total);
   return (
     <div className="av-card p-3">
       <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Earnings — Daily ROI + Level + Reward</p>
@@ -201,6 +203,20 @@ function EarningsStrip() {
             <p className="text-sm font-black text-emerald-300">+{num(r?.[k]?.total).toFixed(2)}</p>
           </div>
         ))}
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-1 py-2">
+          <p className="text-[10px] font-bold text-red-300">My Earnings</p>
+          <p className="text-sm font-black text-red-200">+${totalEarned.toFixed(2)}</p>
+        </div>
+        <div className="rounded-xl border border-yellow-300/40 bg-yellow-300/10 px-1 py-2">
+          <p className="text-[10px] font-bold text-yellow-300">Team Business</p>
+          <p className="text-sm font-black text-yellow-200">${teamBiz.toFixed(0)}</p>
+        </div>
+        <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-1 py-2">
+          <p className="text-[10px] font-bold text-red-300">Total Amount</p>
+          <p className="text-sm font-black text-red-200">${(invested + totalEarned).toFixed(2)}</p>
+        </div>
       </div>
     </div>
   );

@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
   }
   return NextResponse.json({
     ok: true,
+    name: u.name,
     self: biz.self,
     team: biz.team,
     direct: direct.direct,

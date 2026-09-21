@@ -63,7 +63,7 @@ export function DashTop() {
 const NAV = [
   { href: "/dash", label: "Home", icon: "⌂" },
   { href: "/dash/play", label: "Trade", icon: "📈" },
-  { href: "/dash/support", label: "AI Help", icon: "✦" },
+  { href: "/dash/history", label: "History", icon: "🕘" },
   { href: "/dash/withdraw", label: "Withdraw", icon: "$" },
   { href: "/dash/profile", label: "Profile", icon: "◉" },
 ];

@@ -32,14 +32,22 @@ export default function Login() {
   // before leaving the page. If the browser blocks cookies (incognito /
   // privacy mode), pushing would just bounce back to /login looking broken.
   async function confirmSession(): Promise<boolean> {
+    // Mobile networks can hang: hard timeout per attempt so login NEVER
+    // sticks on "please wait". On timeout we proceed optimistically —
+    // the layout re-verifies server-side and bounces only if truly logged out.
     for (let i = 0; i < 2; i++) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 8000);
       try {
-        const r = await fetch("/api/me");
+        const r = await fetch("/api/me", { signal: ctrl.signal });
+        clearTimeout(t);
         if (r.ok) return true;
-      } catch { /* retry once */ }
+        if (r.status === 401) return false;
+      } catch { /* timeout/network — retry once, then proceed anyway */ }
+      clearTimeout(t);
       await new Promise((res) => setTimeout(res, 1000));
     }
-    return false;
+    return true;
   }
 
   async function handleSignIn() {
