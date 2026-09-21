@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   const src = ["roi", "commission", "reward"].includes(walletChoice) ? walletChoice : null;
   if (!src) return NextResponse.json({ ok: false, error: "Select a wallet: ROI, Commission or Reward" }, { status: 400 });
   const win = inWithdrawWindow(settings.withdrawStartIST || "08:00", settings.withdrawEndIST || "10:00");
-  if (!win.ok) return NextResponse.json({ ok: false, error: `Withdrawals only 8:00–10:00 AM IST. Now: ${win.nowIST}` }, { status: 400 });
+  if (!win.ok) return NextResponse.json({ ok: false, error: `Withdrawals only 8:00–10:00 AM. Now: ${win.nowIST}` }, { status: 400 });
   const db = getDb();
   // Client rule: only ONE withdrawal per wallet per day (one wallet at a time,
   // never all incomes together — gives admin breathing room for payouts).

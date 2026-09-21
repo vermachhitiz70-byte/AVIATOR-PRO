@@ -7,7 +7,7 @@ const STEPS = [
   { n: "01", t: "Register", d: "Create your account in minutes, verify email OTP, add your sponsor ID.", icon: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8" },
   { n: "02", t: "Recharge", d: "Top up with BEP20 USDT via QR or payment address. Min $10, approved fast.", icon: "M21 12V7H5a2 2 0 0 1 0-4h14v4 M3 5v14a2 2 0 0 0 2 2h16v-5 M18 12a2 2 0 0 0 0 4h-4v-4Z" },
   { n: "03", t: "Activate Bot", d: "Pick any of 6 tiers (3%–10% daily). Automated profits, auto-credited at 5 AM.", icon: "M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z M9 12l2 2 4-4" },
-  { n: "04", t: "Track & Withdraw", d: "Watch wallets, team and milestones live. Withdraw $2+ between 8–10 AM IST.", icon: "M3 17l6-6 4 4 8-8 M15 7h6v6" },
+  { n: "04", t: "Track & Withdraw", d: "Watch wallets, team and milestones live. Withdraw $2+ between 8–10 AM.", icon: "M3 17l6-6 4 4 8-8 M15 7h6v6" },
 ];
 
 function Icon({ d }: { d: string }) {
@@ -158,7 +158,7 @@ export default function Home() {
             <ul className="mt-4 space-y-2 text-sm text-slate-300">
               <li>✓ Min $0.10 stake · instant settlement</li>
               <li>✓ Live trader feed every 3 seconds</li>
-              <li>✓ Rest auto-credits at 5 AM IST</li>
+               <li>✓ Rest auto-credits at 5 AM</li>
             </ul>
             <div className="mt-5 flex gap-3">
               <Link href="/register" className="av-btn-red btn-shine px-6 py-2.5 text-sm">Start Trading</Link>
@@ -225,9 +225,9 @@ export default function Home() {
         <div className="mt-6 space-y-3">
           {[
             ["What is the minimum to start?", "Just $10 USDT (BEP20). Pick any bot tier from $10 to $100,000 and activate instantly from your principal wallet."],
-            ["How do daily profits work?", "Every active bot earns automated profits daily, auto-credited at 5 AM IST — plus 10-level team ROI commissions."],
+            ["How do daily profits work?", "Every active bot earns automated profits daily, auto-credited at 5 AM — plus 10-level team ROI commissions."],
             ["What is tier capping?", "A bot stops automatically once direct earnings reach its tier cap (2X–5X of bot amount). Direct + team commissions never cap. Validity is 365 days, whichever comes first."],
-            ["When can I withdraw?", "Daily between 8:00–10:00 AM IST. Minimum $2 with a 10% charge shown upfront as debit / charge / net."],
+            ["When can I withdraw?", "Daily between 8:00–10:00 AM. Minimum $2 with a 10% charge shown upfront as debit / charge / net."],
             ["How do team commissions work?", "Earn 5/2/1/1/1% on first recharges across 5 levels, and 5/2/2/2/2/1% across 10 levels on daily ROI — for life."],
           ].map(([q, a]) => (
             <Reveal key={q}>

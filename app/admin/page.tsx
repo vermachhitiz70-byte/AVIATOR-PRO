@@ -208,7 +208,7 @@ function CronHealthCard({ health }: { health: { at?: string; date?: string; paid
     <div className={`rounded-2xl border p-4 ${ok ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className={`text-sm font-black ${ok ? "text-green-800" : "text-red-700"}`}>
-          {ok ? "✅" : "🔴"} 5 AM ROI Job — {ok ? `ran ${when} IST` : `STALE since ${when} IST`}
+          {ok ? "✅" : "🔴"} 5 AM ROI Job — {ok ? `ran ${when}` : `STALE since ${when}`}
         </p>
         {health.source === "ledger-fallback" && <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-bold text-gray-600">last seen in ledger</span>}
       </div>

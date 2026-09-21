@@ -7,7 +7,7 @@ const RULES = [
   ["Deposits", `Minimum $${BUSINESS_RULES.minInvestment} via USDT-BEP20. Funds credit to Principal only after admin verification of your TX hash.`],
   ["Daily income", `Automated daily share of your active bot amount (3%–10% by tier), auto-credited daily. Bots stop at 2X–5X direct earnings or ${BUSINESS_RULES.botValidityDays} days. Direct + level commissions never cap.`],
   ["Commissions", "First-recharge bonuses pay once per member (5/2/1/1/1). ROI team commissions (5/2/2/2/2/1…) pay on downline daily earnings."],
-  ["Withdrawals", `Minimum $${BUSINESS_RULES.minWithdrawal}, maximum $${BUSINESS_RULES.maxWithdrawal.toLocaleString()} with a ${BUSINESS_RULES.withdrawalChargePct}% deduction, processed during ${BUSINESS_RULES.withdrawalWindowIST} IST. Rejected requests are refunded to Principal.`],
+  ["Withdrawals", `Minimum $${BUSINESS_RULES.minWithdrawal}, maximum $${BUSINESS_RULES.maxWithdrawal.toLocaleString()} with a ${BUSINESS_RULES.withdrawalChargePct}% deduction, processed during ${BUSINESS_RULES.withdrawalWindowIST}. Rejected requests are refunded to Principal.`],
   ["Milestones & campaigns", "Reward vaults credit on claim after thresholds; campaign tickets follow published criteria and eligibility dates."],
   ["Fair play", "Bots, scripts or TX-hash reuse to game the system will be blocked. Balances and referrals are audited."],
   ["Risk disclosure", "All figures are plan targets, not guaranteed returns. Aviator Smart AI programs carry high risk — never deposit more than you can afford to lose."],
@@ -36,7 +36,7 @@ export default function Terms() {
 
         <Reveal>
           <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-            {[["Min withdrawal", `$${BUSINESS_RULES.minWithdrawal}`], ["Max withdrawal", `$${BUSINESS_RULES.maxWithdrawal.toLocaleString()}`], ["Withdrawal fee", `${BUSINESS_RULES.withdrawalChargePct}%`], ["Min investment", `$${BUSINESS_RULES.minInvestment}`], ["Withdraw window", "7–10 AM IST"]].map(([a, b]) => (
+            {[["Min withdrawal", `$${BUSINESS_RULES.minWithdrawal}`], ["Max withdrawal", `$${BUSINESS_RULES.maxWithdrawal.toLocaleString()}`], ["Withdrawal fee", `${BUSINESS_RULES.withdrawalChargePct}%`], ["Min investment", `$${BUSINESS_RULES.minInvestment}`], ["Withdraw window", "8–10 AM"]].map(([a, b]) => (
               <div key={a} className="av-card p-4 text-center">
                 <p className="text-xs text-slate-400">{a}</p>
                 <p className="mt-1 text-xl font-black text-yellow-300">{b}</p>

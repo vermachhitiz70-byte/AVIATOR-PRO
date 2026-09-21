@@ -45,7 +45,7 @@ export default function Withdraw() {
     <div className="space-y-3">
       <div className="rounded-lg bg-pink-100 p-3 text-sm text-black">Verify your BEP-20 address by email OTP in Profile.</div>
       <div className={`rounded-lg p-3 text-sm ${winOk ? "bg-emerald-100 text-black" : "bg-amber-100 text-black"}`}>
-        {winOk ? `Withdrawals OPEN now (${winNow}). Window: 8:00–10:00 AM IST daily. One withdrawal per day.` : `Withdrawals CLOSED now (${winNow}). Window: 8:00–10:00 AM IST daily — please try again tomorrow.`}
+        {winOk ? `Withdrawals OPEN now (${winNow}). Window: 8:00–10:00 AM daily. One withdrawal per day.` : `Withdrawals CLOSED now (${winNow}). Window: 8:00–10:00 AM daily — please try again tomorrow.`}
       </div>
       <div className="av-card p-4">
         <label className="text-sm">Select Wallet (earning wallets only)</label>
@@ -57,7 +57,7 @@ export default function Withdraw() {
         <p className="mt-1 text-xs text-slate-400">Deposit (Principal) wallet can never be withdrawn.</p>
         <label className="mt-3 block text-sm">Amount USD / USDT</label>
         <input className="av-input mt-1" value={amount} onChange={(e) => setAmount(e.target.value)} />
-        <p className="mt-1 text-xs text-slate-400">Selected balance: ${selBal.toFixed(2)} (min ${minW}, max ${maxW.toLocaleString()}, 10% deduction, window 8–10 AM IST, 1/day)</p>
+        <p className="mt-1 text-xs text-slate-400">Selected balance: ${selBal.toFixed(2)} (min ${minW}, max ${maxW.toLocaleString()}, 10% deduction, window 8–10 AM, 1/day)</p>
         <div className="mt-2 rounded-xl bg-black/40 px-3 py-2.5 text-xs">
           <p className="text-slate-400">Payout goes automatically to your saved BEP20:</p>
           <p className="mt-0.5 break-all font-mono font-bold text-yellow-300">{savedAddr || "— not saved yet —"}</p>
@@ -99,7 +99,7 @@ export default function Withdraw() {
             <p className="text-4xl">⏰</p>
             <h3 className="mt-2 text-lg font-black text-white">Withdrawals Closed</h3>
             <p className="mt-2 text-sm text-slate-300">Please try again on the next date during the withdrawal window.</p>
-            <p className="mt-1 text-sm font-bold text-yellow-300">8:00 – 10:00 AM IST (daily)</p>
+            <p className="mt-1 text-sm font-bold text-yellow-300">8:00 – 10:00 AM (daily)</p>
             <button onClick={() => setShowClosed(false)} className="av-btn-yellow mt-4 w-full py-2.5 text-sm">OK, Got It</button>
           </div>
         </div>

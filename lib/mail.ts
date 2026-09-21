@@ -55,7 +55,7 @@ export async function sendCredentialsEmail(to: string, name: string, userId: str
         <p>Hi ${name}, your account is active. Here are your login details:</p>
         <p>User ID (login): <b style="color:#facc15">${userId}</b></p>
         <p>Password: <b style="font-size:20px;letter-spacing:2px;color:#facc15">${password}</b></p>
-        <p style="color:#94a3b8">Keep them safe and never share them. You can withdraw daily 8:00–10:00 AM IST.</p>
+        <p style="color:#94a3b8">Keep them safe and never share them. You can withdraw daily 8:00–10:00 AM.</p>
       </div>`,
   });
 }

@@ -6,7 +6,7 @@ const STEPS = [
   { n: "01", t: "Register & verify", d: "Sign up with your sponsor ID, verify the 6-digit email OTP and set your BEP20 address. Under 5 minutes.", points: ["Sponsor auto-linked", "OTP-secured account", "Country-tagged profile"] },
   { n: "02", t: "Recharge with BEP20", d: "Send USDT to the gateway address and paste your TX hash. Admin verifies and your Principal wallet is credited.", points: ["Min $10", "QR + address + TX flow", "Verification table"] },
   { n: "03", t: "Activate your bot", d: "Choose Conservative, Balanced or Aggressive. Automated daily profits with 3X cap and 365-day validity.", points: ["Instant activation", "Live cap tracker", "10-level team earnings"] },
-  { n: "04", t: "Track & withdraw", d: "Watch wallets, ROI, team and milestones live. Withdraw $2+ during the 7–10 AM IST window.", points: ["Debit / charge / net view", "10% transparent fee", "Reward claims"] },
+  { n: "04", t: "Track & withdraw", d: "Watch wallets, ROI, team and milestones live. Withdraw $2+ during the 8–10 AM window.", points: ["Debit / charge / net view", "10% transparent fee", "Reward claims"] },
 ];
 
 export default function HowItWorks() {
