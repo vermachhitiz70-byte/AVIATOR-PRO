@@ -7,6 +7,9 @@ import { getDb, initDb, withTimeout } from "@/lib/db";
 // Admins bypass. Pending deposits do NOT unlock the dashboard.
 // DB calls are time-bounded so a stalled connection fails fast (build
 // prerender + runtime) instead of hanging the render past 60s.
+// Authenticated member panel: never prerender statically (per-request auth).
+export const dynamic = "force-dynamic";
+
 export default async function DashLayout({ children }: { children: React.ReactNode }) {
   await withTimeout(initDb());
   const u = await currentUser();

@@ -34,6 +34,9 @@ async function getAdminUser() {
   }
 }
 
+// Authenticated admin panel: never prerender statically (per-request auth).
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const admin = await getAdminUser();
   if (!admin) redirect("/login");
