@@ -3,9 +3,12 @@ import { getDb, initDb, uid } from "@/lib/db";
 import { currentUser } from "@/lib/auth";
 import { BUSINESS_RULES, planForAmount } from "@/lib/config";
 import { walletOf } from "@/lib/mlm";
+import { isKilled } from "@/lib/shutdown";
 
 export async function POST(req: NextRequest) {
   await initDb();
+  if (await isKilled("bot"))
+    return NextResponse.json({ ok: false, error: "New bot activation is paused for maintenance. Your active bots and earnings are safe." }, { status: 503 });
   const u = await currentUser();
   if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
   const { amount } = await req.json();

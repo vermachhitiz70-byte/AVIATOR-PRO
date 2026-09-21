@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, getSettings, initDb, uid } from "@/lib/db";
 import { currentUser } from "@/lib/auth";
 import { inWithdrawWindow, logLedger, walletOf, withdrawalQuote } from "@/lib/mlm";
+import { isKilled } from "@/lib/shutdown";
 
 export async function GET() {
   await initDb();
@@ -23,6 +24,8 @@ export async function GET() {
 // 10% deduction, min $2, max $25K, ONLY 8–10 AM IST, admin approves manually.
 export async function POST(req: NextRequest) {
   await initDb();
+  if (await isKilled("withdraw"))
+    return NextResponse.json({ ok: false, error: "Withdrawals are paused for maintenance. Your balance is safe." }, { status: 503 });
   const u = await currentUser();
   if (!u) return NextResponse.json({ ok: false, error: "Login required" }, { status: 401 });
   if ((u as unknown as { is_blocked: number }).is_blocked) return NextResponse.json({ ok: false, error: "Account blocked" }, { status: 403 });

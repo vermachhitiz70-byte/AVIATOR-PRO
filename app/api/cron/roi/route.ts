@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb, uid } from "@/lib/db";
 import { planForAmount } from "@/lib/config";
 import { cappedExtras, creditRoiLevels, logLedger } from "@/lib/mlm";
+import { isKilled } from "@/lib/shutdown";
 import type { Campaign } from "@/lib/campaigns";
 
 export const maxDuration = 60;
@@ -81,6 +82,9 @@ async function pool<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>)
 
 async function run(req: NextRequest) {
   await initDb();
+  // CRON_SILENT: during maintenance the cron exits quietly (HTTP 200, no payout,
+  // no error alert) so scheduled runs simply skip the day.
+  if (await isKilled("cron")) return NextResponse.json({ ok: true, skipped: "maintenance" });
   const secret = new URL(req.url).searchParams.get("secret") || "";
   if (secret !== (process.env.CRON_SECRET || "dev-cron-secret")) {
     return NextResponse.json({ ok: false, error: "Bad secret. Set CRON_SECRET env and call /api/cron/roi?secret=..." }, { status: 401 });
