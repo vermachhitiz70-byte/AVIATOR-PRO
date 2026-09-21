@@ -9,7 +9,8 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secre
 
 async function getAdminUser() {
   try {
-    const cookie = (await cookies()).get("av_session")?.value;
+    const jar = await cookies();
+    const cookie = jar.get("av_session2")?.value || jar.get("av_session")?.value;
     if (!cookie) return null;
     const { payload } = await jwtVerify(cookie, JWT_SECRET);
     const { getDb, initDb } = await import("@/lib/db");

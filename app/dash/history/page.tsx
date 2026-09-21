@@ -24,31 +24,42 @@ export default function History() {
   const [showAll, setShowAll] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  async function load(retried = false): Promise<void> {
+  // Never bounce a live session to /login on a hiccup: retry transient
+  // failures, and on 401 confirm via /api/me — redirect only when the
+  // session is truly gone. Otherwise show Retry and stay on the page.
+  async function load(attempt = 0): Promise<void> {
     setFailed(false);
+    const later = () => {
+      if (attempt < 3) setTimeout(() => load(attempt + 1), 1500);
+      else setFailed(true);
+    };
     let r: Response;
     try {
       r = await fetch("/api/history");
     } catch {
-      if (!retried) { setTimeout(() => load(true), 1500); return; }
-      setFailed(true);
+      later();
       return;
     }
     if (r.status === 401) {
-      if (!retried) {
-        await new Promise((res) => setTimeout(res, 1200));
-        await load(true);
-        return;
-      }
+      let meOk = false;
+      let meGone = false;
+      try {
+        const m = await fetch("/api/me");
+        meOk = m.ok;
+        meGone = m.status === 401;
+      } catch { /* treat as hiccup below */ }
+      if (meOk) { setFailed(true); return; }
+      if (!meGone) { later(); return; }
       window.location.href = "/login";
       return;
     }
+    if (r.status === 503) { later(); return; }
     try {
       const j = await r.json();
       if (j.ok) { setEvents(j.events || []); setSummary(j.summary); }
-      else setFailed(true);
+      else later();
     } catch {
-      setFailed(true);
+      later();
     }
   }
   useEffect(() => { load(); }, []);

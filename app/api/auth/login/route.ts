@@ -6,8 +6,18 @@ import { verifyPassword, createSession } from "@/lib/auth";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  await initDb();
-  const { email, password } = await req.json();
+  // Always JSON (never an HTML 500): a hiccup must read as "retry", not "broken".
+  try {
+    await initDb();
+    let body: { email?: string; password?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
+    }
+    const { email, password } = body;
+    if (!email || !password)
+      return NextResponse.json({ ok: false, error: "Email and password required" }, { status: 400 });
   const settings = await getSettings();
   const db = getDb();
   const r = await db.execute({ sql: "SELECT * FROM users WHERE email=? OR mobile=?", args: [email, email] });
@@ -28,4 +38,7 @@ export async function POST(req: NextRequest) {
     }
   }
   return NextResponse.json({ ok: true, is_admin: !!u.is_admin, userId: u.id, needsActivation, sess: 2 });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });
+  }
 }

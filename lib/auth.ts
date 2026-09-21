@@ -107,3 +107,28 @@ export function nextReferralCode() {
   const n = 100002 + Math.floor(Math.random() * 899997);
   return `AV${n}`;
 }
+
+// Session status for API routes: "none" = no/invalid token (→ 401, go login),
+// "error" = signature valid but DB unreadable right now (→ 503, safe to retry),
+// "valid" = logged in. Lets client pages NEVER bounce a live session to
+// /login on a transient DB blip.
+export async function sessionStatus(): Promise<"valid" | "none" | "error"> {
+  const tokens = await readTokens();
+  if (!tokens.length) return "none";
+  let uid: string | null = null;
+  for (const t of tokens) {
+    try {
+      const { payload } = await jwtVerify(t, secret());
+      uid = String(payload.uid || "");
+      break;
+    } catch { /* try next cookie value */ }
+  }
+  if (!uid) return "none";
+  try {
+    await initDb();
+    const r = await getDb().execute({ sql: "SELECT id FROM users WHERE id=?", args: [uid] });
+    return r.rows.length ? "valid" : "none";
+  } catch {
+    return "error";
+  }
+}

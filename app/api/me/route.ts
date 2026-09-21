@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
+import { currentUser, sessionStatus } from "@/lib/auth";
 import { getDb, initDb } from "@/lib/db";
 import { cappedExtras, teamCounts, walletOf } from "@/lib/mlm";
 import { BOT_PLANS, planForAmount } from "@/lib/config";
 
 // PRD 3.2 dashboard: wallets, active bot, today's earnings, totals, team stats, recent tx
 export async function GET() {
-  await initDb();
+  await initDb().catch(() => {});
+  const st = await sessionStatus();
+  if (st === "none") return NextResponse.json({ ok: false }, { status: 401 });
+  if (st === "error") return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   const u = await currentUser();
-  if (!u) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!u) return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   const uid = u.id as string;
   const w = await walletOf(uid);
   const db = getDb();
