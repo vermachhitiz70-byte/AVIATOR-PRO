@@ -91,10 +91,29 @@ export default function Recharge() {
         </form>
         {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
       </div>
-      <div className="av-card p-4">
+      <div className="av-card hidden p-4 md:block">
         <h3 className="font-bold">⛉ Your Recharge Verification</h3>
         <p className="text-xs text-slate-400">Admin approval required before dashboard unlocks. 5-level commission on first recharge.</p>
         <table className="av-table mt-2"><thead><tr><th>Date</th><th>Request</th><th>Requested</th><th>Actual</th><th>Status</th></tr></thead><tbody>{rows.map((r, i) => (<tr key={i}><td>{String(r.created_at || "").slice(0, 16).replace("T", " ")}</td><td className="break-all text-xs">{r.request_id}</td><td>{Number(r.requested).toFixed(2)}</td><td>{Number(r.actual).toFixed(2)}</td><td>{r.status}</td></tr>))}{rows.length===0 && <tr><td colSpan={5} className="py-4 text-center text-xs text-slate-500">No recharges yet. Submit proof above.</td></tr>}</tbody></table>
+      </div>
+      <div className="av-card space-y-2 p-4 md:hidden">
+        <h3 className="font-bold">⛉ Your Recharge Verification</h3>
+        <p className="text-xs text-slate-400">Admin approval required before dashboard unlocks. 5-level commission on first recharge.</p>
+        {rows.map((r, i) => {
+          const st = String(r.status || "");
+          const chip = st === "confirmed" ? "bg-emerald-400/15 text-emerald-300" : st === "rejected" ? "bg-red-400/15 text-red-300" : "bg-yellow-300/15 text-yellow-300";
+          return (
+            <div key={i} className="rounded-xl bg-black/40 px-3 py-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <b className="text-emerald-300">${Number(r.actual).toFixed(2)}</b>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${chip}`}>{st || "—"}</span>
+              </div>
+              <p className="mt-1 break-all font-mono text-[11px] text-slate-400">{r.request_id}</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">{String(r.created_at || "").slice(0, 16).replace("T", " ")} · Requested {Number(r.requested).toFixed(2)}</p>
+            </div>
+          );
+        })}
+        {rows.length === 0 && <p className="py-4 text-center text-xs text-slate-500">No recharges yet. Submit proof above.</p>}
       </div>
     </div>
   );

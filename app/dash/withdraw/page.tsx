@@ -66,8 +66,32 @@ export default function Withdraw() {
         <button onClick={submit} className="av-btn-yellow mt-3 w-full py-3">Submit Withdrawal</button>
         {msg && <p className="mt-2 text-sm text-yellow-200">{msg}</p>}
       </div>
-      <div className="av-card p-4">
+      {/* Desktop: full table. Mobile: stacked cards below (no sideways scroll). */}
+      <div className="av-card hidden overflow-x-auto p-4 md:block">
         <table className="av-table"><thead><tr><th>USD</th><th>Wallet</th><th>Wallet Debit</th><th>Charge</th><th>Net USDT</th><th>Status</th><th>Payout TX</th></tr></thead><tbody>{rows.map((r, i) => (<tr key={i}><td>${Number(r.usd).toFixed(2)}</td><td>{String(r.source_wallet || "-")}</td><td>{Number(r.debit).toFixed(2)}</td><td>{Number(r.charge).toFixed(2)}</td><td>${Number(r.net).toFixed(2)}</td><td>{r.status}</td><td className="font-mono text-[11px]">{r.payout_tx ? String(r.payout_tx).slice(0, 10) + "…" : "—"}</td></tr>))}</tbody></table>
+        {!rows.length && <p className="py-4 text-center text-sm text-slate-400">No withdrawals yet.</p>}
+      </div>
+      <div className="space-y-2 md:hidden">
+        {rows.map((r, i) => {
+          const st = String(r.status || "");
+          const chip = st === "approved" ? "bg-emerald-400/15 text-emerald-300" : st === "rejected" ? "bg-red-400/15 text-red-300" : "bg-yellow-300/15 text-yellow-300";
+          return (
+            <div key={i} className="av-card px-3 py-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <b className="text-lg text-emerald-300">${Number(r.net).toFixed(2)}</b>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${chip}`}>{st || "—"}</span>
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
+                <div className="rounded-lg bg-black/40 px-1 py-1.5"><p className="text-[10px] text-slate-400">USD</p><p className="text-xs font-bold">${Number(r.usd).toFixed(2)}</p></div>
+                <div className="rounded-lg bg-black/40 px-1 py-1.5"><p className="text-[10px] text-slate-400">Debit</p><p className="text-xs font-bold">{Number(r.debit).toFixed(2)}</p></div>
+                <div className="rounded-lg bg-black/40 px-1 py-1.5"><p className="text-[10px] text-slate-400">Charge</p><p className="text-xs font-bold">{Number(r.charge).toFixed(2)}</p></div>
+              </div>
+              <p className="mt-1.5 text-[11px] text-slate-400">{WALLET_LABELS[String(r.source_wallet || "")] || String(r.source_wallet || "—")}</p>
+              <p className="mt-0.5 break-all font-mono text-[11px] text-slate-500">{r.payout_tx ? String(r.payout_tx) : "Payout TX pending"}</p>
+            </div>
+          );
+        })}
+        {!rows.length && <p className="py-6 text-center text-sm text-slate-400">No withdrawals yet.</p>}
       </div>
       {showClosed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowClosed(false)}>
