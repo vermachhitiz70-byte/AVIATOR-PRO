@@ -90,9 +90,17 @@ export function AdminSidebar({ admin }: { admin: { name: string; email: string; 
         </nav>
 
         <div className="border-t border-white/10 p-3">
-          <Link href="/login" className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-white/65 hover:bg-white/5 hover:text-white">
+          <button
+            onClick={async () => {
+              try {
+                await fetch("/api/auth/logout", { method: "POST" });
+              } catch { /* still leave */ }
+              window.location.href = "/login";
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-white/65 hover:bg-white/5 hover:text-white"
+          >
             <LogOut className="h-[18px] w-[18px]" /> Logout
-          </Link>
+          </button>
         </div>
       </aside>
     </>

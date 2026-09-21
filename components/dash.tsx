@@ -25,8 +25,29 @@ const MENU_LINKS = [
   { href: "/dash", label: "Home" },
   { href: "/dash/profile", label: "Profile" },
   { href: "/dash/support", label: "Support" },
-  { href: "/api/auth/logout", label: "Logout" },
 ];
+
+// Logout is a POST button, NEVER a link: Next/Chrome prefetches visible links
+// and a prefetched GET /api/auth/logout would silently kill the session
+// (desktop renders logout links always-visible; mobile hides them in a menu,
+// which is exactly why "mobile worked, desktop logged out").
+export function LogoutButton({ className, onDone }: { className?: string; onDone?: () => void }) {
+  const [busy, setBusy] = useState(false);
+  async function go() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch { /* still leave — session cookie is httpOnly */ }
+    onDone?.();
+    window.location.href = "/login";
+  }
+  return (
+    <button onClick={go} disabled={busy} className={className}>
+      <LogOut className="h-[18px] w-[18px]" /> Logout
+    </button>
+  );
+}
 
 export function DashTop() {
   const [open, setOpen] = useState(false);
@@ -54,6 +75,10 @@ export function DashTop() {
               {l.label}
             </Link>
           ))}
+          <LogoutButton
+            onDone={() => setOpen(false)}
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-200 hover:bg-white/5"
+          />
         </nav>
       )}
     </div>
@@ -162,9 +187,7 @@ export function DashSidebar() {
         </div>
       )}
       <div className="border-t border-white/10 p-3">
-        <Link href="/api/auth/logout" className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white">
-          <LogOut className="h-[18px] w-[18px]" /> Logout
-        </Link>
+        <LogoutButton className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white" />
       </div>
     </aside>
   );
@@ -180,9 +203,7 @@ export function DashTopBar() {
         <div className="flex items-center gap-2 text-sm">
           <Link href="/dash/support" className="rounded-lg border border-white/15 px-3 py-2 text-slate-300 hover:bg-white/5">Support</Link>
           <Link href="/dash/profile" className="rounded-lg border border-white/15 px-3 py-2 text-slate-300 hover:bg-white/5">Profile</Link>
-          <Link href="/api/auth/logout" className="flex items-center gap-2 rounded-lg bg-yellow-300 px-3 py-2 font-bold text-black hover:brightness-110">
-            <LogOut className="h-4 w-4" /> Logout
-          </Link>
+          <LogoutButton className="flex items-center gap-2 rounded-lg bg-yellow-300 px-3 py-2 text-sm font-bold text-black hover:brightness-110" />
         </div>
       </div>
     </header>
