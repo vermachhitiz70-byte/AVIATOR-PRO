@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 type ProfileUser = {
   name?: string; first_name?: string; last_name?: string; mobile?: string; email?: string;
   country?: string; referral_code?: string; rank?: string; kyc_status?: string;
-  bep20_address?: string; aadhaar?: string; pan?: string; address?: string;
+  bep20_address?: string; address?: string;
 };
 
 const input = "av-input";
@@ -14,7 +14,7 @@ export default function Profile() {
   const [d, setD] = useState<{ user?: ProfileUser; wallet?: Record<string, number> } | null>(null);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
-  const [f, setF] = useState({ first_name: "", last_name: "", country: "", aadhaar: "", pan: "", address: "" });
+  const [f, setF] = useState({ first_name: "", last_name: "", country: "", address: "" });
   // OTP-gated change state (email / mobile / BEP20)
   const [chg, setChg] = useState<{ field: string; value: string; step: "edit" | "otp"; otp: string; busy: boolean; msg: string }>({
     field: "bep20_address", value: "", step: "edit", otp: "", busy: false, msg: "",
@@ -26,7 +26,7 @@ export default function Profile() {
     if (j?.ok && j.user) {
       const u = j.user as ProfileUser;
       setD({ user: u, wallet: undefined });
-      setF({ first_name: u.first_name || "", last_name: u.last_name || "", country: u.country || "", aadhaar: u.aadhaar || "", pan: u.pan || "", address: u.address || "" });
+      setF({ first_name: u.first_name || "", last_name: u.last_name || "", country: u.country || "", address: u.address || "" });
       setChg((c) => ({ ...c, value: c.field === "email" ? u.email || "" : c.field === "mobile" ? u.mobile || "" : u.bep20_address || "" }));
     }
     const m = await fetch("/api/me").then((r) => r.json()).catch(() => null);
@@ -95,10 +95,6 @@ export default function Profile() {
           </div>
           <div><p className={label}>Country</p><input className={input} value={f.country} onChange={(e) => setF({ ...f, country: e.target.value })} placeholder="Country" /></div>
           <div><p className={label}>Full address (for future KYC)</p><input className={input} value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} placeholder="Village / City, District, State, PIN" /></div>
-          <div className="grid grid-cols-2 gap-2">
-            <div><p className={label}>Aadhaar (12 digits)</p><input className={input} value={f.aadhaar} onChange={(e) => setF({ ...f, aadhaar: e.target.value })} placeholder="12-digit Aadhaar" inputMode="numeric" /></div>
-            <div><p className={label}>PAN (ABCDE1234F)</p><input className={input} value={f.pan} onChange={(e) => setF({ ...f, pan: e.target.value.toUpperCase() })} placeholder="PAN number" /></div>
-          </div>
           <button className="av-btn-yellow px-4 py-2.5">Save permanently</button>
         </form>
         {msg && <p className="text-sm font-bold text-yellow-200">{msg}</p>}

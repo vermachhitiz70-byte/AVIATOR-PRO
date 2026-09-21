@@ -13,8 +13,6 @@ const clean = (v: unknown, n: number) => String(v ?? "").trim().slice(0, n);
 const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const validMobile = (v: string) => /^\+?[0-9]{6,15}$/.test(v.replace(/[\s-]/g, ""));
 const validBep = (v: string) => /^0x[a-fA-F0-9]{40}$/.test(v);
-const validAadhaar = (v: string) => v === "" || /^\d{12}$/.test(v.replace(/\s/g, ""));
-const validPan = (v: string) => v === "" || /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(v.toUpperCase());
 
 function validateField(field: string, value: string): string | null {
   if (field === "email" && !validEmail(value)) return "Invalid email address";
@@ -45,13 +43,10 @@ export async function POST(req: NextRequest) {
     const first = clean(body.first_name, 40);
     const last = clean(body.last_name, 40);
     const country = clean(body.country, 60);
-    const aadhaar = clean(body.aadhaar, 14).replace(/\s/g, "");
-    const pan = clean(body.pan, 10).toUpperCase();
     const address = clean(body.address, 200);
-    if (!validAadhaar(aadhaar)) return NextResponse.json({ ok: false, error: "Aadhaar must be 12 digits" }, { status: 400 });
-    if (!validPan(pan)) return NextResponse.json({ ok: false, error: "PAN format: ABCDE1234F" }, { status: 400 });
+    // Aadhaar/PAN removed from profile (client rule): keep stored values untouched.
     const name = `${first} ${last}`.trim() || String((u as unknown as { name: string }).name || "");
-    await db.execute({ sql: "UPDATE users SET first_name=?,last_name=?,name=?,country=?,aadhaar=?,pan=?,address=? WHERE id=?", args: [first, last, name.slice(0, 80), country, aadhaar, pan, address, uid] });
+    await db.execute({ sql: "UPDATE users SET first_name=?,last_name=?,name=?,country=?,address=? WHERE id=?", args: [first, last, name.slice(0, 80), country, address, uid] });
     return NextResponse.json({ ok: true, saved: true });
   }
 
