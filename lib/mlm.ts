@@ -46,6 +46,9 @@ export async function activeBotIds(userIds: string[]): Promise<Set<string>> {
   return new Set((r.rows as unknown as { user_id: string }[]).map((x) => x.user_id));
 }
 
+// Client rule: EVERY confirmed top-up pays the 5-level recharge commission
+// (FIRST_RECHARGE_LEVELS on the new amount) — first, second, third… every
+// time the user recharges, the upline earns again. Only active-bot holders earn.
 export async function creditFirstRecharge(newUserId: string, amount: number) {
   const db = getDb();
   const chain = await uplineOf(newUserId, 5);

@@ -46,15 +46,14 @@ export async function POST(req: NextRequest) {
     await db.execute("UPDATE deposits SET status='confirmed', actual=?, admin_remark=? WHERE id=?", [cred, remark || "", id]);
     await db.execute("UPDATE wallets SET principal=principal+? WHERE user_id=?", [cred, d.user_id]);
     await logLedger(d.user_id, "deposit_confirm", "principal", cred, d.request_id);
-    // Referral commission ONLY on the user's FIRST confirmed recharge.
-    // Later recharges credit principal but pay no upline commission.
-    const prior = await db.execute({ sql: "SELECT COUNT(*) as c FROM deposits WHERE user_id=? AND status='confirmed' AND id!=?", args: [d.user_id, id] });
-    const isFirst = Number((prior.rows[0] as unknown as { c: number }).c) === 0;
-    if (isFirst) await creditFirstRecharge(d.user_id, cred);
-    await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "investment", `Deposit confirmed: ${cred.toFixed(2)} USDT${isFirst ? " (first recharge — commission paid)" : ""}`] });
+    // Client rule: EVERY confirmed top-up pays the 5-level first-recharge
+    // commission (L1 5%, L2 2%, L3-L5 1%) on the new amount — first, second,
+    // third… every time. Principal is credited the same way every time.
+    await creditFirstRecharge(d.user_id, cred);
+    await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "investment", `Deposit confirmed: ${cred.toFixed(2)} USDT (5-level commission paid)`] });
     // Client rule: NO auto-bot. Deposit alone earns nothing — the user must
     // press Start Bot on their dashboard (min $10, multiples of $10).
-    return NextResponse.json({ ok: true, firstRecharge: isFirst, autoBot: null });
+    return NextResponse.json({ ok: true, firstRecharge: true, autoBot: null });
   }
   if (action === "reject") {
     await db.execute("UPDATE deposits SET status='rejected', admin_remark=? WHERE id=?", [remark || "", id]);

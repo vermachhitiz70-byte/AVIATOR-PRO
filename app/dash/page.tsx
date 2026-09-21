@@ -210,30 +210,27 @@ export default function DashHome() {
 }
 
 function EarningsStrip() {
-  const [r, setR] = useState<Record<string, { total: number }> | null>(null);
-  const [invested, setInvested] = useState(0);
+  // Self = L1 directs' confirmed deposits. Team = rest of downline (L2+).
+  // Total = Self + Team. Updates automatically on every confirmed deposit.
+  const [selfBiz, setSelfBiz] = useState(0);
   const [teamBiz, setTeamBiz] = useState(0);
   useEffect(() => {
-    fetch("/api/earnings").then((x) => x.json()).then((j) => { if (j.ok) { setR(j.ranges); setInvested(Number(j.invested || 0)); } }).catch(() => {});
-    fetch("/api/team").then((x) => x.json()).then((j) => { if (j.ok) setTeamBiz(Number(j.team || 0)); }).catch(() => {});
+    fetch("/api/team").then((x) => x.json()).then((j) => {
+      if (j.ok) {
+        const self = Number(j.direct || 0);
+        const team = Math.max(0, Number(j.team || 0) - self);
+        setSelfBiz(self);
+        setTeamBiz(team);
+      }
+    }).catch(() => {});
   }, []);
-  const cells: [string, string][] = [["today", "Today"], ["week", "7 Days"], ["month", "30 Days"], ["all", "Total"]];
-  const totalEarned = num(r?.all?.total);
   return (
     <div className="av-card p-3">
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Earnings — Daily ROI + Level + Reward</p>
-      <div className="mt-2 grid grid-cols-4 gap-2 text-center">
-        {cells.map(([k, label]) => (
-          <div key={k} className="rounded-xl bg-black/40 px-1 py-2">
-            <p className="text-[10px] text-slate-400">{label}</p>
-            <p className="text-sm font-black text-emerald-300">+{num(r?.[k]?.total).toFixed(2)}</p>
-          </div>
-        ))}
-      </div>
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Self and team business</p>
       <div className="mt-2 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-1 py-2">
-          <p className="text-[10px] font-bold text-red-300">My Earnings</p>
-          <p className="text-sm font-black text-red-200">+${totalEarned.toFixed(2)}</p>
+          <p className="text-[10px] font-bold text-red-300">Self earning</p>
+          <p className="text-sm font-black text-red-200">${selfBiz.toFixed(0)}</p>
         </div>
         <div className="rounded-xl border border-yellow-300/40 bg-yellow-300/10 px-1 py-2">
           <p className="text-[10px] font-bold text-yellow-300">Team Business</p>
@@ -241,7 +238,7 @@ function EarningsStrip() {
         </div>
         <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-1 py-2">
           <p className="text-[10px] font-bold text-red-300">Total Amount</p>
-          <p className="text-sm font-black text-red-200">${(invested + totalEarned).toFixed(2)}</p>
+          <p className="text-sm font-black text-red-200">${(selfBiz + teamBiz).toFixed(0)}</p>
         </div>
       </div>
     </div>
