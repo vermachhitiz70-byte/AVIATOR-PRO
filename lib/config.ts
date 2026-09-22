@@ -54,6 +54,9 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   smtpPort: "465",
   smtpUser: "",
   smtpPass: "",
+  telegramBotToken: "",
+  telegramChatId: "",
+  telegramEnabled: "off",
 };
 
 export type Milestone = { tier: number; name: string; self: number; direct: number; team: number; wallet: number };

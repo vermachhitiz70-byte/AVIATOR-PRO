@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Modal } from "@/components/admin";
 import { BTN_PRIMARY, CARD, INPUT, LABEL } from "@/components/admin/ui";
-import { Eye, EyeOff, Save, Mail, Server, Shield, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Save, Mail, Server, Shield, Loader2, Send } from "lucide-react";
 
 type Settings = Record<string, string>;
 
@@ -28,6 +28,12 @@ const SMTP_KEYS = [
 const SECURITY_KEYS = [
   { key: "jwt_secret", label: "JWT Secret", type: "password" },
   { key: "cron_secret", label: "Cron Secret", type: "password" },
+];
+
+const TELEGRAM_KEYS = [
+  { key: "telegramBotToken", label: "Telegram Bot Token", type: "password" },
+  { key: "telegramChatId", label: "Telegram Chat ID (channel)", type: "text" },
+  { key: "telegramEnabled", label: "Telegram Proof Alerts", type: "toggle" },
 ];
 
 function normalizeQrLink(raw: string) {
@@ -133,6 +139,21 @@ export default function AdminSettingsPage() {
     setTestEmail("");
   }
 
+  async function testTelegram() {
+    setTesting(true);
+    setError("");
+    setSuccess("");
+    try {
+      const r = await fetch("/api/admin/telegram/test", { method: "POST", credentials: "include" });
+      const j = await r.json();
+      if (j.ok) setSuccess("Test message sent — check the channel.");
+      else setError(j.error || "Telegram test failed.");
+    } catch {
+      setError("Could not reach server. Retry.");
+    }
+    setTesting(false);
+  }
+
   function renderInput(key: string, label: string, type: string) {
     const isPassword = type === "password";
     const isToggle = type === "toggle" || key === "maintenanceMode";
@@ -209,6 +230,15 @@ export default function AdminSettingsPage() {
             </div>
             <div className="grid gap-3 md:grid-cols-2">{SMTP_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
             <p className="mt-3 text-xs text-gray-400">Daily ROI runs automatically every day at <span className="font-semibold">5:00 AM</span> (Vercel Cron) — tier rate per bot + 10-level team income, credited to earning wallets.</p>
+          </div>
+
+          <div className={`${CARD} p-5`}>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 text-sky-600"><Send className="h-4 w-4" /></span><h2 className="font-bold text-gray-900">Telegram Proof Channel</h2></div>
+              <button onClick={testTelegram} disabled={testing} className="rounded-xl border border-[#e9dfc9] px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#faf6ec]">{testing ? "Sending..." : "Test Message"}</button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">{TELEGRAM_KEYS.map(({ key, label, type }) => renderInput(key, label, type))}</div>
+            <p className="mt-3 text-xs text-gray-400">Deposit + withdrawal requests post here live (masked). Save All first, then Test Message. Click Show Secrets to paste the token.</p>
           </div>
 
           <div className={`${CARD} p-5`}>

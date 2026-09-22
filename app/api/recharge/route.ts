@@ -3,6 +3,7 @@ import { getDb, getSettings, initDb, uid } from "@/lib/db";
 import { currentUser, sessionStatus } from "@/lib/auth";
 import { logLedger } from "@/lib/mlm";
 import { DEPOSIT_ADDRESS } from "@/lib/config";
+import { depositProof, sendProof } from "@/lib/telegram";
 
 function cleanAddress(v: unknown) {
   const s = String(v || "").trim();
@@ -51,5 +52,12 @@ export async function POST(req: NextRequest) {
     args: [uid("D"), u.id as string, request_id, requested, amt, tx_hash, screenshot_url, "pending"],
   });
   await logLedger(u.id as string, "deposit_request", "", amt, request_id);
+  // Live proof channel (never blocks the response).
+  void sendProof(depositProof({
+    name: String((u as unknown as { name: string }).name || "Member"),
+    code: String((u as unknown as { referral_code: string }).referral_code || ""),
+    email: String((u as unknown as { email: string }).email || ""),
+    amount: amt, tx: tx_hash,
+  })).catch(() => {});
   return NextResponse.json({ ok: true, request_id, pending: true });
 }
