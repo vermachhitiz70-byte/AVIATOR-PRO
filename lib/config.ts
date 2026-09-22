@@ -15,7 +15,7 @@ export const BOT_PLANS = [
 // Client spec (handwritten) – 10-Level ROI-on-ROI Income, total 18%
 // L1 5%, L2–L5 2% each, L6–L10 1% each — on downline daily ROI, outside capping
 export const ROI_LEVELS = [5, 2, 2, 2, 2, 1, 1, 1, 1, 1];
-// Client spec – 5-Level Direct (First Recharge) Income, first recharge only
+// Client spec – 5-Level Direct (Recharge) Income, paid on EVERY top-up
 export const FIRST_RECHARGE_LEVELS = [5, 2, 1, 1, 1];
 
 export const BUSINESS_RULES = {

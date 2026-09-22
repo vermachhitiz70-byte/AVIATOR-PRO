@@ -177,7 +177,7 @@ export default function AdminWithdrawalsPage() {
 
       <Modal isOpen={approveOpen} onClose={() => setApproveOpen(false)} title="Approve & Mark Paid">
         <div className="space-y-4">
-          <div className="rounded-xl bg-green-50 p-3 text-xs text-green-800">Pehle user ke wallet address par payout bhejo, phir uska TX hash neeche dalo — yehi proof rahega.</div>
+            <div className="rounded-xl bg-green-50 p-3 text-xs text-green-800">Send the payout to the user wallet address first, then enter its TX hash below — that stays as proof.</div>
           <div><label className={LABEL}>Payout TX hash (proof)</label>
             <input value={payoutTx} onChange={(e) => setPayoutTx(e.target.value)} placeholder="e.g. 0x…" className={INPUT} /></div>
           <button onClick={submitApprove} disabled={submitting || !payoutTx.trim()} className="w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-50">{submitting ? "Processing…" : "Approve & Mark Paid"}</button>

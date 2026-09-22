@@ -6,6 +6,25 @@ import { Search, Check, X } from "lucide-react";
 
 type DepositRow = Record<string, unknown>;
 
+function TxCell({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  if (!value || value === "-") return <span className="text-xs text-gray-300">—</span>;
+  async function copy() {
+    const { copyText } = await import("@/lib/copy");
+    const ok = await copyText(value);
+    setCopied(ok);
+    setTimeout(() => setCopied(false), 1500);
+  }
+  return (
+    <span className="block max-w-[220px]">
+      <span className="block break-all font-mono text-xs text-gray-700">{value}</span>
+      <button onClick={copy} title="Copy full TX hash" className="mt-1 rounded-lg border border-[#e9dfc9] px-2 py-1 text-[11px] font-bold text-[#b45309] hover:bg-[#faf6ec]">
+        {copied ? "Copied ✓" : "Copy"}
+      </button>
+    </span>
+  );
+}
+
 const TABS = ["pending", "confirmed", "rejected", "all"] as const;
 type Tab = typeof TABS[number];
 
@@ -89,7 +108,7 @@ export default function AdminDepositsPage() {
     { key: "request_id", label: "Request ID", render: (r: DepositRow) => <span className="font-mono text-xs text-gray-500">{String(r.request_id ?? "-")}</span> },
     { key: "requested", label: "Requested", render: (r: DepositRow) => <span className="font-semibold text-gray-900">{fmtUSD(r.requested)}</span> },
     { key: "actual", label: "Actual", render: (r: DepositRow) => <span className="font-bold text-green-700">{fmtUSD(r.actual)}</span> },
-    { key: "tx_hash", label: "TX Hash", render: (r: DepositRow) => <span className="font-mono text-xs text-gray-500">{String(r.tx_hash ?? "-").slice(0, 16) || "-"}</span> },
+    { key: "tx_hash", label: "TX Hash", render: (r: DepositRow) => <TxCell value={String(r.tx_hash ?? "-")} /> },
     { key: "screenshot_url", label: "Screenshot", render: (r: DepositRow) => (r.screenshot_url ? <a href={String(r.screenshot_url)} target="_blank" rel="noopener"><img src={String(r.screenshot_url)} alt="proof" className="h-12 w-16 rounded-lg border object-cover" /></a> : <span className="text-xs text-gray-400">—</span>) },
     { key: "status", label: "Status", render: (r: DepositRow) => pill(r.status) },
     { key: "created_at", label: "Date", render: (r: DepositRow) => <span className="text-xs text-gray-500">{fmtDate(r.created_at)}</span> },
