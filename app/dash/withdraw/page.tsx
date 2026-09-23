@@ -15,8 +15,9 @@ export default function Withdraw() {
   const [winOk, setWinOk] = useState(true);
   const [winNow, setWinNow] = useState("");
   const [showClosed, setShowClosed] = useState(false);
+  const [addrLoaded, setAddrLoaded] = useState(false);
   async function load() {
-    fetch("/api/me").then((r) => r.json()).then((m) => { if (m.ok) setSavedAddr(String(m.user?.bep20_address || "")); }).catch(() => {});
+    fetch("/api/me").then((r) => r.json()).then((m) => { if (m.ok) setSavedAddr(String(m.user?.bep20_address || "")); }).catch(() => {}).finally(() => setAddrLoaded(true));
     const j = await fetch("/api/withdraw").then((r) => r.json());
     if (j.ok) {
       setRows(j.rows); setBalances(j.balances || { roi: 0, commission: 0, reward: 0 });
@@ -43,7 +44,9 @@ export default function Withdraw() {
   }
   return (
     <div className="space-y-3">
-      <div className="rounded-lg bg-pink-100 p-3 text-sm text-black">Verify your BEP-20 address by email OTP in Profile.</div>
+      {addrLoaded && !savedAddr && (
+        <div className="rounded-lg bg-pink-100 p-3 text-sm text-black">Verify your BEP-20 address by email OTP in Profile.</div>
+      )}
       <div className={`rounded-lg p-3 text-sm ${winOk ? "bg-emerald-100 text-black" : "bg-amber-100 text-black"}`}>
         {winOk ? `Withdrawals OPEN now (${winNow}). Window: 8:00–10:00 AM daily. One withdrawal per day.` : `Withdrawals CLOSED now (${winNow}). Window: 8:00–10:00 AM daily — please try again tomorrow.`}
       </div>
