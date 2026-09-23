@@ -1,10 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { FEED_NAMES } from "@/lib/config";
+import { FEED_NAMES, FEED_NAMES_FOREIGN } from "@/lib/config";
 
-const FOREIGN = ["John Carter", "Emily Watson", "David Miller", "Sarah Lee", "Michael Chen", "Anna Petrova", "James Wilson", "Maria Garcia", "Robert Smith", "Lisa Taylor", "Ahmed Hassan", "Fatima Khan", "Chen Wei", "Yuki Tanaka", "Oliver Brown"];
-const GAME_FEED = [...FEED_NAMES.slice(0, 85), ...FOREIGN];
+const GAME_FEED = [...FEED_NAMES, ...FEED_NAMES_FOREIGN];
 
 type FeedItem = { name: string; bet: string; profit: string };
 

@@ -99,6 +99,20 @@ export const FEED_NAMES = [
   "Shaan Bansal", "Ira Pandey", "Veer Jain", "Siya Kaur", "Arham Tripathi", "Drishti Menon", "Neil Thakur", "Aisha Gill", "Ryan Bhatt", "Tara Venkat",
 ];
 
+// 100 foreign names for the fake-trading live activity feed (mixed with Indian above: 200 total)
+export const FEED_NAMES_FOREIGN = [
+  "John Carter", "Emily Watson", "David Miller", "Sarah Lee", "Michael Chen", "Anna Petrova", "James Wilson", "Maria Garcia", "Robert Smith", "Lisa Taylor",
+  "Ahmed Hassan", "Fatima Khan", "Chen Wei", "Yuki Tanaka", "Oliver Brown", "Sophia Rossi", "Liam OConnor", "Emma Dubois", "Noah Kim", "Ava Silva",
+  "Lucas Meyer", "Mia Kowalski", "Ethan Hunt", "Isabella Rossi", "Mason Clark", "Amelia Hart", "Logan Reed", "Harper Quinn", "Elijah Stone", "Aria Novak",
+  "Daniel Park", "Grace Liu", "Henry Adams", "Chloe Bennet", "Jackson Cole", "Lily Evans", "Carter Blake", "Zoe Carter", "Leo Martinez", "Nora Patel",
+  "Owen Wright", "Ruby Lane", "Caleb Fox", "Hazel Wood", "Ryan Cole", "Stella Marsh", "Nathan Grey", "Ivy Chen", "Christian Bale", "Maya Lin",
+  "Omar Farouk", "Layla Hassan", "Yusuf Ali", "Nadia Rahman", "Wei Zhang", "Fang Li", "Hiro Sato", "Aiko Mori", "Ken Watanabe", "Sakura Ito",
+  "Pierre Laurent", "Marie Curie", "Jean Paul", "Claire Fontaine", "Marco Polo", "Giulia Bianchi", "Carlos Ruiz", "Sofia Mendez", "Diego Torres", "Lucia Fernandez",
+  "Ivan Petrov", "Olga Smirnova", "Dmitri Volkov", "Natasha Belova", "Piotr Nowak", "Anna Kowalska", "Jan Novak", "Elena Popescu", "Andrei Ionescu", "Maria Santos",
+  "Joao Silva", "Ana Costa", "Pedro Alves", "Lucas Souza", "Mateo Rossi", "Valentina Gomez", "Santiago Ruiz", "Camila Torres", "Diego Alvarez", "Luciana Lima",
+  "Kwame Mensah", "Amina Diallo", "Chidi Okafor", "Ngozi Eze", "Kofi Asante", "Ama Serwaa", "Thabo Mbeki", "Lerato Dlamini", "Sipho Ndlovu", "Naledi Khumalo",
+];
+
 export function planForAmount(amount: number) {
   return BOT_PLANS.find((p) => amount >= p.min && amount <= p.max) ?? null;
 }

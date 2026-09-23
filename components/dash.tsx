@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FEED_NAMES } from "@/lib/config";
+import { FEED_NAMES, FEED_NAMES_FOREIGN } from "@/lib/config";
 import {
   Activity,
   ArrowDownToLine,
@@ -241,17 +241,25 @@ export function LiveToasts({ items }: { items: { kind: string; message: string; 
 }
 
 // Client rule: live social-proof ticker on the member dashboard.
-// Fake rotation every 3–5 sec from 100 Indian names:
-// - withdrawals ALWAYS under $20, - "just joined Aviator Smart AI" registrations.
+// Fake rotation every 3–5 sec from 200 names (100 Indian + 100 foreign):
+// - withdrawals ALWAYS under $20, - deposits ALWAYS under $100,
+// - "just joined Aviator Smart AI" registrations.
 // Pure frontend simulation — touches no wallets, no DB.
 type FakeNotif = { id: number; icon: string; text: string };
 
+const TICKER_POOL = [...FEED_NAMES, ...FEED_NAMES_FOREIGN];
+
 function randomFakeNotif(): FakeNotif {
-  const name = FEED_NAMES[Math.floor(Math.random() * FEED_NAMES.length)];
+  const name = TICKER_POOL[Math.floor(Math.random() * TICKER_POOL.length)];
   const id = Date.now() + Math.floor(Math.random() * 100000);
-  if (Math.random() < 0.6) {
+  const roll = Math.random();
+  if (roll < 0.4) {
     const amt = 1 + Math.floor(Math.random() * 19); // $1–$19, always under $20
     return { id, icon: "💸", text: `${name} withdrew $${amt}` };
+  }
+  if (roll < 0.7) {
+    const amt = 5 + Math.floor(Math.random() * 91); // $5–$95, always under $100
+    return { id, icon: "💰", text: `${name} deposited $${amt}` };
   }
   return { id, icon: "🎉", text: `${name} just joined Aviator Smart AI` };
 }
