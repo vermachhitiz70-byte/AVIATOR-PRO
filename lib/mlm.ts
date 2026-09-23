@@ -189,7 +189,7 @@ export function inWithdrawWindow(startHHMM: string, endHHMM: string, now = new D
   const ist = new Date(now.getTime() + (330 + now.getTimezoneOffset()) * 60000);
   const cur = `${String(ist.getHours()).padStart(2, "0")}:${String(ist.getMinutes()).padStart(2, "0")}`;
   const label = ist.toLocaleString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
-  return { ok: cur >= startHHMM && cur <= endHHMM, nowIST: `${cur} (${label})` };
+  return { ok: cur >= startHHMM && cur <= endHHMM, nowIST: label };
 }
 
 export async function getSetting(key: string) {
