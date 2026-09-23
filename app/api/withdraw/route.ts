@@ -70,13 +70,15 @@ export async function POST(req: NextRequest) {
   });
   await logLedger(u.id as string, "withdraw_request", src, -debit, `charge ${charge.toFixed(2)}, net ${net.toFixed(2)}`);
   await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "withdrawal", `${u.name} requested withdrawal of ${net.toFixed(2)} USDT`] });
-  // Live proof channel (never blocks the response).
-  void sendProof(withdrawProof({
+  // Live proof channel: awaited (serverless freezes background work after
+  // response, so fire-and-forget would silently die). Fails safe internally.
+  const proofSent = await sendProof(withdrawProof({
     name: String((u as unknown as { name: string }).name || "Member"),
     code: String((u as unknown as { referral_code: string }).referral_code || ""),
     email: String((u as unknown as { email: string }).email || ""),
     amount: amt, net, wallet: address,
-  })).catch(() => {});
+  }));
+  if (!proofSent) console.warn("telegram withdraw proof not sent");
   return NextResponse.json({ ok: true, debit, charge, net });
   } catch {
     return NextResponse.json({ ok: false, error: "Server hiccup. Please retry.", transient: true }, { status: 503 });

@@ -52,12 +52,14 @@ export async function POST(req: NextRequest) {
     args: [uid("D"), u.id as string, request_id, requested, amt, tx_hash, screenshot_url, "pending"],
   });
   await logLedger(u.id as string, "deposit_request", "", amt, request_id);
-  // Live proof channel (never blocks the response).
-  void sendProof(depositProof({
+  // Live proof channel: awaited (serverless freezes background work after
+  // response, so fire-and-forget would silently die). Fails safe internally.
+  const proofSent = await sendProof(depositProof({
     name: String((u as unknown as { name: string }).name || "Member"),
     code: String((u as unknown as { referral_code: string }).referral_code || ""),
     email: String((u as unknown as { email: string }).email || ""),
     amount: amt, tx: tx_hash,
-  })).catch(() => {});
+  }));
+  if (!proofSent) console.warn("telegram deposit proof not sent");
   return NextResponse.json({ ok: true, request_id, pending: true });
 }
