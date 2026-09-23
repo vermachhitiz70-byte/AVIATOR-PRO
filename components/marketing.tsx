@@ -48,7 +48,7 @@ const SLIDES = [
   },
   {
     id: "bots",
-    eyebrow: "CONSERVATIVE · BALANCED · AGGRESSIVE",
+    eyebrow: "3%-10% DAILY · 5X CAP · 365 DAYS",
     titleA: "BOT PLANS",
     titleB: "DAILY PROFITS",
     accent: "gold",
