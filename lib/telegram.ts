@@ -66,6 +66,15 @@ export async function sendProof(text: string): Promise<boolean> {
   }
 }
 
+export function registerProof(o: { name: string; code: string; email: string }): string {
+  return [
+    "Aviator New Registration",
+    `User: ${o.name} (${o.code})`,
+    `Email: ${maskEmail(o.email)}`,
+    `Time: ${istNow()}`,
+  ].join("\n");
+}
+
 export function depositProof(o: { name: string; code: string; email: string; amount: number; tx: string }): string {
   return [
     "Aviator Deposit Request",

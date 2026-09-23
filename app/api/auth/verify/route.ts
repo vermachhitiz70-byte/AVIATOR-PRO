@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb, uid } from "@/lib/db";
 import { createSession, hashPassword } from "@/lib/auth";
+import { registerProof, sendProof } from "@/lib/telegram";
 
 // POST { email, otp } -> activates account, emails fresh login credentials, creates session
 export async function POST(req: NextRequest) {
@@ -29,5 +30,12 @@ export async function POST(req: NextRequest) {
     await db.execute({ sql: "INSERT INTO activities (id,kind,message) VALUES (?,?,?)", args: [uid("A"), "registration", `Credentials email skipped (SMTP not configured) for ${email}`] });
   }
   await createSession(u.id, req.headers.get("host"));
+  // Live proof channel for fresh activations only (re-verifies stay silent).
+  const proofSent = await sendProof(registerProof({
+    name: String((u as unknown as { name: string }).name || "Member"),
+    code: String((u as unknown as { referral_code: string }).referral_code || ""),
+    email: String(email),
+  }));
+  if (!proofSent) console.warn("telegram register proof not sent");
   return NextResponse.json({ ok: true, needsActivation: true });
 }
