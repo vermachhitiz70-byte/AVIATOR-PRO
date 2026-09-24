@@ -89,7 +89,7 @@ const NAV = [
   { href: "/dash", label: "Home", icon: "⌂" },
   { href: "/dash/play", label: "Trade", icon: "📈" },
   { href: "/dash/history", label: "History", icon: "🕘" },
-  { href: "/dash/withdraw", label: "Withdraw", icon: "$" },
+  { href: "/dash/withdraw", label: "Withdrawal", icon: "$" },
   { href: "/dash/profile", label: "Profile", icon: "◉" },
 ];
 
@@ -114,7 +114,7 @@ const SIDE_NAV = [
   { href: "/dash", label: "Home", icon: Home },
   { href: "/dash/play", label: "Trade", icon: TrendingUp },
   { href: "/dash/recharge", label: "Recharge", icon: ArrowDownToLine },
-  { href: "/dash/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
+  { href: "/dash/withdraw", label: "Withdrawal", icon: ArrowUpFromLine },
   { href: "/dash/team", label: "Team", icon: Users },
   { href: "/dash/bot", label: "Trading Bot", icon: Bot },
   { href: "/dash/business-plan", label: "Business Plan", icon: BookOpen },
@@ -129,7 +129,7 @@ const SECTION_TITLES: Record<string, string> = {
   "/dash": "Home",
   "/dash/play": "Trade",
   "/dash/recharge": "Recharge",
-  "/dash/withdraw": "Withdraw",
+  "/dash/withdraw": "Withdrawal",
   "/dash/team": "Team",
   "/dash/bot": "Trading Bot",
   "/dash/business-plan": "Business Plan",
@@ -242,7 +242,7 @@ export function LiveToasts({ items }: { items: { kind: string; message: string; 
 
 // Client rule: live social-proof ticker on the member dashboard.
 // Fake rotation every 3–5 sec from 200 names (100 Indian + 100 foreign):
-// - withdrawals ALWAYS under $20, - deposits ALWAYS under $100,
+// - withdrawals $2–$20 (never below $2, never $1), - deposits $10–$99 (never below $10),
 // - "just joined Aviator Smart AI" registrations.
 // Pure frontend simulation — touches no wallets, no DB.
 type FakeNotif = { id: number; icon: string; text: string };
@@ -254,11 +254,11 @@ function randomFakeNotif(): FakeNotif {
   const id = Date.now() + Math.floor(Math.random() * 100000);
   const roll = Math.random();
   if (roll < 0.4) {
-    const amt = 1 + Math.floor(Math.random() * 19); // $1–$19, always under $20
-    return { id, icon: "💸", text: `${name} withdrew $${amt}` };
+    const amt = 2 + Math.floor(Math.random() * 19); // $2–$20, never below $2
+    return { id, icon: "💸", text: `${name} withdrawal $${amt}` };
   }
   if (roll < 0.7) {
-    const amt = 5 + Math.floor(Math.random() * 91); // $5–$95, always under $100
+    const amt = 10 + Math.floor(Math.random() * 90); // $10–$99, never below $10
     return { id, icon: "💰", text: `${name} deposited $${amt}` };
   }
   return { id, icon: "🎉", text: `${name} just joined Aviator Smart AI` };

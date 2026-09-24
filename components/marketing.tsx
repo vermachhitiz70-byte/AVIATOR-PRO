@@ -264,7 +264,7 @@ export function PayoutTicker() {
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-yellow-500 text-sm font-black">{n[0]}</span>
               <span className="text-sm font-bold">{n}</span>
               <span className="text-sm font-black text-emerald-300">+{a}</span>
-              <span className="text-[11px] uppercase tracking-wider text-slate-400">withdrawn</span>
+              <span className="text-[11px] uppercase tracking-wider text-slate-400">withdrawal</span>
             </div>
           ))}
         </div>

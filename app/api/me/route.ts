@@ -29,7 +29,11 @@ export async function GET() {
     capBots.push({ ...r, cap: Math.round(cap * 100) / 100, capUsed: Math.round(used * 100) / 100, capLeft: Math.max(0, Math.round((cap - used) * 100) / 100) });
   }
   const bots = await db.execute({ sql: "SELECT COUNT(*) as c, COALESCE(SUM(amount),0) as t FROM bots WHERE user_id=? AND status='active'", args: [uid] });
-  const inv = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [uid] });
+  // Client rule: Deposit Wallet (principal) = approved recharges minus bot activations.
+  // Total Investment = amount currently locked in bots (active + capped), NOT lifetime deposits.
+  // Example: $300 deposit → principal $300; $100 bot → principal $200, totalInvestment $100.
+  const invBot = await db.execute({ sql: "SELECT COALESCE(SUM(amount),0) as t FROM bots WHERE user_id=? AND status IN ('active','capped')", args: [uid] });
+  const invDep = await db.execute({ sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed'", args: [uid] });
   const wd = await db.execute({ sql: "SELECT COALESCE(SUM(net),0) as t FROM withdrawals WHERE user_id=? AND status IN ('pending','approved')", args: [uid] });
   const today = new Date().toISOString().slice(0, 10);
   const earn = await db.execute({ sql: "SELECT COALESCE(SUM(amount),0) as t FROM ledger WHERE user_id=? AND kind IN ('daily_roi','roi_level','first_recharge','reward','game_profit','game_loss') AND substr(created_at,1,10)=?", args: [uid, today] });
@@ -50,7 +54,8 @@ export async function GET() {
     bots: capBots,
     activeBots: Number(bAgg.c),
     activeInvestment: Number(bAgg.t),
-    totalInvestment: Number((inv.rows[0] as unknown as { t: number }).t),
+    totalInvestment: Number((invBot.rows[0] as unknown as { t: number }).t),
+    totalDeposits: Number((invDep.rows[0] as unknown as { t: number }).t),
     totalWithdrawal: Number((wd.rows[0] as unknown as { t: number }).t),
     todayEarnings: Number((earn.rows[0] as unknown as { t: number }).t),
     direct: counts.direct,

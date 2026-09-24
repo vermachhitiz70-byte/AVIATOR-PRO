@@ -127,6 +127,68 @@ export async function directBusiness(userId: string): Promise<{ self: number; di
   return { self, direct: Number((d.rows[0] as unknown as { t: number }).t ?? 0) };
 }
 
+// Client rule: dashboard Self/Team/Business strip resets daily at 5:00 AM IST.
+// Business day = 5:00 AM IST to next day 5:00 AM IST. Self = own confirmed
+// deposits today, Team = full downline confirmed deposits today, Total = sum.
+// Returns UTC boundary string for SQLite comparison + IST business date.
+export function istBusinessDay(now = new Date()): { sinceUTC: string; businessDate: string } {
+  const IST_MS = 5.5 * 3600 * 1000;
+  const istNow = new Date(now.getTime() + IST_MS);
+  const istHour = istNow.getUTCHours();
+  // Business date in IST (YYYY-MM-DD). Before 5 AM IST, still previous day.
+  let bDate = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate()));
+  if (istHour < 5) bDate = new Date(bDate.getTime() - 86400000);
+  const by = bDate.getUTCFullYear();
+  const bm = String(bDate.getUTCMonth() + 1).padStart(2, "0");
+  const bd = String(bDate.getUTCDate()).padStart(2, "0");
+  const businessDate = `${by}-${bm}-${bd}`;
+  // 5:00 AM IST on businessDate = UTC(businessDate 05:00) - 5:30
+  const boundaryMs = Date.UTC(by, bDate.getUTCMonth(), bDate.getUTCDate(), 5, 0, 0) - IST_MS;
+  const sinceUTC = new Date(boundaryMs).toISOString().slice(0, 19).replace("T", " ");
+  return { sinceUTC, businessDate };
+}
+
+export async function dailyBusiness(userId: string, now = new Date()): Promise<{ self: number; team: number; total: number; sinceUTC: string; businessDate: string }> {
+  const db = getDb();
+  const { sinceUTC, businessDate } = istBusinessDay(now);
+  const s = await db.execute({
+    sql: "SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id=? AND status='confirmed' AND datetime(created_at)>=datetime(?)",
+    args: [userId, sinceUTC],
+  });
+  const self = Number((s.rows[0] as unknown as { t: number }).t ?? 0);
+  const me = await db.execute({ sql: "SELECT referral_code FROM users WHERE id=?", args: [userId] });
+  const myCode = (me.rows[0] as unknown as { referral_code: string } | undefined)?.referral_code;
+  if (!myCode) return { self, team: 0, total: self, sinceUTC, businessDate };
+  // BFS downline ids (codes walk, same as teamBusiness)
+  const ids: string[] = [];
+  let queue = [myCode];
+  const seen = new Set<string>([myCode]);
+  for (let depth = 0; depth < 12 && queue.length; depth++) {
+    const placeholders = queue.map(() => "?").join(",");
+    const kids = await db.execute({ sql: `SELECT id,referral_code FROM users WHERE referred_by IN (${placeholders})`, args: queue });
+    queue = [];
+    for (const k of kids.rows) {
+      const row = k as unknown as { id: string; referral_code: string };
+      if (!row.referral_code || seen.has(row.referral_code)) continue;
+      seen.add(row.referral_code);
+      queue.push(row.referral_code);
+      ids.push(row.id);
+      if (seen.size > 5000) break;
+    }
+    if (seen.size > 5000) break;
+  }
+  let team = 0;
+  if (ids.length) {
+    const ph = ids.map(() => "?").join(",");
+    const t = await db.execute({
+      sql: `SELECT COALESCE(SUM(actual),0) as t FROM deposits WHERE user_id IN (${ph}) AND status='confirmed' AND datetime(created_at)>=datetime(?)`,
+      args: [...ids, sinceUTC],
+    });
+    team = Number((t.rows[0] as unknown as { t: number }).t ?? 0);
+  }
+  return { self, team, total: self + team, sinceUTC, businessDate };
+}
+
 // Client capping rule: ROI + Rewards + Self-Game earnings ALL count toward the
 // package cap (Direct + Level income stay outside). Rewards and game P&L are
 // per-user, so they count from the bot's start date against that bot's cap.

@@ -7,7 +7,7 @@ import { FakeNotifications, LiveToasts } from "@/components/dash";
 const TILES = [
   { href: "/dash/recharge", label: "Recharge", icon: "💰", g: "from-amber-300 to-orange-500" },
   { href: "/dash/play", label: "Trade", icon: "📈", g: "from-emerald-300 to-green-600" },
-  { href: "/dash/withdraw", label: "Withdraw", icon: "💸", g: "from-sky-300 to-blue-600" },
+  { href: "/dash/withdraw", label: "Withdrawal", icon: "💸", g: "from-sky-300 to-blue-600" },
   { href: "/dash/team", label: "Team", icon: "👥", g: "from-violet-300 to-purple-600" },
   { href: "/dash/bot", label: "Trading Bot", icon: "🤖", g: "from-slate-300 to-slate-600" },
   { href: "/dash/business-plan", label: "Business Plan", icon: "📋", g: "from-yellow-200 to-amber-500" },
@@ -210,23 +210,21 @@ export default function DashHome() {
 }
 
 function EarningsStrip() {
-  // Self = L1 directs' confirmed deposits. Team = rest of downline (L2+).
-  // Total = Self + Team. Updates automatically on every confirmed deposit.
+  // Client rule: resets daily at 5:00 AM IST — self = own deposits today,
+  // team = downline deposits today, total = self + team. Zero until work happens.
   const [selfBiz, setSelfBiz] = useState(0);
   const [teamBiz, setTeamBiz] = useState(0);
   useEffect(() => {
-    fetch("/api/team").then((x) => x.json()).then((j) => {
+    fetch("/api/team?daily=1").then((x) => x.json()).then((j) => {
       if (j.ok) {
-        const self = Number(j.direct || 0);
-        const team = Math.max(0, Number(j.team || 0) - self);
-        setSelfBiz(self);
-        setTeamBiz(team);
+        setSelfBiz(Number(j.self || 0));
+        setTeamBiz(Number(j.team || 0));
       }
     }).catch(() => {});
   }, []);
   return (
     <div className="av-card p-3">
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Self and team business</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Self and team business · resets 5 AM daily</p>
       <div className="mt-2 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-1 py-2">
           <p className="text-[10px] font-bold text-red-300">Self business</p>

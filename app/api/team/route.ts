@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, initDb } from "@/lib/db";
 import { currentUser, sessionStatus } from "@/lib/auth";
 import { requireAdmin } from "@/lib/admin";
-import { downlineTree, directBusiness, teamBusiness, teamCounts } from "@/lib/mlm";
+import { downlineTree, directBusiness, teamBusiness, teamCounts, dailyBusiness } from "@/lib/mlm";
 import { EARNING_KINDS } from "@/lib/config";
 
 type TreeNode = { id: string; name: string; referral_code: string; investment: number; earned: number; children: TreeNode[] };
@@ -17,11 +17,18 @@ export async function GET(req: NextRequest) {
   if (!u) return NextResponse.json({ ok: false, transient: true }, { status: 503 });
   try {
   let uid = u.id as string;
-  const q = new URL(req.url).searchParams.get("userId");
+  const params = new URL(req.url).searchParams;
+  const q = params.get("userId");
   if (q && q !== uid) {
     const { error } = await requireAdmin();
     if (error) return error;
     uid = q;
+  }
+  // Client rule: dashboard strip resets daily at 5 AM IST — self = own
+  // deposits today, team = downline deposits today. ?daily=1 serves that.
+  if (params.get("daily") === "1") {
+    const d = await dailyBusiness(uid);
+    return NextResponse.json({ ok: true, daily: true, self: d.self, team: d.team, total: d.total, businessDate: d.businessDate, sinceUTC: d.sinceUTC });
   }
   const db = getDb();
   const [biz, direct, counts, tree] = await Promise.all([teamBusiness(uid), directBusiness(uid), teamCounts(uid), downlineTree(uid, 10)]);
